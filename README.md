@@ -8,14 +8,14 @@ Nepal's first marketplace for premium event professionals — photographers, vid
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | EJS Templates + Bootstrap 5 |
-| Backend | Node.js + Express.js |
-| Database | PostgreSQL |
-| Auth | Passport.js (session-based) |
-| File Uploads | Multer + Cloudinary |
-| Real-time Chat | Socket.io |
+| Layer          | Technology                  |
+| -------------- | --------------------------- |
+| Frontend       | EJS Templates + Bootstrap 5 |
+| Backend        | Node.js + Express.js        |
+| Database       | PostgreSQL                  |
+| Auth           | Passport.js (session-based) |
+| File Uploads   | Multer + Cloudinary         |
+| Real-time Chat | Socket.io                   |
 
 ## Folder Structure
 
@@ -96,14 +96,18 @@ cd project
 npm install
 ```
 
+then
+
 ### 2. Setup PostgreSQL
 
 **Option A — Using pgAdmin4 (Recommended):**
+
 1. Open pgAdmin4 and connect to your server
 2. Open the Query Tool on your target database
 3. Open and run `database/schema.sql` — this creates all 15 tables, enums, indexes, and seed categories
 
 **Option B — Using terminal (if peer auth is configured):**
+
 ```bash
 sudo -u postgres psql -c "CREATE DATABASE eventkraft;"
 sudo -u postgres psql -d eventkraft -f database/schema.sql
@@ -116,6 +120,7 @@ cp .env.example .env
 ```
 
 Edit `.env` with your PostgreSQL credentials:
+
 ```
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_DATABASE_NAME
 SESSION_SECRET=any_random_string_here
@@ -131,21 +136,21 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Database Scripts
 
-| Command | What It Does |
-|---------|-------------|
-| `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers |
-| `npm run db:seed` | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals) |
-| `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch |
+| Command            | What It Does                                                          |
+| ------------------ | --------------------------------------------------------------------- |
+| `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers      |
+| `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals) |
+| `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch                        |
 
 ### Sample Logins (after running seed)
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@eventkraft.com | admin123 |
-| Customer | aarav.sharma@gmail.com | password123 |
-| Customer | sita.thapa@gmail.com | password123 |
-| Worker | ram.photography@gmail.com | password123 |
-| Worker | priya.decor@gmail.com | password123 |
+| Role     | Email                     | Password    |
+| -------- | ------------------------- | ----------- |
+| Admin    | admin@eventkraft.com      | admin123    |
+| Customer | aarav.sharma@gmail.com    | password123 |
+| Customer | sita.thapa@gmail.com      | password123 |
+| Worker   | ram.photography@gmail.com | password123 |
+| Worker   | priya.decor@gmail.com     | password123 |
 
 ## Database Schema Overview
 
@@ -170,19 +175,19 @@ commission_settings (admin-managed)
 
 Each model connects to the PostgreSQL tables via `pg` connection pool and provides:
 
-| Operation | What It Does |
-|-----------|-------------|
-| **CREATE** | `INSERT INTO` with parameterized queries |
-| **READ** | `SELECT` with `JOIN` across related tables (e.g., booking → customer + worker + gig + job) |
-| **UPDATE** | `COALESCE`-based partial updates (only changes specified fields) |
-| **DELETE** | Hard delete + soft delete options |
-| **SEARCH** | Dynamic `WHERE` clauses with `ILIKE` for text search |
-| **STATS** | Aggregation queries (`COUNT`, `SUM`, `AVG`, `FILTER`) for dashboards |
+| Operation  | What It Does                                                                               |
+| ---------- | ------------------------------------------------------------------------------------------ |
+| **CREATE** | `INSERT INTO` with parameterized queries                                                   |
+| **READ**   | `SELECT` with `JOIN` across related tables (e.g., booking → customer + worker + gig + job) |
+| **UPDATE** | `COALESCE`-based partial updates (only changes specified fields)                           |
+| **DELETE** | Hard delete + soft delete options                                                          |
+| **SEARCH** | Dynamic `WHERE` clauses with `ILIKE` for text search                                       |
+| **STATS**  | Aggregation queries (`COUNT`, `SUM`, `AVG`, `FILTER`) for dashboards                       |
 
 ## User Roles
 
-| Role | Access |
-|------|--------|
+| Role         | Access                                                  |
+| ------------ | ------------------------------------------------------- |
 | **Customer** | Post jobs, browse services, book workers, leave reviews |
-| **Worker** | Create service gigs, submit proposals, manage bookings |
-| **Admin** | Manage users, resolve disputes, configure commissions |
+| **Worker**   | Create service gigs, submit proposals, manage bookings  |
+| **Admin**    | Manage users, resolve disputes, configure commissions   |
