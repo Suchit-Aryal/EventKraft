@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <h2>Welcome, Customer!</h2>
+        <p class="text-muted">Manage your job postings and bookings from here.</p>
+        <div class="row g-4 mt-3">
+            <div class="col-md-4"><a href="/jobs/create" class="btn btn-primary w-100 py-3"><i
+                        class="bi bi-plus-circle"></i> Post a Job</a></div>
+            <div class="col-md-4"><a href="/gigs" class="btn btn-outline-primary w-100 py-3"><i
+                        class="bi bi-search"></i> Browse Services</a></div>
+            <div class="col-md-4"><a href="/bookings" class="btn btn-outline-primary w-100 py-3"><i
+                        class="bi bi-calendar-check"></i> My Bookings</a></div>
+        </div>
+    </div>
+    <%- include('../partials/tail') %>

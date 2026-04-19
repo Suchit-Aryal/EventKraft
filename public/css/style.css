@@ -1,0 +1,39 @@
+/* ============================================================
+   EventKraft — Custom Styles
+   Built on top of Bootstrap 5
+   ============================================================ */
+
+/* Smooth scroll */
+html { scroll-behavior: smooth; }
+
+/* Body */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Keep footer at bottom */
+footer { margin-top: auto; }
+
+/* Hero section */
+.hero-section {
+    background-size: cover;
+    background-position: center;
+}
+
+/* Card hover effect */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Badge styles */
+.badge { font-weight: 500; }
+
+/* Navbar brand */
+.navbar-brand i { color: #ffc107; }

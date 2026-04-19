@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+
+    <div class="container py-5" style="max-width: 600px;">
+        <h2 class="text-center mb-4">Create Your Account</h2>
+
+        <form action="/auth/register" method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="last_name" class="form-label">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone (optional)</label>
+                <input type="tel" class="form-control" id="phone" name="phone">
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" minlength="6" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="6"
+                    required>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">I am registering as:</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="role" id="roleCustomer" value="customer"
+                            checked>
+                        <label class="form-check-label" for="roleCustomer">Customer (looking for services)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="role" id="roleWorker" value="worker">
+                        <label class="form-check-label" for="roleWorker">Worker (providing services)</label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+        </form>
+
+        <p class="text-center mt-3">
+            Already have an account? <a href="/auth/login">Login here</a>
+        </p>
+    </div>
+
+    <%- include('../partials/tail') %>

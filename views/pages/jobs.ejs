@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <h2>Browse Jobs</h2>
+        <p class="text-muted">Find event projects that need your skills.</p>
+        <div class="row g-4 mt-3">
+            <% if (jobs && jobs.length> 0) { %>
+                <% jobs.forEach(job=> { %>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <%= job.title %>
+                                </h5>
+                                <span class="badge bg-secondary mb-2">
+                                    <%= job.category_name || 'Uncategorized' %>
+                                </span>
+                                <p class="card-text text-muted">
+                                    <%= job.description ? job.description.substring(0, 150) + '...' : '' %>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-success fw-bold">NPR <%= job.budget_min %> — <%= job.budget_max %>
+                                                </span>
+                                    <a href="/jobs/<%= job.id %>" class="btn btn-sm btn-outline-primary">View
+                                        Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+                        <% } else { %>
+                            <div class="col-12 text-center text-muted">
+                                <p>No jobs posted yet. Check back later!</p>
+                            </div>
+                            <% } %>
+        </div>
+    </div>
+    <%- include('../partials/tail') %>

@@ -1,0 +1,42 @@
+{
+    "name": "eventkraft",
+    "version": "1.0.0",
+    "description": "EventKraft — Premium Event Services Marketplace for Nepal",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js",
+        "db:setup": "node database/setup.js",
+        "db:seed": "node database/seed.js",
+        "db:reset": "node database/reset.js"
+    },
+    "keywords": [
+        "marketplace",
+        "events",
+        "wedding",
+        "nepal",
+        "eventkraft"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^5.1.1",
+        "cloudinary": "^1.41.0",
+        "connect-pg-simple": "^9.0.1",
+        "cookie-parser": "^1.4.6",
+        "dotenv": "^16.4.5",
+        "ejs": "^3.1.10",
+        "express": "^4.21.0",
+        "express-flash": "^0.0.2",
+        "express-session": "^1.18.0",
+        "method-override": "^3.0.0",
+        "multer": "^1.4.5-lts.1",
+        "passport": "^0.7.0",
+        "passport-local": "^1.0.0",
+        "pg": "^8.12.0",
+        "socket.io": "^4.7.5"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.4"
+    }
+}

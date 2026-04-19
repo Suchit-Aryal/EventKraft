@@ -1,0 +1,21 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <h2>Messages</h2>
+        <% if (conversations && conversations.length> 0) { %>
+            <div class="list-group mt-3">
+                <% conversations.forEach(c=> { %>
+                    <a href="/messages/<%= c.id %>" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between">
+                            <strong>Conversation #<%= c.id.substring(0,8) %></strong>
+                            <small class="text-muted">
+                                <%= c.last_message_at || 'No messages' %>
+                            </small>
+                        </div>
+                    </a>
+                    <% }) %>
+            </div>
+            <% } else { %>
+                <p class="text-muted mt-3">No conversations yet.</p>
+                <% } %>
+    </div>
+    <%- include('../partials/tail') %>
