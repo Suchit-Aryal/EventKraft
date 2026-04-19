@@ -96,7 +96,7 @@ cd project
 npm install
 ```
 
-then
+then Now again
 
 ### 2. Setup PostgreSQL
 
