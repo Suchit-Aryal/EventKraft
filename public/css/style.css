@@ -4,7 +4,9 @@
    ============================================================ */
 
 /* Smooth scroll */
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+}
 
 /* Body */
 body {
@@ -12,10 +14,13 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #f8f9fa;
 }
 
 /* Keep footer at bottom */
-footer { margin-top: auto; }
+footer {
+    margin-top: auto;
+}
 
 /* Hero section */
 .hero-section {
@@ -26,14 +31,360 @@ footer { margin-top: auto; }
 /* Card hover effect */
 .card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    border-radius: 12px;
 }
+
 .card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
 }
 
 /* Badge styles */
-.badge { font-weight: 500; }
+.badge {
+    font-weight: 500;
+}
 
 /* Navbar brand */
-.navbar-brand i { color: #ffc107; }
+.navbar-brand i {
+    color: #ffc107;
+}
+
+/* ============================================================
+   CRM Dashboard Styles
+   ============================================================ */
+
+/* Stat Cards */
+.stat-card {
+    border-radius: 14px;
+    border: none;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.stat-card .stat-label {
+    font-size: 0.82rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* Color variants */
+.stat-icon.bg-blue {
+    background: rgba(13, 110, 253, 0.12);
+    color: #0d6efd;
+}
+
+.stat-icon.bg-green {
+    background: rgba(25, 135, 84, 0.12);
+    color: #198754;
+}
+
+.stat-icon.bg-orange {
+    background: rgba(255, 193, 7, 0.15);
+    color: #d4a017;
+}
+
+.stat-icon.bg-purple {
+    background: rgba(111, 66, 193, 0.12);
+    color: #6f42c1;
+}
+
+.stat-icon.bg-red {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+.stat-icon.bg-cyan {
+    background: rgba(13, 202, 240, 0.12);
+    color: #0dcaf0;
+}
+
+/* Dashboard section headers */
+.dash-section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-section-title i {
+    font-size: 1.2rem;
+}
+
+/* Dashboard Tables */
+.crm-table {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.crm-table .table {
+    margin-bottom: 0;
+}
+
+.crm-table .table thead th {
+    background-color: #f1f3f5;
+    border: none;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    padding: 12px 16px;
+}
+
+.crm-table .table tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    border-color: #f1f3f5;
+}
+
+.crm-table .table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.crm-table .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status badges */
+.badge-status {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.badge-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-active {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-published {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-in_progress {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.badge-completed {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-accepted {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-cancelled {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.badge-declined {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.badge-disputed {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.badge-open {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.badge-under_review {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.badge-resolved {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.badge-draft {
+    background: #e2e3e5;
+    color: #41464b;
+}
+
+.badge-shortlisted {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.badge-withdrawn {
+    background: #e2e3e5;
+    color: #41464b;
+}
+
+.badge-paused {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Tab navigation */
+.nav-pills-crm .nav-link {
+    border-radius: 10px;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+}
+
+.nav-pills-crm .nav-link.active {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.nav-pills-crm .nav-link:not(.active):hover {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+/* Rating stars */
+.stars {
+    color: #ffc107;
+    letter-spacing: 2px;
+}
+
+.stars-empty {
+    color: #dee2e6;
+}
+
+/* Dashboard greeting */
+.dash-greeting {
+    padding: 24px 0;
+}
+
+.dash-greeting h2 {
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0;
+}
+
+.dash-greeting p {
+    color: #6c757d;
+    margin: 4px 0 0 0;
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+    background: #1a1a2e;
+    min-height: calc(100vh - 66px);
+    padding: 20px 0;
+}
+
+.admin-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 10px 24px;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: #ffc107;
+}
+
+.admin-sidebar .nav-link i {
+    width: 24px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+.admin-sidebar .sidebar-header {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 24px 6px;
+    font-weight: 600;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #adb5bd;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+}
+
+/* Quick action cards */
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    background: #fff;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.12);
+    color: inherit;
+    transform: translateY(-2px);
+}
+
+.quick-action .qa-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}

@@ -1,45 +1,214 @@
 <%- include('../partials/header') %>
-    <div class="container py-5">
-        <h2>Admin Dashboard</h2>
-        <div class="row g-4 mt-3">
-            <div class="col-md-3">
-                <div class="card text-center p-3 shadow-sm">
-                    <h3 class="text-primary">
-                        <%= stats.totalUsers %>
-                    </h3>
-                    <p class="text-muted mb-0">Users</p>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Admin Sidebar -->
+            <div class="col-md-2 admin-sidebar d-none d-md-block">
+                <div class="sidebar-header">Main</div>
+                <a href="/admin" class="nav-link active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                <a href="/admin/users" class="nav-link"><i class="bi bi-people"></i> Users</a>
+                <a href="/admin/bookings" class="nav-link"><i class="bi bi-calendar-check"></i> Bookings</a>
+
+                <div class="sidebar-header">Management</div>
+                <a href="/admin/disputes" class="nav-link"><i class="bi bi-exclamation-triangle"></i> Disputes <% if
+                        (parseInt(stats.disputes.open)> 0) { %><span class="badge bg-danger ms-1">
+                            <%= stats.disputes.open %>
+                        </span>
+                        <% } %></a>
+                <a href="/admin/commissions" class="nav-link"><i class="bi bi-percent"></i> Commissions</a>
+
+                <div class="sidebar-header">Account</div>
+                <a href="/auth/logout" class="nav-link"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 p-4">
+                <div class="dash-greeting">
+                    <h2><i class="bi bi-shield-lock text-primary"></i> Admin Dashboard</h2>
+                    <p>Platform overview and management.</p>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-blue mb-2"><i class="bi bi-people"></i></div>
+                            <div class="stat-value">
+                                <%= stats.users.total %>
+                            </div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-purple mb-2"><i class="bi bi-person-workspace"></i></div>
+                            <div class="stat-value">
+                                <%= stats.users.workers %>
+                            </div>
+                            <div class="stat-label">Workers</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-cyan mb-2"><i class="bi bi-person"></i></div>
+                            <div class="stat-value">
+                                <%= stats.users.customers %>
+                            </div>
+                            <div class="stat-label">Customers</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-green mb-2"><i class="bi bi-calendar-check"></i></div>
+                            <div class="stat-value">
+                                <%= stats.bookings.total %>
+                            </div>
+                            <div class="stat-label">Bookings</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-green mb-2"><i class="bi bi-currency-exchange"></i></div>
+                            <div class="stat-value">NPR <%= Number(stats.bookings.revenue).toLocaleString() %>
+                            </div>
+                            <div class="stat-label">Revenue</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-2">
+                        <div class="stat-card p-3">
+                            <div class="stat-icon bg-red mb-2"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="stat-value">
+                                <%= stats.disputes.open %>
+                            </div>
+                            <div class="stat-label">Open Disputes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Stats -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card p-3 text-center">
+                            <div class="stat-value text-primary">
+                                <%= stats.jobs.active %>
+                            </div>
+                            <div class="stat-label">Active Jobs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card p-3 text-center">
+                            <div class="stat-value text-primary">
+                                <%= stats.gigs.active %>
+                            </div>
+                            <div class="stat-label">Active Gigs</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card p-3 text-center">
+                            <div class="stat-value text-warning">
+                                <%= stats.bookings.pending %>
+                            </div>
+                            <div class="stat-label">Pending Bookings</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card p-3 text-center">
+                            <div class="stat-value text-success">NPR <%=
+                                    Number(stats.bookings.commission).toLocaleString() %>
+                            </div>
+                            <div class="stat-label">Commission Earned</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Recent Bookings -->
+                    <div class="col-md-7">
+                        <div class="dash-section-title"><i class="bi bi-clock-history"></i> Recent Bookings</div>
+                        <% if (recentBookings.length> 0) { %>
+                            <div class="crm-table bg-white">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Customer</th>
+                                            <th>Worker</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% recentBookings.forEach(b=> { %>
+                                            <tr>
+                                                <td>
+                                                    <%= b.customer_name || '—' %>
+                                                </td>
+                                                <td>
+                                                    <%= b.worker_name || '—' %>
+                                                </td>
+                                                <td>NPR <%= Number(b.total_amount).toLocaleString() %>
+                                                </td>
+                                                <td><span class="badge-status badge-<%= b.status %>">
+                                                        <%= b.status %>
+                                                    </span></td>
+                                                <td>
+                                                    <%= new Date(b.created_at).toLocaleDateString() %>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } else { %>
+                                <div class="empty-state"><i class="bi bi-calendar"></i>
+                                    <p>No bookings yet.</p>
+                                </div>
+                                <% } %>
+                    </div>
+
+                    <!-- Recent Users -->
+                    <div class="col-md-5">
+                        <div class="dash-section-title"><i class="bi bi-person-plus"></i> Recent Users</div>
+                        <% if (recentUsers.length> 0) { %>
+                            <div class="crm-table bg-white">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% recentUsers.forEach(u=> { %>
+                                            <tr>
+                                                <td><strong>
+                                                        <%= u.first_name || '' %>
+                                                            <%= u.last_name || '' %>
+                                                    </strong><br><small class="text-muted">
+                                                        <%= u.email %>
+                                                    </small></td>
+                                                <td><span
+                                                        class="badge bg-<%= u.role === 'admin' ? 'danger' : u.role === 'worker' ? 'primary' : 'info' %>">
+                                                        <%= u.role %>
+                                                    </span></td>
+                                                <td>
+                                                    <%= new Date(u.created_at).toLocaleDateString() %>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <% } else { %>
+                                <div class="empty-state"><i class="bi bi-people"></i>
+                                    <p>No users yet.</p>
+                                </div>
+                                <% } %>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3 shadow-sm">
-                    <h3 class="text-primary">
-                        <%= stats.totalJobs %>
-                    </h3>
-                    <p class="text-muted mb-0">Job Postings</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3 shadow-sm">
-                    <h3 class="text-primary">
-                        <%= stats.totalGigs %>
-                    </h3>
-                    <p class="text-muted mb-0">Service Gigs</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3 shadow-sm">
-                    <h3 class="text-warning">
-                        <%= stats.openDisputes %>
-                    </h3>
-                    <p class="text-muted mb-0">Open Disputes</p>
-                </div>
-            </div>
-        </div>
-        <div class="row g-3 mt-4">
-            <div class="col-md-4"><a href="/admin/users" class="btn btn-outline-dark w-100">Manage Users</a></div>
-            <div class="col-md-4"><a href="/admin/disputes" class="btn btn-outline-dark w-100">View Disputes</a></div>
-            <div class="col-md-4"><a href="/admin/commissions" class="btn btn-outline-dark w-100">Commission
-                    Settings</a></div>
         </div>
     </div>
+
     <%- include('../partials/tail') %>
