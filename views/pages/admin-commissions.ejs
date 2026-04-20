@@ -1,0 +1,95 @@
+<%- include('../partials/header') %>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar d-none d-md-block">
+                <div class="sidebar-header">Main</div>
+                <a href="/admin" class="nav-link"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                <a href="/admin/users" class="nav-link"><i class="bi bi-people"></i> Users</a>
+                <a href="/admin/bookings" class="nav-link"><i class="bi bi-calendar-check"></i> Bookings</a>
+                <div class="sidebar-header">Management</div>
+                <a href="/admin/disputes" class="nav-link"><i class="bi bi-exclamation-triangle"></i> Disputes</a>
+                <a href="/admin/commissions" class="nav-link active"><i class="bi bi-percent"></i> Commissions</a>
+                <div class="sidebar-header">Account</div>
+                <a href="/auth/logout" class="nav-link"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </div>
+
+            <!-- Main -->
+            <div class="col-md-10 p-4">
+                <div class="mb-4">
+                    <h3 class="fw-bold mb-0"><i class="bi bi-percent text-success"></i> Commission Settings</h3>
+                    <p class="text-muted">Configure commission rates by booking amount tier.</p>
+                </div>
+
+                <div class="crm-table bg-white">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tier</th>
+                                <th>Min Amount</th>
+                                <th>Max Amount</th>
+                                <th>Rate</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% commissions.forEach(c=> { %>
+                                <tr>
+                                    <td><strong>
+                                            <%= c.tier_name %>
+                                        </strong></td>
+                                    <td>NPR <%= Number(c.min_amount).toLocaleString() %>
+                                    </td>
+                                    <td>
+                                        <%= c.max_amount ? 'NPR ' + Number(c.max_amount).toLocaleString() : 'No limit'
+                                            %>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/commissions/<%= c.id %>?_method=PUT" method="POST"
+                                            class="d-flex gap-2 align-items-center">
+                                            <input type="number" name="rate" value="<%= c.rate %>" step="0.5" min="0"
+                                                max="50" class="form-control form-control-sm" style="width: 80px">
+                                            <span>%</span>
+                                            <input type="hidden" name="is_active" value="<%= c.is_active %>">
+                                            <button class="btn btn-sm btn-outline-primary"><i
+                                                    class="bi bi-check"></i></button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <% if (c.is_active) { %>
+                                            <span class="badge-status badge-active">Active</span>
+                                            <% } else { %>
+                                                <span class="badge-status badge-cancelled">Inactive</span>
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <form action="/admin/commissions/<%= c.id %>?_method=PUT" method="POST"
+                                            class="d-inline">
+                                            <input type="hidden" name="rate" value="<%= c.rate %>">
+                                            <input type="hidden" name="is_active" value="<%= !c.is_active %>">
+                                            <button
+                                                class="btn btn-sm btn-outline-<%= c.is_active ? 'danger' : 'success' %>">
+                                                <%= c.is_active ? 'Disable' : 'Enable' %>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card p-4 mt-4">
+                    <h6><i class="bi bi-info-circle text-primary"></i> How Commissions Work</h6>
+                    <p class="text-muted mb-0">When a booking is created, the system looks up the commission rate based
+                        on the booking's total amount. The rate is applied to calculate the platform's commission and
+                        the worker's earning. For example: a NPR 50,000 booking with a 7% rate → NPR 3,500 commission,
+                        NPR 46,500 worker earning.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/tail') %>
