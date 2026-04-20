@@ -87,7 +87,10 @@ project/
     └── reset.js                    # Drops everything and recreates from scratch
 ```
 
-## Getting Started
+## 🚀 Team Setup (after `git clone`)
+
+> **Every teammate follows these steps on their own machine.**
+> The database is hosted on **Supabase** (cloud PostgreSQL) — everyone shares the same data.
 
 ### 1. Install dependencies
 
@@ -96,37 +99,15 @@ cd project
 npm install
 ```
 
-then Now again man
-
-### 2. Setup PostgreSQL
-
-**Option A — Using pgAdmin4 (Recommended):**
-
-1. Open pgAdmin4 and connect to your server
-2. Open the Query Tool on your target database
-3. Open and run `database/schema.sql` — this creates all 15 tables, enums, indexes, and seed categories
-
-**Option B — Using terminal (if peer auth is configured):**
-
-```bash
-sudo -u postgres psql -c "CREATE DATABASE eventkraft;"
-sudo -u postgres psql -d eventkraft -f database/schema.sql
-```
-
-### 3. Configure environment
+### 2. Configure environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` with your PostgreSQL credentials:
+Get the **Supabase connection string** from your team lead and paste it as the `DATABASE_URL` in `.env`.
 
-```
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_DATABASE_NAME
-SESSION_SECRET=any_random_string_here
-```
-
-### 4. Run the server
+### 3. Run the server
 
 ```bash
 npm run dev
@@ -138,6 +119,7 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Command            | What It Does                                                          |
 | ------------------ | --------------------------------------------------------------------- |
+| `npm run db:init`  | 🆕 Runs setup + seed in one command (recommended for first-time setup) |
 | `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers      |
 | `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals) |
 | `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch                        |
