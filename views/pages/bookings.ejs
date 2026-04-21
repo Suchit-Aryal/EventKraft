@@ -16,7 +16,7 @@
                     <% bookings.forEach(b=> { %>
                         <tr>
                             <td>
-                                <%= b.id.substring(0,8) %>...
+                                <%= String(b.id).substring(0,8) %>...
                             </td>
                             <td><span class="badge bg-info">
                                     <%= b.status %>
