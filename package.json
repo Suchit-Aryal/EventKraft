@@ -8,7 +8,8 @@
         "dev": "nodemon app.js",
         "db:setup": "node database/setup.js",
         "db:seed": "node database/seed.js",
-        "db:reset": "node database/reset.js"
+        "db:reset": "node database/reset.js",
+        "db:init": "node database/setup.js && node database/seed.js"
     },
     "keywords": [
         "marketplace",
