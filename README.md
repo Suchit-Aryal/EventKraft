@@ -117,12 +117,12 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ## Database Scripts
 
-| Command            | What It Does                                                          |
-| ------------------ | --------------------------------------------------------------------- |
+| Command            | What It Does                                                           |
+| ------------------ | ---------------------------------------------------------------------- |
 | `npm run db:init`  | 🆕 Runs setup + seed in one command (recommended for first-time setup) |
-| `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers      |
-| `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals) |
-| `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch                        |
+| `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers       |
+| `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals)  |
+| `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch                         |
 
 ### Sample Logins (after running seed)
 
