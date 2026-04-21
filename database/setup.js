@@ -22,15 +22,15 @@ async function setup() {
         await pool.query(schemaSql);
         console.log('   ✅ All 15 tables created successfully\n');
 
-        // ── Step 2: Seed commission settings ────────────────
-        console.log('💰 Step 2/3 — Seeding commission tiers...');
-        await seedCommissions();
-        console.log('   ✅ Commission tiers seeded\n');
-
-        // ── Step 3: Create admin account ────────────────────
-        console.log('👤 Step 3/3 — Creating admin account...');
+        // ── Step 2: Create admin account ────────────────────
+        console.log('👤 Step 2/3 — Creating admin account...');
         await createAdmin();
         console.log('   ✅ Admin account created\n');
+
+        // ── Step 3: Seed commission settings ────────────────
+        console.log('💰 Step 3/3 — Seeding commission tiers...');
+        await seedCommissions();
+        console.log('   ✅ Commission tiers seeded\n');
 
         console.log('═══════════════════════════════════════════');
         console.log('✨ Database setup complete!');
