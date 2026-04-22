@@ -1,35 +1,279 @@
 <%- include('../partials/header') %>
     <div class="container py-5">
-        <h2>Browse Services</h2>
+        <h2><i class="bi bi-briefcase"></i> Browse Services</h2>
         <p class="text-muted">Discover premium event service providers.</p>
-        <div class="row g-4 mt-3">
+
+        <!-- Search & Filter Bar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form action="/gigs" method="GET" id="gigSearchForm">
+                    <div class="row g-3 align-items-end">
+                        <!-- Keyword Search -->
+                        <div class="col-md-4">
+                            <label for="keyword" class="form-label small text-muted">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="keyword" name="keyword"
+                                    placeholder="Search services..." value="<%= filters.keyword %>">
+                            </div>
+                        </div>
+                        <!-- Category Filter -->
+                        <div class="col-md-3">
+                            <label for="category_id" class="form-label small text-muted">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">All Categories</option>
+                                <% categories.forEach(cat=> { %>
+                                    <option value="<%= cat.id %>" <%=filters.category_id===String(cat.id) ? 'selected'
+                                        : '' %>><%= cat.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <!-- Price Range -->
+                        <div class="col-md-2">
+                            <label for="minPrice" class="form-label small text-muted">Min Price</label>
+                            <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="0"
+                                min="0" value="<%= filters.minPrice %>">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="maxPrice" class="form-label small text-muted">Max Price</label>
+                            <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="Any"
+                                min="0" value="<%= filters.maxPrice %>">
+                        </div>
+                        <!-- Buttons -->
+                        <div class="col-md-1 d-flex gap-1">
+                            <button type="submit" class="btn btn-primary w-100" title="Search">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Sort + Clear Row -->
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" name="sortBy" onchange="this.form.submit()">
+                                <option value="" <%=filters.sortBy==='' ? 'selected' : '' %>>Sort: Newest First</option>
+                                <option value="price_low" <%=filters.sortBy==='price_low' ? 'selected' : '' %>>Price:
+                                    Low to High</option>
+                                <option value="price_high" <%=filters.sortBy==='price_high' ? 'selected' : '' %>>Price:
+                                    High to Low</option>
+                                <option value="rating" <%=filters.sortBy==='rating' ? 'selected' : '' %>>Highest Rated
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-9 d-flex align-items-center">
+                            <% const hasAnyFilter=filters.keyword || filters.category_id || filters.minPrice ||
+                                filters.maxPrice || filters.sortBy; %>
+                                <% if (hasAnyFilter) { %>
+                                    <a href="/gigs" class="btn btn-link btn-sm text-danger p-0"><i
+                                            class="bi bi-x-circle"></i> Clear Filters</a>
+                                    <span class="text-muted small ms-3">
+                                        <%= gigs.length %> result<%= gigs.length !==1 ? 's' : '' %> found
+                                    </span>
+                                    <% } %>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="row g-4">
             <% if (gigs && gigs.length> 0) { %>
                 <% gigs.forEach(gig=> { %>
                     <div class="col-md-4">
                         <div class="card shadow-sm h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <%= gig.title %>
-                                </h5>
-                                <span class="badge bg-secondary mb-2">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">
+                                        <%= gig.title %>
+                                    </h5>
+                                </div>
+                                <span class="badge bg-secondary mb-2 align-self-start">
                                     <%= gig.category_name || 'Uncategorized' %>
                                 </span>
-                                <p class="card-text text-muted">
+                                <p class="card-text text-muted small flex-grow-1">
                                     <%= gig.description ? gig.description.substring(0, 120) + '...' : '' %>
                                 </p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-success fw-bold">From NPR <%= gig.starting_price %></span>
-                                    <a href="/gigs/<%= gig.id %>" class="btn btn-sm btn-outline-primary">View</a>
-                                </div>
+                                <% if (gig.worker_first_name) { %>
+                                    <div class="d-flex align-items-center gap-2 mb-2 small text-muted">
+                                        <i class="bi bi-person-circle"></i>
+                                        <%= gig.worker_first_name %>
+                                            <%= gig.worker_last_name || '' %>
+                                                <% if (gig.worker_rating && Number(gig.worker_rating)> 0) { %>
+                                                    <span class="ms-auto"><i class="bi bi-star-fill text-warning"></i>
+                                                        <%= gig.worker_rating %>
+                                                    </span>
+                                                    <% } %>
+                                    </div>
+                                    <% } %>
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <span class="text-success fw-bold">From NPR <%=
+                                                    Number(gig.starting_price).toLocaleString() %></span>
+                                            <a href="/gigs/<%= gig.id %>"
+                                                class="btn btn-sm btn-outline-primary">View</a>
+                                        </div>
                             </div>
                         </div>
                     </div>
                     <% }) %>
                         <% } else { %>
-                            <div class="col-12 text-center text-muted">
-                                <p>No services available yet. Check back later!</p>
+                            <div class="col-12 text-center py-5">
+                                <i class="bi bi-search fs-1 text-muted"></i>
+                                <% if (hasAnyFilter) { %>
+                                    <p class="text-muted mt-2">No services match your search. Try different filters.</p>
+                                    <a href="/gigs" class="btn btn-outline-primary btn-sm">Clear All Filters</a>
+                                    <% } else { %>
+                                        <p class="text-muted mt-2">No services available yet. Check back later!</p>
+                                        <% } %>
                             </div>
                             <% } %>
         </div>
     </div>
+
+    <!-- Autocomplete Styles -->
+    <style>
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            display: none;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background .15s;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background: #f0f4ff;
+        }
+
+        .autocomplete-item .item-title {
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        .autocomplete-item .item-meta {
+            font-size: .78rem;
+            color: #6c757d;
+        }
+
+        .autocomplete-item .item-price {
+            color: #198754;
+            font-weight: 600;
+            font-size: .82rem;
+        }
+    </style>
+
+    <!-- Autocomplete Script -->
+    <script>
+        (function () {
+            const input = document.getElementById('keyword');
+            if (!input) return;
+
+            // Wrap input in relative container
+            const wrapper = input.closest('.input-group');
+            wrapper.style.position = 'relative';
+
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            wrapper.parentElement.appendChild(dropdown);
+
+            let debounceTimer;
+            let currentIndex = -1;
+
+            input.addEventListener('input', function () {
+                const q = this.value.trim();
+                clearTimeout(debounceTimer);
+                if (q.length < 2) { dropdown.classList.remove('show'); return; }
+
+                debounceTimer = setTimeout(async () => {
+                    try {
+                        const res = await fetch('/gigs/api/search?q=' + encodeURIComponent(q));
+                        const items = await res.json();
+                        if (items.length === 0) { dropdown.classList.remove('show'); return; }
+
+                        dropdown.innerHTML = items.map(item => `
+                        <div class="autocomplete-item" data-href="/gigs/${item.id}">
+                            <div class="item-title">${escapeHtml(item.title)}</div>
+                            <div class="d-flex justify-content-between">
+                                <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}</span>
+                                <span class="item-price">From NPR ${Number(item.starting_price).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+
+                        currentIndex = -1;
+                        dropdown.classList.add('show');
+
+                        dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+                            el.addEventListener('click', () => window.location.href = el.dataset.href);
+                        });
+                    } catch (e) { dropdown.classList.remove('show'); }
+                }, 250);
+            });
+
+            // Keyboard navigation
+            input.addEventListener('keydown', function (e) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                if (!items.length || !dropdown.classList.contains('show')) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                    updateActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentIndex = Math.max(currentIndex - 1, 0);
+                    updateActive(items);
+                } else if (e.key === 'Enter' && currentIndex >= 0) {
+                    e.preventDefault();
+                    items[currentIndex].click();
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            function updateActive(items) {
+                items.forEach((el, i) => el.classList.toggle('active', i === currentIndex));
+                if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            // Close on outside click
+            document.addEventListener('click', (e) => {
+                if (!wrapper.parentElement.contains(e.target)) dropdown.classList.remove('show');
+            });
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+        })();
+    </script>
     <%- include('../partials/tail') %>
