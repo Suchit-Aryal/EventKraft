@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <h2 class="mb-4"><i class="bi bi-star"></i> Reviews</h2>
+        <% if (reviews && reviews.length> 0) { %>
+            <% reviews.forEach(r=> { %>
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>
+                                    <%= r.reviewer_first_name || 'Anonymous' %>
+                                        <%= r.reviewer_last_name || '' %>
+                                </strong>
+                                <div class="stars">
+                                    <% for(let i=1;i<=5;i++) { %><i
+                                            class="bi bi-star<%= i <= r.rating ? '-fill text-warning' : '' %>"></i>
+                                        <% } %> (<%= r.rating %>/5)
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <%= new Date(r.created_at).toLocaleDateString() %>
+                            </small>
+                        </div>
+                        <p class="mt-2 mb-0">
+                            <%= r.comment || 'No comment' %>
+                        </p>
+                    </div>
+                </div>
+                <% }) %>
+                    <% } else { %>
+                        <div class="text-center text-muted py-5"><i class="bi bi-star fs-1"></i>
+                            <p>No reviews yet.</p>
+                        </div>
+                        <% } %>
+    </div>
+    <%- include('../partials/tail') %>

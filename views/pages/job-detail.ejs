@@ -1,0 +1,93 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <a href="/jobs" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Jobs</a>
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h2 class="mb-0">
+                                <%= job.title %>
+                            </h2>
+                            <span class="badge bg-<%= job.status === 'published' ? 'success' : 'secondary' %> fs-6">
+                                <%= job.status %>
+                            </span>
+                        </div>
+                        <span class="badge bg-secondary mb-3">
+                            <%= job.category_name || 'Uncategorized' %>
+                        </span>
+                        <hr>
+                        <h5>Description</h5>
+                        <p class="text-muted">
+                            <%= job.description %>
+                        </p>
+                        <% if (job.special_requirements) { %>
+                            <h5>Special Requirements</h5>
+                            <p class="text-muted">
+                                <%= job.special_requirements %>
+                            </p>
+                            <% } %>
+                                <hr>
+                                <div class="row g-3">
+                                    <% if (job.event_type) { %>
+                                        <div class="col-sm-6">
+                                            <p class="mb-1 text-muted">Event Type</p>
+                                            <p class="fw-bold">
+                                                <%= job.event_type %>
+                                            </p>
+                                        </div>
+                                        <% } %>
+                                            <div class="col-sm-6">
+                                                <p class="mb-1 text-muted">Event Date</p>
+                                                <p class="fw-bold"><i class="bi bi-calendar3"></i>
+                                                    <%= job.event_date ? new Date(job.event_date).toLocaleDateString()
+                                                        : 'TBD' %>
+                                                </p>
+                                            </div>
+                                            <% if (job.event_location) { %>
+                                                <div class="col-sm-6">
+                                                    <p class="mb-1 text-muted">Location</p>
+                                                    <p class="fw-bold"><i class="bi bi-geo-alt"></i>
+                                                        <%= job.event_location %>
+                                                    </p>
+                                                </div>
+                                                <% } %>
+                                </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="text-muted">Budget Range</h5>
+                        <h3 class="text-success">NPR <%= Number(job.budget_min || 0).toLocaleString() %> — <%=
+                                    Number(job.budget_max || 0).toLocaleString() %>
+                        </h3>
+                        <hr>
+                        <div class="d-flex justify-content-around">
+                            <div><span class="badge bg-primary fs-6">
+                                    <%= job.proposal_count || 0 %>
+                                </span>
+                                <div class="small mt-1">Proposals</div>
+                            </div>
+                            <div><span class="badge bg-secondary fs-6">
+                                    <%= job.max_proposals || 20 %>
+                                </span>
+                                <div class="small mt-1">Max</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <% if (currentUser && currentUser.role==='worker' ) { %>
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h6 class="mb-3">Interested?</h6>
+                            <a href="/messages" class="btn btn-primary w-100"><i class="bi bi-chat-dots"></i> Contact
+                                Client</a>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
+        </div>
+    </div>
+    <%- include('../partials/tail') %>
