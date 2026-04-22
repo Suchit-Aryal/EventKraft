@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar d-none d-md-block">
+                <div class="sidebar-header">Main</div>
+                <a href="/admin" class="nav-link"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                <a href="/admin/users" class="nav-link"><i class="bi bi-people"></i> Users</a>
+                <a href="/admin/bookings" class="nav-link active"><i class="bi bi-calendar-check"></i> Bookings</a>
+                <div class="sidebar-header">Management</div>
+                <a href="/admin/disputes" class="nav-link"><i class="bi bi-exclamation-triangle"></i> Disputes</a>
+                <a href="/admin/commissions" class="nav-link"><i class="bi bi-percent"></i> Commissions</a>
+                <div class="sidebar-header">Account</div>
+                <a href="/auth/logout" class="nav-link"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </div>
+
+            <!-- Main -->
+            <div class="col-md-10 p-4">
+                <div class="mb-4">
+                    <h3 class="fw-bold mb-0"><i class="bi bi-calendar-check"></i> All Bookings</h3>
+                    <p class="text-muted">
+                        <%= bookings.length %> total bookings
+                    </p>
+                </div>
+
+                <% if (bookings.length> 0) { %>
+                    <div class="crm-table bg-white">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Worker</th>
+                                    <th>Amount</th>
+                                    <th>Commission</th>
+                                    <th>Status</th>
+                                    <th>Event Date</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% bookings.forEach(b=> { %>
+                                    <tr>
+                                        <td><small>
+                                                <%= b.id.substring(0,8) %>...
+                                            </small></td>
+                                        <td>
+                                            <%= b.customer_name || '—' %>
+                                        </td>
+                                        <td>
+                                            <%= b.worker_name || '—' %>
+                                        </td>
+                                        <td>NPR <%= Number(b.total_amount).toLocaleString() %>
+                                        </td>
+                                        <td>NPR <%= Number(b.commission_amount || 0).toLocaleString() %> (<%=
+                                                    b.commission_rate || 0 %>%)</td>
+                                        <td><span class="badge-status badge-<%= b.status %>">
+                                                <%= b.status %>
+                                            </span></td>
+                                        <td>
+                                            <%= b.event_date ? new Date(b.event_date).toLocaleDateString() : '—' %>
+                                        </td>
+                                        <td>
+                                            <%= new Date(b.created_at).toLocaleDateString() %>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <div class="empty-state"><i class="bi bi-calendar"></i>
+                            <p>No bookings yet.</p>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/tail') %>
