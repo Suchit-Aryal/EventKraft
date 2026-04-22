@@ -1,0 +1,117 @@
+<%- include('../partials/header') %>
+
+    <div class="container-fluid p-0">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            <div class="col-md-2 admin-sidebar d-none d-md-block">
+                <div class="sidebar-header">Main</div>
+                <a href="/admin" class="nav-link"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                <a href="/admin/users" class="nav-link active"><i class="bi bi-people"></i> Users</a>
+                <a href="/admin/bookings" class="nav-link"><i class="bi bi-calendar-check"></i> Bookings</a>
+                <div class="sidebar-header">Management</div>
+                <a href="/admin/disputes" class="nav-link"><i class="bi bi-exclamation-triangle"></i> Disputes</a>
+                <a href="/admin/commissions" class="nav-link"><i class="bi bi-percent"></i> Commissions</a>
+                <div class="sidebar-header">Account</div>
+                <a href="/auth/logout" class="nav-link"><i class="bi bi-box-arrow-left"></i> Logout</a>
+            </div>
+
+            <!-- Main -->
+            <div class="col-md-10 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold mb-0"><i class="bi bi-people"></i> User Management</h3>
+                        <p class="text-muted mb-0">
+                            <%= users.length %> total users
+                        </p>
+                    </div>
+                </div>
+
+                <div class="crm-table bg-white">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>City</th>
+                                <th>Rating</th>
+                                <th>Verified</th>
+                                <th>Active</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% users.forEach(u=> { %>
+                                <tr>
+                                    <td><strong>
+                                            <%= u.first_name || '' %>
+                                                <%= u.last_name || '' %>
+                                        </strong></td>
+                                    <td><small>
+                                            <%= u.email %>
+                                        </small></td>
+                                    <td><span
+                                            class="badge bg-<%= u.role === 'admin' ? 'danger' : u.role === 'worker' ? 'primary' : 'info' %>">
+                                            <%= u.role %>
+                                        </span></td>
+                                    <td>
+                                        <%= u.city || '—' %>
+                                    </td>
+                                    <td>
+                                        <% if (u.role==='worker' ) { %><span class="stars"><i
+                                                    class="bi bi-star-fill"></i></span>
+                                            <%= u.avg_rating || '0' %>
+                                                <% } else { %>—<% } %>
+                                    </td>
+                                    <td>
+                                        <% if (u.is_verified) { %>
+                                            <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                                            <% } else { %>
+                                                <span class="text-muted"><i class="bi bi-x-circle"></i></span>
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (u.is_active) { %>
+                                            <span class="badge-status badge-active">Active</span>
+                                            <% } else { %>
+                                                <span class="badge-status badge-cancelled">Inactive</span>
+                                                <% } %>
+                                    </td>
+                                    <td>
+                                        <%= new Date(u.created_at).toLocaleDateString() %>
+                                    </td>
+                                    <td>
+                                        <% if (u.role !=='admin' ) { %>
+                                            <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST"
+                                                class="d-inline">
+                                                <% if (u.is_active) { %>
+                                                    <input type="hidden" name="is_active" value="false">
+                                                    <button class="btn btn-sm btn-outline-danger" title="Deactivate"><i
+                                                            class="bi bi-person-x"></i></button>
+                                                    <% } else { %>
+                                                        <input type="hidden" name="is_active" value="true">
+                                                        <button class="btn btn-sm btn-outline-success"
+                                                            title="Activate"><i class="bi bi-person-check"></i></button>
+                                                        <% } %>
+                                            </form>
+                                            <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST"
+                                                class="d-inline">
+                                                <% if (!u.is_verified) { %>
+                                                    <input type="hidden" name="is_verified" value="true">
+                                                    <button class="btn btn-sm btn-outline-primary" title="Verify"><i
+                                                            class="bi bi-patch-check"></i></button>
+                                                    <% } %>
+                                            </form>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('../partials/tail') %>
