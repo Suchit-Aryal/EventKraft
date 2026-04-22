@@ -1,5 +1,5 @@
 // ============================================================
-// Admin Controller
+// Admin Controller — Full CRM with real data
 // ============================================================
 
 const User = require('../models/User');
@@ -7,17 +7,68 @@ const pool = require('../config/db');
 
 module.exports = {
 
-    // GET /admin
+    // GET /admin — Dashboard with platform stats
     async dashboard(req, res) {
         try {
             const stats = {};
-            stats.totalUsers = (await pool.query('SELECT COUNT(*) FROM users')).rows[0].count;
-            stats.totalJobs = (await pool.query('SELECT COUNT(*) FROM job_postings')).rows[0].count;
-            stats.totalGigs = (await pool.query('SELECT COUNT(*) FROM service_gigs')).rows[0].count;
-            stats.totalBookings = (await pool.query('SELECT COUNT(*) FROM bookings')).rows[0].count;
-            stats.openDisputes = (await pool.query("SELECT COUNT(*) FROM disputes WHERE status = 'open'")).rows[0].count;
 
-            res.render('pages/admin-dashboard', { title: 'Admin Dashboard', stats });
+            // User stats
+            const userStats = await pool.query(`
+                SELECT COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE role = 'customer') AS customers,
+                    COUNT(*) FILTER (WHERE role = 'worker') AS workers,
+                    COUNT(*) FILTER (WHERE is_active = true) AS active,
+                    COUNT(*) FILTER (WHERE is_verified = true) AS verified
+                FROM users
+            `);
+            stats.users = userStats.rows[0];
+
+            // Job/Gig stats
+            const jobStats = await pool.query("SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'published') AS active FROM job_postings");
+            const gigStats = await pool.query("SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'active') AS active FROM service_gigs");
+            stats.jobs = jobStats.rows[0];
+            stats.gigs = gigStats.rows[0];
+
+            // Booking + Revenue stats
+            const bookingStats = await pool.query(`
+                SELECT COUNT(*) AS total,
+                    COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+                    COUNT(*) FILTER (WHERE status = 'in_progress') AS in_progress,
+                    COUNT(*) FILTER (WHERE status = 'completed') AS completed,
+                    COALESCE(SUM(total_amount) FILTER (WHERE status = 'completed'), 0) AS revenue,
+                    COALESCE(SUM(commission_amount) FILTER (WHERE status = 'completed'), 0) AS commission
+                FROM bookings
+            `);
+            stats.bookings = bookingStats.rows[0];
+
+            // Dispute stats
+            const disputeStats = await pool.query("SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE status = 'open') AS open FROM disputes");
+            stats.disputes = disputeStats.rows[0];
+
+            // Recent bookings
+            const recentBookings = await pool.query(`
+                SELECT b.id, b.status, b.total_amount, b.created_at,
+                    cp.first_name AS customer_name, wp.first_name AS worker_name
+                FROM bookings b
+                LEFT JOIN profiles cp ON b.customer_id = cp.user_id
+                LEFT JOIN profiles wp ON b.worker_id = wp.user_id
+                ORDER BY b.created_at DESC LIMIT 5
+            `);
+
+            // Recent users
+            const recentUsers = await pool.query(`
+                SELECT u.id, u.email, u.role, u.is_active, u.created_at,
+                    p.first_name, p.last_name
+                FROM users u LEFT JOIN profiles p ON u.id = p.user_id
+                ORDER BY u.created_at DESC LIMIT 5
+            `);
+
+            res.render('pages/admin-dashboard', {
+                title: 'Admin Dashboard',
+                stats,
+                recentBookings: recentBookings.rows,
+                recentUsers: recentUsers.rows
+            });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load admin dashboard');
@@ -28,8 +79,13 @@ module.exports = {
     // GET /admin/users
     async users(req, res) {
         try {
-            const users = await User.findAll();
-            res.render('pages/admin-users', { title: 'Manage Users', users });
+            const users = await pool.query(`
+                SELECT u.id, u.email, u.phone, u.role, u.is_verified, u.is_active, u.created_at,
+                    p.first_name, p.last_name, p.avg_rating, p.total_completed, p.city
+                FROM users u LEFT JOIN profiles p ON u.id = p.user_id
+                ORDER BY u.created_at DESC
+            `);
+            res.render('pages/admin-users', { title: 'Manage Users', users: users.rows });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load users');
@@ -55,7 +111,13 @@ module.exports = {
     // GET /admin/bookings
     async bookings(req, res) {
         try {
-            const result = await pool.query('SELECT * FROM bookings ORDER BY created_at DESC');
+            const result = await pool.query(`
+                SELECT b.*, cp.first_name AS customer_name, wp.first_name AS worker_name
+                FROM bookings b
+                LEFT JOIN profiles cp ON b.customer_id = cp.user_id
+                LEFT JOIN profiles wp ON b.worker_id = wp.user_id
+                ORDER BY b.created_at DESC
+            `);
             res.render('pages/admin-bookings', { title: 'All Bookings', bookings: result.rows });
         } catch (err) {
             console.error(err);
@@ -66,7 +128,16 @@ module.exports = {
     // GET /admin/disputes
     async disputes(req, res) {
         try {
-            const result = await pool.query('SELECT * FROM disputes ORDER BY created_at DESC');
+            const result = await pool.query(`
+                SELECT d.*, b.total_amount, b.event_date,
+                    rp.first_name AS raiser_name, rp.last_name AS raiser_last,
+                    ru.email AS raiser_email
+                FROM disputes d
+                JOIN bookings b ON d.booking_id = b.id
+                JOIN profiles rp ON d.raised_by = rp.user_id
+                JOIN users ru ON d.raised_by = ru.id
+                ORDER BY d.created_at DESC
+            `);
             res.render('pages/admin-disputes', { title: 'Disputes', disputes: result.rows });
         } catch (err) {
             console.error(err);

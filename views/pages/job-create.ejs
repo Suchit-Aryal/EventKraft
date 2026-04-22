@@ -1,49 +1,89 @@
 <%- include('../partials/header') %>
     <div class="container py-5" style="max-width: 750px;">
         <h2 class="mb-4"><i class="bi bi-megaphone"></i> Post a Job</h2>
+
         <div class="card shadow-sm">
             <div class="card-body">
                 <form action="/jobs" method="POST">
-                    <div class="mb-3"><label for="title" class="form-label">Job Title *</label><input type="text"
-                            class="form-control" id="title" name="title"
-                            placeholder="e.g. Need a Photographer for Wedding" required></div>
-                    <div class="mb-3"><label for="category_id" class="form-label">Category *</label><select
-                            class="form-select" id="category_id" name="category_id" required>
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Job Title *</label>
+                        <input type="text" class="form-control" id="title" name="title"
+                            placeholder="e.g. Need a Photographer for Wedding" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category *</label>
+                        <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Select a category</option>
-                            <% categories.forEach(cat=> { %><option value="<%= cat.id %>">
+                            <% categories.forEach(cat=> { %>
+                                <option value="<%= cat.id %>">
                                     <%= cat.name %>
                                 </option>
                                 <% }) %>
-                        </select></div>
-                    <div class="mb-3"><label for="description" class="form-label">Description *</label><textarea
-                            class="form-control" id="description" name="description" rows="5"
-                            placeholder="Describe what you need..." required></textarea></div>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="description" name="description" rows="5"
+                            placeholder="Describe what you need in detail..." required></textarea>
+                    </div>
+
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label for="event_type" class="form-label">Event Type</label><input
-                                type="text" class="form-control" id="event_type" name="event_type"
-                                placeholder="e.g. Wedding"></div>
-                        <div class="col-md-6"><label for="event_date" class="form-label">Event Date</label><input
-                                type="date" class="form-control" id="event_date" name="event_date"></div>
+                        <div class="col-md-6">
+                            <label for="event_type" class="form-label">Event Type</label>
+                            <input type="text" class="form-control" id="event_type" name="event_type"
+                                placeholder="e.g. Wedding, Birthday">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="event_date" class="form-label">Event Date</label>
+                            <input type="date" class="form-control" id="event_date" name="event_date">
+                        </div>
                     </div>
-                    <div class="mb-3"><label for="event_location" class="form-label">Location</label><input type="text"
-                            class="form-control" id="event_location" name="event_location" placeholder="e.g. Kathmandu">
+
+                    <div class="mb-3">
+                        <label for="event_location" class="form-label">Event Location</label>
+                        <input type="text" class="form-control" id="event_location" name="event_location"
+                            placeholder="e.g. Kathmandu, Bhaktapur">
                     </div>
+
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label for="budget_min" class="form-label">Budget Min (NPR)
-                                *</label><input type="number" class="form-control" id="budget_min" name="budget_min"
-                                min="0" step="100" required></div>
-                        <div class="col-md-6"><label for="budget_max" class="form-label">Budget Max (NPR)
-                                *</label><input type="number" class="form-control" id="budget_max" name="budget_max"
-                                min="0" step="100" required></div>
+                        <div class="col-md-6">
+                            <label for="budget_min" class="form-label">Budget Min (NPR) *</label>
+                            <input type="number" class="form-control" id="budget_min" name="budget_min" min="0"
+                                step="100" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="budget_max" class="form-label">Budget Max (NPR) *</label>
+                            <input type="number" class="form-control" id="budget_max" name="budget_max" min="0"
+                                step="100" required>
+                        </div>
                     </div>
-                    <div class="mb-3"><label for="status" class="form-label">Status</label><select class="form-select"
-                            id="status" name="status">
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                        </select></div>
-                    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary"><i
-                                class="bi bi-check-lg"></i> Post Job</button><a href="/auth/dashboard"
-                            class="btn btn-outline-secondary">Cancel</a></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="proposal_deadline" class="form-label">Proposal Deadline</label>
+                            <input type="date" class="form-control" id="proposal_deadline" name="proposal_deadline">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="draft">Draft</option>
+                                <option value="published">Published (Go Live)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="special_requirements" class="form-label">Special Requirements</label>
+                        <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3"
+                            placeholder="Any special needs or instructions..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Post Job</button>
+                        <a href="/auth/dashboard" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
                 </form>
             </div>
         </div>

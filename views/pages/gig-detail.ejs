@@ -1,7 +1,9 @@
 <%- include('../partials/header') %>
     <div class="container py-5">
         <a href="/gigs" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Services</a>
+
         <div class="row g-4">
+            <!-- Main Content -->
             <div class="col-md-8">
                 <div class="card shadow-sm">
                     <div class="card-body">
@@ -14,20 +16,62 @@
                         <span class="badge bg-<%= gig.status === 'active' ? 'success' : 'warning' %>">
                             <%= gig.status %>
                         </span>
+
                         <hr>
+
                         <h5>Description</h5>
                         <p class="text-muted">
                             <%= gig.description %>
                         </p>
+
                         <% if (gig.delivery_time) { %>
-                            <div class="mb-3"><strong><i class="bi bi-clock"></i> Delivery Time:</strong>
+                            <div class="mb-3">
+                                <strong><i class="bi bi-clock"></i> Delivery Time:</strong>
                                 <%= gig.delivery_time %>
                             </div>
                             <% } %>
+
+                                <% if (gig.tags && gig.tags.length> 0) { %>
+                                    <div class="mb-3">
+                                        <strong>Tags:</strong>
+                                        <% (Array.isArray(gig.tags) ? gig.tags : []).forEach(tag=> { %>
+                                            <span class="badge bg-light text-dark me-1">
+                                                <%= tag %>
+                                            </span>
+                                            <% }) %>
+                                    </div>
+                                    <% } %>
+
+                                        <% if (gig.faq && Array.isArray(gig.faq) && gig.faq.length> 0) { %>
+                                            <hr>
+                                            <h5>FAQ</h5>
+                                            <div class="accordion" id="gigFaq">
+                                                <% gig.faq.forEach((item, idx)=> { %>
+                                                    <div class="accordion-item">
+                                                        <h2 class="accordion-header">
+                                                            <button class="accordion-button collapsed" type="button"
+                                                                data-bs-toggle="collapse"
+                                                                data-bs-target="#faq<%= idx %>">
+                                                                <%= item.question || item.q || 'Question' %>
+                                                            </button>
+                                                        </h2>
+                                                        <div id="faq<%= idx %>" class="accordion-collapse collapse"
+                                                            data-bs-parent="#gigFaq">
+                                                            <div class="accordion-body">
+                                                                <%= item.answer || item.a || '' %>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+                                            </div>
+                                            <% } %>
                     </div>
                 </div>
             </div>
+
+            <!-- Sidebar -->
             <div class="col-md-4">
+                <!-- Price Card -->
                 <div class="card shadow-sm mb-3">
                     <div class="card-body text-center">
                         <h4 class="text-success mb-1">From NPR <%= Number(gig.starting_price).toLocaleString() %>
@@ -35,12 +79,14 @@
                         <p class="text-muted small">Starting price</p>
                         <hr>
                         <div class="d-flex justify-content-around text-center mb-3">
-                            <div><i class="bi bi-eye fs-5"></i>
+                            <div>
+                                <i class="bi bi-eye fs-5"></i>
                                 <div class="small">
                                     <%= gig.view_count || 0 %> views
                                 </div>
                             </div>
-                            <div><i class="bi bi-bar-chart fs-5"></i>
+                            <div>
+                                <i class="bi bi-bar-chart fs-5"></i>
                                 <div class="small">
                                     <%= gig.impression_count || 0 %> impressions
                                 </div>
@@ -52,21 +98,39 @@
                             <% } %>
                     </div>
                 </div>
+
+                <!-- Worker Card -->
                 <div class="card shadow-sm">
                     <div class="card-body">
                         <h6 class="text-muted mb-2">About the Worker</h6>
                         <div class="d-flex align-items-center gap-3 mb-2">
-                            <i class="bi bi-person-circle fs-1"></i>
-                            <div>
-                                <strong>
-                                    <%= gig.worker_first_name %>
-                                        <%= gig.worker_last_name || '' %>
-                                </strong>
-                                <div class="small text-muted"><i class="bi bi-star-fill text-warning"></i>
-                                    <%= gig.worker_rating || '0' %> · <%= gig.worker_completed || 0 %> completed
-                                </div>
-                            </div>
+                            <% if (gig.worker_avatar) { %>
+                                <img src="<%= gig.worker_avatar %>" class="rounded-circle" width="48" height="48"
+                                    alt="avatar">
+                                <% } else { %>
+                                    <i class="bi bi-person-circle fs-1"></i>
+                                    <% } %>
+                                        <div>
+                                            <strong>
+                                                <%= gig.worker_first_name %>
+                                                    <%= gig.worker_last_name || '' %>
+                                            </strong>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                                <%= gig.worker_rating || '0' %> · <%= gig.worker_completed || 0 %>
+                                                        completed
+                                            </div>
+                                        </div>
                         </div>
+                        <% if (gig.worker_bio) { %>
+                            <p class="small text-muted mt-2 mb-0">
+                                <%= gig.worker_bio %>
+                            </p>
+                            <% } %>
+                                <% if (gig.worker_member_since) { %>
+                                    <small class="text-muted">Member since <%= new
+                                            Date(gig.worker_member_since).toLocaleDateString() %></small>
+                                    <% } %>
                     </div>
                 </div>
             </div>
