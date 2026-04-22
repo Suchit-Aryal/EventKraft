@@ -1,14 +1,286 @@
 <%- include('../partials/header') %>
-    <div class="container py-5">
-        <h2>Welcome, Worker!</h2>
-        <p class="text-muted">Manage your services, proposals, and earnings from here.</p>
-        <div class="row g-4 mt-3">
-            <div class="col-md-4"><a href="/gigs/create" class="btn btn-primary w-100 py-3"><i
-                        class="bi bi-plus-circle"></i> Create Service</a></div>
-            <div class="col-md-4"><a href="/jobs" class="btn btn-outline-primary w-100 py-3"><i
-                        class="bi bi-briefcase"></i> Browse Jobs</a></div>
-            <div class="col-md-4"><a href="/bookings" class="btn btn-outline-primary w-100 py-3"><i
-                        class="bi bi-calendar-check"></i> My Bookings</a></div>
+
+    <div class="container-fluid py-4">
+        <!-- Greeting -->
+        <div class="dash-greeting">
+            <h2><i class="bi bi-tools text-primary"></i> Worker Dashboard</h2>
+            <p>Welcome back, <strong>
+                    <%= profile ? profile.first_name : 'Worker' %>
+                </strong>! Here's your overview.</p>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-2">
+                <div class="stat-card p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-blue"><i class="bi bi-briefcase"></i></div>
+                        <div>
+                            <div class="stat-value">
+                                <%= stats.activeGigs %>
+                            </div>
+                            <div class="stat-label">Active Gigs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="stat-card p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-orange"><i class="bi bi-send"></i></div>
+                        <div>
+                            <div class="stat-value">
+                                <%= stats.pendingProposals %>
+                            </div>
+                            <div class="stat-label">Proposals</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="stat-card p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-cyan"><i class="bi bi-calendar-check"></i></div>
+                        <div>
+                            <div class="stat-value">
+                                <%= stats.activeBookings %>
+                            </div>
+                            <div class="stat-label">Bookings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-green"><i class="bi bi-currency-exchange"></i></div>
+                        <div>
+                            <div class="stat-value">NPR <%= Number(stats.totalEarnings).toLocaleString() %>
+                            </div>
+                            <div class="stat-label">Earnings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="stat-card p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="stat-icon bg-purple"><i class="bi bi-star"></i></div>
+                        <div>
+                            <div class="stat-value">
+                                <%= stats.avgRating %> <small class="text-muted" style="font-size:0.7rem">/ 5</small>
+                            </div>
+                            <div class="stat-label">
+                                <%= stats.totalReviews %> Reviews
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <a href="/gigs/create" class="quick-action">
+                    <div class="qa-icon bg-blue"><i class="bi bi-plus-circle text-white"></i></div>
+                    <div><strong>Create New Service</strong><br><small class="text-muted">Add a new gig listing</small>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/jobs" class="quick-action">
+                    <div class="qa-icon bg-orange"><i class="bi bi-search text-white"></i></div>
+                    <div><strong>Browse Jobs</strong><br><small class="text-muted">Find jobs to bid on</small></div>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="/messages" class="quick-action">
+                    <div class="qa-icon bg-green"><i class="bi bi-chat-dots text-white"></i></div>
+                    <div><strong>Messages</strong><br><small class="text-muted">Chat with clients</small></div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-pills nav-pills-crm mb-3">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tab-gigs">My Gigs (<%=
+                        gigs.length %>)</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-proposals">Proposals (<%=
+                        proposals.length %>)</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-bookings">Bookings (<%=
+                        bookings.length %>)</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-reviews">Reviews (<%=
+                        reviews.length %>)</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- My Gigs Tab -->
+            <div class="tab-pane fade show active" id="tab-gigs">
+                <% if (gigs.length> 0) { %>
+                    <div class="crm-table bg-white">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Views</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% gigs.forEach(g=> { %>
+                                    <tr>
+                                        <td><strong>
+                                                <%= g.title %>
+                                            </strong></td>
+                                        <td>
+                                            <%= g.category_name || '—' %>
+                                        </td>
+                                        <td>NPR <%= Number(g.starting_price).toLocaleString() %>
+                                        </td>
+                                        <td><i class="bi bi-eye"></i>
+                                            <%= g.view_count || 0 %>
+                                        </td>
+                                        <td><span class="badge-status badge-<%= g.status %>">
+                                                <%= g.status %>
+                                            </span></td>
+                                        <td>
+                                            <%= new Date(g.created_at).toLocaleDateString() %>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <div class="empty-state"><i class="bi bi-briefcase"></i>
+                            <p>No gigs yet. Create your first service listing!</p>
+                        </div>
+                        <% } %>
+            </div>
+
+            <!-- Proposals Tab -->
+            <div class="tab-pane fade" id="tab-proposals">
+                <% if (proposals.length> 0) { %>
+                    <div class="crm-table bg-white">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Budget</th>
+                                    <th>My Price</th>
+                                    <th>Event Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% proposals.forEach(p=> { %>
+                                    <tr>
+                                        <td><strong>
+                                                <%= p.job_title %>
+                                            </strong></td>
+                                        <td>NPR <%= Number(p.budget_min).toLocaleString() %> — <%=
+                                                    Number(p.budget_max).toLocaleString() %>
+                                        </td>
+                                        <td class="text-success fw-bold">NPR <%=
+                                                Number(p.proposed_price).toLocaleString() %>
+                                        </td>
+                                        <td>
+                                            <%= p.event_date ? new Date(p.event_date).toLocaleDateString() : '—' %>
+                                        </td>
+                                        <td><span class="badge-status badge-<%= p.status %>">
+                                                <%= p.status %>
+                                            </span></td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <div class="empty-state"><i class="bi bi-send"></i>
+                            <p>No proposals yet. Browse jobs and submit your first proposal!</p>
+                        </div>
+                        <% } %>
+            </div>
+
+            <!-- Bookings Tab -->
+            <div class="tab-pane fade" id="tab-bookings">
+                <% if (bookings.length> 0) { %>
+                    <div class="crm-table bg-white">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Service</th>
+                                    <th>Amount</th>
+                                    <th>Event Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% bookings.forEach(b=> { %>
+                                    <tr>
+                                        <td><i class="bi bi-person-circle"></i>
+                                            <%= b.customer_name || 'Customer' %>
+                                        </td>
+                                        <td>
+                                            <%= b.gig_title || b.job_title || '—' %>
+                                        </td>
+                                        <td>NPR <%= Number(b.total_amount).toLocaleString() %>
+                                        </td>
+                                        <td>
+                                            <%= b.event_date ? new Date(b.event_date).toLocaleDateString() : '—' %>
+                                        </td>
+                                        <td><span class="badge-status badge-<%= b.status %>">
+                                                <%= b.status %>
+                                            </span></td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                    <% } else { %>
+                        <div class="empty-state"><i class="bi bi-calendar-check"></i>
+                            <p>No bookings yet.</p>
+                        </div>
+                        <% } %>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div class="tab-pane fade" id="tab-reviews">
+                <% if (reviews.length> 0) { %>
+                    <% reviews.forEach(r=> { %>
+                        <div class="card p-3 mb-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong><i class="bi bi-person-circle"></i>
+                                        <%= r.reviewer_name || 'Anonymous' %>
+                                    </strong>
+                                    <div class="stars">
+                                        <% for(let i=1; i<=5; i++) { %><i
+                                                class="bi bi-star<%= i <= r.rating ? '-fill' : '' %>"></i>
+                                            <% } %>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <%= new Date(r.created_at).toLocaleDateString() %>
+                                </small>
+                            </div>
+                            <p class="mt-2 mb-0">
+                                <%= r.comment || 'No comment' %>
+                            </p>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <div class="empty-state"><i class="bi bi-star"></i>
+                                    <p>No reviews yet.</p>
+                                </div>
+                                <% } %>
+            </div>
         </div>
     </div>
+
     <%- include('../partials/tail') %>

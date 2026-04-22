@@ -1,6 +1,7 @@
 <%- include('../partials/header') %>
     <div class="container py-5">
         <a href="/messages" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Messages</a>
+
         <div class="card shadow-sm">
             <div class="card-header bg-dark text-white">
                 <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Conversation</h5>
@@ -12,9 +13,16 @@
                             class="d-flex mb-3 <%= msg.sender_id === currentUser.id ? 'justify-content-end' : 'justify-content-start' %>">
                             <div class="p-3 rounded-3 <%= msg.sender_id === currentUser.id ? 'bg-primary text-white' : 'bg-light' %>"
                                 style="max-width: 70%;">
-                                <strong class="small">
-                                    <%= msg.sender_name || 'User' %>
-                                </strong>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <strong class="small">
+                                        <%= msg.sender_name || 'User' %>
+                                    </strong>
+                                    <small
+                                        class="<%= msg.sender_id === currentUser.id ? 'text-white-50' : 'text-muted' %> ms-3">
+                                        <%= new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit' ,
+                                            minute: '2-digit' }) %>
+                                    </small>
+                                </div>
                                 <p class="mb-0">
                                     <%= msg.content %>
                                 </p>
@@ -22,8 +30,9 @@
                         </div>
                         <% }) %>
                             <% } else { %>
-                                <div class="text-center text-muted py-5"><i class="bi bi-chat fs-1"></i>
-                                    <p>No messages yet.</p>
+                                <div class="text-center text-muted py-5">
+                                    <i class="bi bi-chat fs-1"></i>
+                                    <p>No messages yet. Start the conversation!</p>
                                 </div>
                                 <% } %>
             </div>
@@ -31,11 +40,17 @@
                 <form action="/messages/<%= conversationId %>" method="POST">
                     <div class="input-group">
                         <input type="text" class="form-control" name="content" placeholder="Type a message..." required>
+                        <input type="hidden" name="receiver_id" value="">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Send</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-    <script>const c = document.getElementById('messageContainer'); if (c) c.scrollTop = c.scrollHeight;</script>
+
+    <script>
+        // Auto-scroll to bottom of messages
+        const container = document.getElementById('messageContainer');
+        if (container) container.scrollTop = container.scrollHeight;
+    </script>
     <%- include('../partials/tail') %>
