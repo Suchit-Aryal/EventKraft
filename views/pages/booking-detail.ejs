@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-check"></i> Booking Details</h2>
+            <a href="/bookings" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Bookings</a>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h4 class="mb-1">
+                                    <%= booking.gig_title || booking.job_title || 'Service Booking' %>
+                                </h4>
+                                <small class="text-muted">Booking ID: <%= String(booking.id).substring(0,8) %>
+                                        ...</small>
+                            </div>
+                            <span
+                                class="badge bg-<%= booking.status === 'completed' ? 'success' : booking.status === 'cancelled' ? 'danger' : booking.status === 'in_progress' ? 'primary' : 'warning' %> fs-6">
+                                <%= booking.status %>
+                            </span>
+                        </div>
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Customer</p>
+                                <p class="fw-bold"><i class="bi bi-person"></i>
+                                    <%= booking.customer_first_name || 'N/A' %>
+                                        <%= booking.customer_last_name || '' %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Worker</p>
+                                <p class="fw-bold"><i class="bi bi-tools"></i>
+                                    <%= booking.worker_first_name || 'N/A' %>
+                                        <%= booking.worker_last_name || '' %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Event Date</p>
+                                <p class="fw-bold"><i class="bi bi-calendar3"></i>
+                                    <%= booking.event_date ? new Date(booking.event_date).toLocaleDateString() : 'TBD'
+                                        %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Location</p>
+                                <p class="fw-bold"><i class="bi bi-geo-alt"></i>
+                                    <%= booking.event_location || 'Not specified' %>
+                                </p>
+                            </div>
+                        </div>
+                        <% if (booking.requirements) { %>
+                            <hr>
+                            <h6>Requirements</h6>
+                            <p class="text-muted">
+                                <%= booking.requirements %>
+                            </p>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Payment Summary</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2"><span>Total Amount</span><strong>NPR <%=
+                                    Number(booking.total_amount).toLocaleString() %></strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Commission (<%= booking.commission_rate
+                                    %>%)</span><span>NPR <%= Number(booking.commission_amount).toLocaleString() %>
+                                    </span></div>
+                        <hr>
+                        <div class="d-flex justify-content-between"><strong>Worker Earning</strong><strong
+                                class="text-success">NPR <%= Number(booking.worker_earning).toLocaleString() %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include('../partials/tail') %>

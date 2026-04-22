@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+    <div class="container py-5">
+        <a href="/messages" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Messages</a>
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Conversation</h5>
+            </div>
+            <div class="card-body" style="max-height: 500px; overflow-y: auto;" id="messageContainer">
+                <% if (messages && messages.length> 0) { %>
+                    <% messages.forEach(msg=> { %>
+                        <div
+                            class="d-flex mb-3 <%= msg.sender_id === currentUser.id ? 'justify-content-end' : 'justify-content-start' %>">
+                            <div class="p-3 rounded-3 <%= msg.sender_id === currentUser.id ? 'bg-primary text-white' : 'bg-light' %>"
+                                style="max-width: 70%;">
+                                <strong class="small">
+                                    <%= msg.sender_name || 'User' %>
+                                </strong>
+                                <p class="mb-0">
+                                    <%= msg.content %>
+                                </p>
+                            </div>
+                        </div>
+                        <% }) %>
+                            <% } else { %>
+                                <div class="text-center text-muted py-5"><i class="bi bi-chat fs-1"></i>
+                                    <p>No messages yet.</p>
+                                </div>
+                                <% } %>
+            </div>
+            <div class="card-footer">
+                <form action="/messages/<%= conversationId %>" method="POST">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="content" placeholder="Type a message..." required>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>const c = document.getElementById('messageContainer'); if (c) c.scrollTop = c.scrollHeight;</script>
+    <%- include('../partials/tail') %>
