@@ -8,6 +8,9 @@ const jobCtrl = require('../controllers/jobController');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { ensureRole } = require('../middleware/roleCheck');
 
+// GET  /jobs/api/search  – JSON autocomplete results
+router.get('/api/search', jobCtrl.apiSearch);
+
 // GET  /jobs          – Browse all published jobs
 router.get('/', jobCtrl.index);
 

@@ -1,5 +1,5 @@
 // ============================================================
-// Job Controller
+// Job Controller — with search/filter support
 // ============================================================
 
 const Job = require('../models/Job');
@@ -10,12 +10,54 @@ module.exports = {
     // GET /jobs
     async index(req, res) {
         try {
-            const jobs = await Job.findPublished();
-            res.render('pages/jobs', { title: 'Browse Jobs', jobs });
+            const { keyword, category_id, minBudget, maxBudget, location } = req.query;
+            const hasFilters = keyword || category_id || minBudget || maxBudget || location;
+
+            let jobs;
+            if (hasFilters) {
+                jobs = await Job.search({ category_id, minBudget, maxBudget, location, keyword });
+            } else {
+                jobs = await Job.findPublished();
+            }
+
+            // Fetch categories for filter dropdown
+            const categories = await pool.query(
+                'SELECT id, name FROM categories WHERE is_active = true ORDER BY sort_order'
+            );
+
+            res.render('pages/jobs', {
+                title: 'Browse Jobs',
+                jobs,
+                categories: categories.rows,
+                filters: { keyword: keyword || '', category_id: category_id || '', minBudget: minBudget || '', maxBudget: maxBudget || '', location: location || '' }
+            });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load jobs');
             res.redirect('/');
+        }
+    },
+
+    // GET /jobs/api/search — JSON autocomplete
+    async apiSearch(req, res) {
+        try {
+            const { q } = req.query;
+            if (!q || q.trim().length < 2) return res.json([]);
+
+            const result = await pool.query(
+                `SELECT jp.id, jp.title, jp.budget_min, jp.budget_max, jp.event_location, c.name AS category_name
+                 FROM job_postings jp
+                 LEFT JOIN categories c ON jp.category_id = c.id
+                 WHERE jp.status = 'published'
+                   AND (jp.title ILIKE $1 OR jp.description ILIKE $1 OR c.name ILIKE $1 OR jp.event_location ILIKE $1)
+                 ORDER BY jp.created_at DESC
+                 LIMIT 8`,
+                [`%${q.trim()}%`]
+            );
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.json([]);
         }
     },
 
