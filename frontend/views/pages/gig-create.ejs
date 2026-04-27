@@ -1,0 +1,46 @@
+<%- include('../partials/header') %>
+
+<section class="container py-5" style="max-width:720px">
+    <div class="text-center mb-4">
+        <h1 class="font-display fs-2 fw-semibold">Create a service</h1>
+        <p class="text-muted">Showcase your skills and start getting bookings.</p>
+    </div>
+    <div class="ek-card" style="padding:1.5rem 2rem">
+        <form action="/gigs" method="POST" class="ek-form">
+            <div class="mb-3">
+                <label class="form-label" for="title">Service title *</label>
+                <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Professional Wedding Photography">
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="category_id">Category *</label>
+                    <select class="form-select" id="category_id" name="category_id" required>
+                        <option value="" disabled selected>Select a category</option>
+                        <% categories.forEach(function(c) { %>
+                            <option value="<%= c.id %>"><%= c.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="starting_price">Starting price (NPR) *</label>
+                    <input type="number" class="form-control" id="starting_price" name="starting_price" required min="500" placeholder="25000">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required placeholder="Describe your service, experience, what's included…"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="delivery_time">Delivery time</label>
+                <input type="text" class="form-control" id="delivery_time" name="delivery_time" placeholder="e.g. 7 days">
+            </div>
+            <input type="hidden" name="status" value="active">
+            <div class="d-flex flex-wrap gap-2 pt-2">
+                <button type="submit" class="btn btn-ek-primary btn-lg">Publish service</button>
+                <button type="submit" name="status" value="draft" class="btn btn-ek-outline btn-lg">Save as draft</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<%- include('../partials/tail') %>

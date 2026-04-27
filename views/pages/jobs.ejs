@@ -1,4 +1,42 @@
 <%- include('../partials/header') %>
+
+<section class="ek-section-subtle" style="border-bottom:1px solid var(--ek-border);padding:3rem 0">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
+            <div>
+                <h1 class="font-display fs-2 fw-semibold mb-1">Open jobs</h1>
+                <p class="text-muted mb-0">Browse event jobs and submit proposals to win clients.</p>
+            </div>
+            <% if (currentUser && currentUser.role === 'customer') { %>
+                <a href="/jobs/create" class="btn btn-ek-primary">Post a job</a>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<section class="container py-4" style="min-height:400px">
+    <p class="text-muted small mb-3"><%= jobs.length %> job<%= jobs.length === 1 ? '' : 's' %> found</p>
+
+    <% if (jobs.length === 0) { %>
+        <div class="empty-state">
+            <i class="bi bi-briefcase"></i>
+            <p>No jobs posted yet. <% if (currentUser && currentUser.role === 'customer') { %><a href="/jobs/create">Post the first job!</a><% } %></p>
+        </div>
+    <% } else { %>
+        <div class="row g-3">
+            <% jobs.forEach(function(job) { %>
+                <div class="col-lg-6">
+                    <div class="ek-card ek-job-card">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            <span class="ek-badge ek-badge-category"><%= job.category_name || 'General' %></span>
+                            <% if (job.event_type) { %><span class="ek-badge" style="background:var(--ek-cream-dark)"><%= job.event_type %></span><% } %>
+                            <span class="ek-badge ek-badge-open ms-auto"><%= job.status %></span>
+                        </div>
+                        <h4><a href="/jobs/<%= job.id %>"><%= job.title %></a></h4>
+                        <div class="job-meta">
+                            <span><i class="bi bi-geo-alt"></i> <%= job.event_location || 'Nepal' %></span>
+                            <% if (job.event_date) { %>
+                                <span><i class="bi bi-calendar3"></i> <%= new Date(job.event_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) %></span>
     <div class="container py-5">
         <h2><i class="bi bi-megaphone"></i> Browse Jobs</h2>
         <p class="text-muted">Find event projects that need your skills.</p>
@@ -127,7 +165,17 @@
                                         <% } %>
                             </div>
                             <% } %>
+                            <span><i class="bi bi-people"></i> <%= job.proposal_count || 0 %> proposals</span>
+                        </div>
+                        <p class="budget mt-2">NPR <%= Number(job.budget_min || 0).toLocaleString('en-IN') %> – <%= Number(job.budget_max || 0).toLocaleString('en-IN') %></p>
+                    </div>
+                </div>
+            <% }); %>
         </div>
+    <% } %>
+</section>
+
+<%- include('../partials/tail') %>
     </div>
 
     <!-- Autocomplete Styles -->

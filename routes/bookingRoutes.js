@@ -19,4 +19,13 @@ router.get('/:id', ensureAuthenticated, bookingCtrl.show);
 // PUT  /bookings/:id   – Update booking status
 router.put('/:id', ensureAuthenticated, bookingCtrl.update);
 
+// POST /bookings/:id/accept   – Worker accepts booking
+router.post('/:id/accept', ensureAuthenticated, bookingCtrl.accept);
+
+// POST /bookings/:id/complete – Customer marks completed
+router.post('/:id/complete', ensureAuthenticated, bookingCtrl.complete);
+
+// POST /bookings/:id/cancel   – Cancel booking
+router.post('/:id/cancel', ensureAuthenticated, bookingCtrl.cancel);
+
 module.exports = router;

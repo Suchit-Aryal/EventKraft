@@ -1,0 +1,71 @@
+<%- include('../partials/header') %>
+
+<section class="container py-5" style="max-width:720px">
+    <div class="text-center mb-4">
+        <h1 class="font-display fs-2 fw-semibold">Post a job</h1>
+        <p class="text-muted">Tell us what you need — workers will reach out within hours.</p>
+    </div>
+    <div class="ek-card" style="padding:1.5rem 2rem">
+        <form action="/jobs" method="POST" class="ek-form">
+            <div class="mb-3">
+                <label class="form-label" for="title">Job title *</label>
+                <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Wedding photographer for 3-day ceremony">
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="category_id">Service category *</label>
+                    <select class="form-select" id="category_id" name="category_id" required>
+                        <option value="" disabled selected>Select a category</option>
+                        <% categories.forEach(function(c) { %>
+                            <option value="<%= c.id %>"><%= c.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="event_type">Event type *</label>
+                    <select class="form-select" id="event_type" name="event_type" required>
+                        <option value="" disabled selected>Select event type</option>
+                        <option>Wedding</option><option>Reception</option><option>Engagement</option>
+                        <option>Mehendi</option><option>Birthday</option><option>Corporate</option><option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description *</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required placeholder="Describe your event, guest count, special requests…"></textarea>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="event_date">Event date *</label>
+                    <input type="date" class="form-control" id="event_date" name="event_date" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="event_location">Location *</label>
+                    <input type="text" class="form-control" id="event_location" name="event_location" required placeholder="Kathmandu, Hyatt Regency">
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="budget_min">Budget min (NPR) *</label>
+                    <input type="number" class="form-control" id="budget_min" name="budget_min" required min="1000" placeholder="50000">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="budget_max">Budget max (NPR) *</label>
+                    <input type="number" class="form-control" id="budget_max" name="budget_max" required min="1000" placeholder="120000">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="special_requirements">Special requirements (optional)</label>
+                <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Drone coverage, specific style, language…"></textarea>
+            </div>
+            <input type="hidden" name="status" value="published">
+            <div class="d-flex flex-wrap gap-2 pt-2">
+                <button type="submit" class="btn btn-ek-primary btn-lg">Publish job</button>
+                <button type="submit" name="status" value="draft" class="btn btn-ek-outline btn-lg">Save as draft</button>
+            </div>
+            <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you hire.</p>
+        </form>
+    </div>
+</section>
+
+<%- include('../partials/tail') %>
