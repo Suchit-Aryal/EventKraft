@@ -37,6 +37,133 @@
                             <span><i class="bi bi-geo-alt"></i> <%= job.event_location || 'Nepal' %></span>
                             <% if (job.event_date) { %>
                                 <span><i class="bi bi-calendar3"></i> <%= new Date(job.event_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) %></span>
+    <div class="container py-5">
+        <h2><i class="bi bi-megaphone"></i> Browse Jobs</h2>
+        <p class="text-muted">Find event projects that need your skills.</p>
+
+        <!-- Search & Filter Bar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form action="/jobs" method="GET" id="jobSearchForm">
+                    <div class="row g-3 align-items-end">
+                        <!-- Keyword Search -->
+                        <div class="col-md-3">
+                            <label for="keyword" class="form-label small text-muted">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="keyword" name="keyword"
+                                    placeholder="Search jobs..." value="<%= filters.keyword %>">
+                            </div>
+                        </div>
+                        <!-- Category Filter -->
+                        <div class="col-md-2">
+                            <label for="category_id" class="form-label small text-muted">Category</label>
+                            <select class="form-select" id="category_id" name="category_id">
+                                <option value="">All Categories</option>
+                                <% categories.forEach(cat=> { %>
+                                    <option value="<%= cat.id %>" <%=filters.category_id===String(cat.id) ? 'selected'
+                                        : '' %>><%= cat.name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <!-- Budget Range -->
+                        <div class="col-md-2">
+                            <label for="minBudget" class="form-label small text-muted">Min Budget</label>
+                            <input type="number" class="form-control" id="minBudget" name="minBudget" placeholder="0"
+                                min="0" value="<%= filters.minBudget %>">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="maxBudget" class="form-label small text-muted">Max Budget</label>
+                            <input type="number" class="form-control" id="maxBudget" name="maxBudget" placeholder="Any"
+                                min="0" value="<%= filters.maxBudget %>">
+                        </div>
+                        <!-- Location -->
+                        <div class="col-md-2">
+                            <label for="location" class="form-label small text-muted">Location</label>
+                            <input type="text" class="form-control" id="location" name="location"
+                                placeholder="e.g. Kathmandu" value="<%= filters.location %>">
+                        </div>
+                        <!-- Search Button -->
+                        <div class="col-md-1 d-flex gap-1">
+                            <button type="submit" class="btn btn-primary w-100" title="Search">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Clear Filters -->
+                    <div class="row mt-2">
+                        <div class="col-12 d-flex align-items-center">
+                            <% const hasAnyFilter=filters.keyword || filters.category_id || filters.minBudget ||
+                                filters.maxBudget || filters.location; %>
+                                <% if (hasAnyFilter) { %>
+                                    <a href="/jobs" class="btn btn-link btn-sm text-danger p-0"><i
+                                            class="bi bi-x-circle"></i> Clear Filters</a>
+                                    <span class="text-muted small ms-3">
+                                        <%= jobs.length %> result<%= jobs.length !==1 ? 's' : '' %> found
+                                    </span>
+                                    <% } %>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Grid -->
+        <div class="row g-4">
+            <% if (jobs && jobs.length> 0) { %>
+                <% jobs.forEach(job=> { %>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">
+                                        <%= job.title %>
+                                    </h5>
+                                    <span class="badge bg-primary">
+                                        <%= job.proposal_count || 0 %> proposals
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2 mb-2">
+                                    <span class="badge bg-secondary">
+                                        <%= job.category_name || 'Uncategorized' %>
+                                    </span>
+                                    <% if (job.event_location) { %>
+                                        <span class="badge bg-light text-dark"><i class="bi bi-geo-alt"></i>
+                                            <%= job.event_location %>
+                                        </span>
+                                        <% } %>
+                                </div>
+                                <p class="card-text text-muted small flex-grow-1">
+                                    <%= job.description ? job.description.substring(0, 150) + '...' : '' %>
+                                </p>
+                                <% if (job.event_date) { %>
+                                    <div class="small text-muted mb-2">
+                                        <i class="bi bi-calendar3"></i> Event: <%= new
+                                            Date(job.event_date).toLocaleDateString() %>
+                                    </div>
+                                    <% } %>
+                                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                                            <span class="text-success fw-bold">NPR <%= Number(job.budget_min ||
+                                                    0).toLocaleString() %> — <%= Number(job.budget_max ||
+                                                        0).toLocaleString() %></span>
+                                            <a href="/jobs/<%= job.id %>" class="btn btn-sm btn-outline-primary">View
+                                                Details</a>
+                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% }) %>
+                        <% } else { %>
+                            <div class="col-12 text-center py-5">
+                                <i class="bi bi-search fs-1 text-muted"></i>
+                                <% if (hasAnyFilter) { %>
+                                    <p class="text-muted mt-2">No jobs match your search. Try different filters.</p>
+                                    <a href="/jobs" class="btn btn-outline-primary btn-sm">Clear All Filters</a>
+                                    <% } else { %>
+                                        <p class="text-muted mt-2">No jobs posted yet. Check back later!</p>
+                                        <% } %>
+                            </div>
                             <% } %>
                             <span><i class="bi bi-people"></i> <%= job.proposal_count || 0 %> proposals</span>
                         </div>
@@ -49,3 +176,171 @@
 </section>
 
 <%- include('../partials/tail') %>
+    </div>
+
+    <!-- Autocomplete Styles -->
+    <style>
+        .autocomplete-wrapper {
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1050;
+            max-height: 280px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            display: none;
+        }
+
+        .autocomplete-dropdown.show {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background .15s;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.active {
+            background: #f0f4ff;
+        }
+
+        .autocomplete-item .item-title {
+            font-weight: 600;
+            font-size: .95rem;
+        }
+
+        .autocomplete-item .item-meta {
+            font-size: .78rem;
+            color: #6c757d;
+        }
+
+        .autocomplete-item .item-price {
+            color: #198754;
+            font-weight: 600;
+            font-size: .82rem;
+        }
+    </style>
+
+    <!-- Autocomplete Script -->
+    <script>
+        (function () {
+            const input = document.getElementById('keyword');
+            if (!input) return;
+
+            const wrapper = input.closest('.input-group');
+            wrapper.style.position = 'relative';
+
+            const dropdown = document.createElement('div');
+            dropdown.className = 'autocomplete-dropdown';
+            wrapper.parentElement.appendChild(dropdown);
+
+            let debounceTimer;
+            let currentIndex = -1;
+            let activeController = null;
+            let lastQuery = '';
+            let lastResultIds = '';
+
+            input.addEventListener('input', function () {
+                const q = this.value.trim();
+                clearTimeout(debounceTimer);
+
+                // Cancel any in-flight request
+                if (activeController) { activeController.abort(); activeController = null; }
+
+                if (q.length < 2) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastQuery = ''; lastResultIds = ''; return; }
+                if (q === lastQuery) return;
+
+                debounceTimer = setTimeout(async () => {
+                    const controller = new AbortController();
+                    activeController = controller;
+                    try {
+                        const res = await fetch('/jobs/api/search?q=' + encodeURIComponent(q), { signal: controller.signal });
+                        const items = await res.json();
+
+                        // Don't update if this request was superseded
+                        if (controller !== activeController && activeController !== null) return;
+                        lastQuery = q;
+
+                        if (items.length === 0) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastResultIds = ''; return; }
+
+                        // Skip re-render if same results
+                        const newIds = items.map(i => i.id).join(',');
+                        if (newIds === lastResultIds) return;
+                        lastResultIds = newIds;
+
+                        dropdown.innerHTML = items.map(item => `
+                            <div class="autocomplete-item" data-href="/jobs/${item.id}">
+                                <div class="item-title">${escapeHtml(item.title)}</div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}${item.event_location ? ' · ' + escapeHtml(item.event_location) : ''}</span>
+                                    <span class="item-price">NPR ${Number(item.budget_min || 0).toLocaleString()} — ${Number(item.budget_max || 0).toLocaleString()}</span>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        currentIndex = -1;
+                        dropdown.classList.add('show');
+
+                        dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
+                            el.addEventListener('click', () => window.location.href = el.dataset.href);
+                        });
+                    } catch (e) {
+                        if (e.name !== 'AbortError') dropdown.classList.remove('show');
+                    }
+                }, 400);
+            });
+
+            // Keyboard navigation
+            input.addEventListener('keydown', function (e) {
+                const items = dropdown.querySelectorAll('.autocomplete-item');
+                if (!items.length || !dropdown.classList.contains('show')) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                    updateActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentIndex = Math.max(currentIndex - 1, 0);
+                    updateActive(items);
+                } else if (e.key === 'Enter' && currentIndex >= 0) {
+                    e.preventDefault();
+                    items[currentIndex].click();
+                } else if (e.key === 'Escape') {
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            function updateActive(items) {
+                items.forEach((el, i) => el.classList.toggle('active', i === currentIndex));
+                if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (!wrapper.parentElement.contains(e.target)) dropdown.classList.remove('show');
+            });
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+        })();
+    </script>
+    <%- include('../partials/tail') %>

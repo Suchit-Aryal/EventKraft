@@ -8,6 +8,9 @@ const gigCtrl = require('../controllers/gigController');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { ensureRole } = require('../middleware/roleCheck');
 
+// GET  /gigs/api/search  – JSON autocomplete results
+router.get('/api/search', gigCtrl.apiSearch);
+
 // GET  /gigs          – Browse all active gigs
 router.get('/', gigCtrl.index);
 
