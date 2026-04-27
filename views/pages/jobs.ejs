@@ -195,38 +195,56 @@
             const input = document.getElementById('keyword');
             if (!input) return;
 
-            // Wrap input in relative container
             const wrapper = input.closest('.input-group');
             wrapper.style.position = 'relative';
 
-            // Create dropdown
             const dropdown = document.createElement('div');
             dropdown.className = 'autocomplete-dropdown';
             wrapper.parentElement.appendChild(dropdown);
 
             let debounceTimer;
             let currentIndex = -1;
+            let activeController = null;
+            let lastQuery = '';
+            let lastResultIds = '';
 
             input.addEventListener('input', function () {
                 const q = this.value.trim();
                 clearTimeout(debounceTimer);
-                if (q.length < 2) { dropdown.classList.remove('show'); return; }
+
+                // Cancel any in-flight request
+                if (activeController) { activeController.abort(); activeController = null; }
+
+                if (q.length < 2) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastQuery = ''; lastResultIds = ''; return; }
+                if (q === lastQuery) return;
 
                 debounceTimer = setTimeout(async () => {
+                    const controller = new AbortController();
+                    activeController = controller;
                     try {
-                        const res = await fetch('/jobs/api/search?q=' + encodeURIComponent(q));
+                        const res = await fetch('/jobs/api/search?q=' + encodeURIComponent(q), { signal: controller.signal });
                         const items = await res.json();
-                        if (items.length === 0) { dropdown.classList.remove('show'); return; }
+
+                        // Don't update if this request was superseded
+                        if (controller !== activeController && activeController !== null) return;
+                        lastQuery = q;
+
+                        if (items.length === 0) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastResultIds = ''; return; }
+
+                        // Skip re-render if same results
+                        const newIds = items.map(i => i.id).join(',');
+                        if (newIds === lastResultIds) return;
+                        lastResultIds = newIds;
 
                         dropdown.innerHTML = items.map(item => `
-                        <div class="autocomplete-item" data-href="/jobs/${item.id}">
-                            <div class="item-title">${escapeHtml(item.title)}</div>
-                            <div class="d-flex justify-content-between">
-                                <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}${item.event_location ? ' · ' + escapeHtml(item.event_location) : ''}</span>
-                                <span class="item-price">NPR ${Number(item.budget_min || 0).toLocaleString()} — ${Number(item.budget_max || 0).toLocaleString()}</span>
+                            <div class="autocomplete-item" data-href="/jobs/${item.id}">
+                                <div class="item-title">${escapeHtml(item.title)}</div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}${item.event_location ? ' · ' + escapeHtml(item.event_location) : ''}</span>
+                                    <span class="item-price">NPR ${Number(item.budget_min || 0).toLocaleString()} — ${Number(item.budget_max || 0).toLocaleString()}</span>
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `).join('');
 
                         currentIndex = -1;
                         dropdown.classList.add('show');
@@ -234,8 +252,10 @@
                         dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
                             el.addEventListener('click', () => window.location.href = el.dataset.href);
                         });
-                    } catch (e) { dropdown.classList.remove('show'); }
-                }, 250);
+                    } catch (e) {
+                        if (e.name !== 'AbortError') dropdown.classList.remove('show');
+                    }
+                }, 400);
             });
 
             // Keyboard navigation
@@ -264,7 +284,6 @@
                 if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
             }
 
-            // Close on outside click
             document.addEventListener('click', (e) => {
                 if (!wrapper.parentElement.contains(e.target)) dropdown.classList.remove('show');
             });

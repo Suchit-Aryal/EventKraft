@@ -92,6 +92,7 @@ const Gig = {
         if (category_id) { query += ` AND sg.category_id = $${i++}`; params.push(category_id); }
         if (minPrice) { query += ` AND sg.starting_price >= $${i++}`; params.push(minPrice); }
         if (maxPrice) { query += ` AND sg.starting_price <= $${i++}`; params.push(maxPrice); }
+        //Search base query in this line of code
         if (keyword) { query += ` AND (sg.title ILIKE $${i} OR sg.description ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
 
         switch (sortBy) {
