@@ -4,22 +4,28 @@
             <span class="brand-icon"><i class="bi bi-stars"></i></span>
             EventKraft
         </a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-label="Toggle navigation">
             <i class="bi bi-list fs-4" style="color:var(--ek-text)"></i>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
                 <% if (currentUser) { %>
-                    <% if (currentUser.role === 'customer') { %>
+                    <% if (currentUser.role==='customer' ) { %>
+                        <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
                         <li class="nav-item"><a class="nav-link" href="/jobs/create">Post a Job</a></li>
-                    <% } else if (currentUser.role === 'worker') { %>
-                        <li class="nav-item"><a class="nav-link" href="/gigs/create">Create Service</a></li>
-                    <% } %>
-                <% } else { %>
-                    <li class="nav-item"><a class="nav-link" href="/auth/login">Post a Job</a></li>
-                <% } %>
+                        <% } else if (currentUser.role==='worker' ) { %>
+                            <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/gigs/create">Create Service</a></li>
+                            <% } else if (currentUser.role==='admin' ) { %>
+                                <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
+                                <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
+                                <% } %>
+                                    <% } else { %>
+                                        <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/auth/login">Post a Job</a></li>
+                                        <% } %>
             </ul>
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <% if (currentUser) { %>
@@ -31,25 +37,31 @@
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> <%= currentUser.email.split('@')[0] %>
+                            <i class="bi bi-person-circle"></i>
+                            <%= currentUser.email.split('@')[0] %>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/auth/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
-                            <% if (currentUser.role === 'admin') { %>
-                                <li><a class="dropdown-item" href="/admin"><i class="bi bi-shield-check me-2"></i>Admin Panel</a></li>
-                            <% } %>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="/auth/logout"><i class="bi bi-box-arrow-right me-2"></i>Log out</a></li>
+                            <li><a class="dropdown-item" href="/auth/dashboard"><i
+                                        class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            <% if (currentUser.role==='admin' ) { %>
+                                <li><a class="dropdown-item" href="/admin"><i class="bi bi-shield-check me-2"></i>Admin
+                                        Panel</a></li>
+                                <% } %>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><a class="dropdown-item text-danger" href="/auth/logout"><i
+                                                class="bi bi-box-arrow-right me-2"></i>Log out</a></li>
                         </ul>
                     </li>
-                <% } else { %>
-                    <li class="nav-item">
-                        <a class="btn btn-ek-ghost" href="/auth/login">Log in</a>
-                    </li>
-                    <li class="nav-item ms-lg-2">
-                        <a class="btn btn-ek-primary" href="/auth/register">Get started</a>
-                    </li>
-                <% } %>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="btn btn-ek-ghost" href="/auth/login">Log in</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-ek-primary" href="/auth/register">Get started</a>
+                        </li>
+                        <% } %>
             </ul>
         </div>
     </div>

@@ -1,38 +1,5 @@
 <%- include('../partials/header') %>
 
-<section class="ek-section-subtle" style="border-bottom:1px solid var(--ek-border);padding:3rem 0">
-    <div class="container">
-        <div style="max-width:600px">
-            <h1 class="font-display fs-2 fw-semibold mb-1">Browse premium event professionals</h1>
-            <p class="text-muted mb-0"><%= gigs.length %>+ verified service providers across Nepal</p>
-        </div>
-    </div>
-</section>
-
-<section class="container py-4" style="min-height:400px">
-    <p class="text-muted small mb-3"><%= gigs.length %> service<%= gigs.length === 1 ? '' : 's' %> found</p>
-
-    <% if (gigs.length === 0) { %>
-        <div class="empty-state">
-            <i class="bi bi-shop"></i>
-            <p>No services listed yet. <% if (currentUser && currentUser.role === 'worker') { %><a href="/gigs/create">Create the first service!</a><% } else { %>Be the first to <a href="/auth/register">sign up</a>!</p><% } %>
-        </div>
-    <% } else { %>
-        <div class="row g-3">
-            <% gigs.forEach(function(gig) { %>
-                <div class="col-sm-6 col-lg-3">
-                    <a href="/gigs/<%= gig.id %>" class="ek-provider-card ek-card d-block">
-                        <div class="cover">
-                            <img src="<%= (gig.portfolio_images && JSON.parse(gig.portfolio_images || '[]')[0]) || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=200&fit=crop' %>" alt="<%= gig.title %>">
-                        </div>
-                        <div class="info">
-                            <img src="<%= gig.worker_avatar || ('https://ui-avatars.com/api/?name=' + encodeURIComponent((gig.worker_first_name || 'U') + ' ' + (gig.worker_last_name || ''))) %>" alt="" class="avatar">
-                            <h4><%= gig.worker_first_name || 'Provider' %> <%= gig.worker_last_name || '' %></h4>
-                            <p class="tagline"><%= gig.title %></p>
-                            <div class="meta">
-                                <span><i class="bi bi-star-fill" style="color:var(--ek-gold)"></i> <%= gig.worker_rating || '0.0' %></span>
-                                <span><%= gig.category_name || 'Service' %></span>
-                                <% if (gig.worker_completed) { %><span><%= gig.worker_completed %> jobs</span><% } %>
     <div class="container py-5">
         <h2><i class="bi bi-briefcase"></i> Browse Services</h2>
         <p class="text-muted">Discover premium event service providers.</p>
@@ -48,7 +15,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                                 <input type="text" class="form-control" id="keyword" name="keyword"
-                                    placeholder="Search services..." value="<%= filters.keyword %>">
+                                    placeholder="Search by service or provider name..." value="<%= filters.keyword %>">
                             </div>
                         </div>
                         <!-- Category Filter -->
@@ -160,16 +127,8 @@
                                         <p class="text-muted mt-2">No services available yet. Check back later!</p>
                                         <% } %>
                             </div>
-                            <p class="price">From NPR <%= Number(gig.starting_price || 0).toLocaleString('en-IN') %></p>
-                        </div>
-                    </a>
-                </div>
-            <% }); %>
+                            <% } %>
         </div>
-    <% } %>
-</section>
-
-<%- include('../partials/tail') %>
     </div>
 
     <!-- Autocomplete Styles -->
@@ -244,19 +203,12 @@
             dropdown.className = 'autocomplete-dropdown';
             wrapper.parentElement.appendChild(dropdown);
 
-            let debounceTimer;
-            let currentIndex = -1;
-            let activeController = null;
-            let lastQuery = '';
-            let lastResultIds = '';
+            let debounceTimer, currentIndex = -1, activeController = null, lastQuery = '', lastResultIds = '';
 
             input.addEventListener('input', function () {
                 const q = this.value.trim();
                 clearTimeout(debounceTimer);
-
-                // Cancel any in-flight request
                 if (activeController) { activeController.abort(); activeController = null; }
-
                 if (q.length < 2) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastQuery = ''; lastResultIds = ''; return; }
                 if (q === lastQuery) return;
 
@@ -266,31 +218,24 @@
                     try {
                         const res = await fetch('/gigs/api/search?q=' + encodeURIComponent(q), { signal: controller.signal });
                         const items = await res.json();
-
-                        // Don't update if this request was superseded
                         if (controller !== activeController && activeController !== null) return;
                         lastQuery = q;
-
                         if (items.length === 0) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastResultIds = ''; return; }
-
-                        // Skip re-render if same results
                         const newIds = items.map(i => i.id).join(',');
                         if (newIds === lastResultIds) return;
                         lastResultIds = newIds;
 
                         dropdown.innerHTML = items.map(item => `
-                            <div class="autocomplete-item" data-href="/gigs/${item.id}">
-                                <div class="item-title">${escapeHtml(item.title)}</div>
-                                <div class="d-flex justify-content-between">
-                                    <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}</span>
-                                    <span class="item-price">From NPR ${Number(item.starting_price).toLocaleString()}</span>
-                                </div>
-                            </div>
-                        `).join('');
-
+                    <div class="autocomplete-item" data-href="/gigs/${item.id}">
+                        <div class="item-title">${escapeHtml(item.title)}</div>
+                        <div class="d-flex justify-content-between">
+                            <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}${item.worker_name ? ' · ' + escapeHtml(item.worker_name) : ''}</span>
+                            <span class="item-price">From NPR ${Number(item.starting_price).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `).join('');
                         currentIndex = -1;
                         dropdown.classList.add('show');
-
                         dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
                             el.addEventListener('click', () => window.location.href = el.dataset.href);
                         });
@@ -300,41 +245,24 @@
                 }, 400);
             });
 
-            // Keyboard navigation
             input.addEventListener('keydown', function (e) {
                 const items = dropdown.querySelectorAll('.autocomplete-item');
                 if (!items.length || !dropdown.classList.contains('show')) return;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    currentIndex = Math.min(currentIndex + 1, items.length - 1);
-                    updateActive(items);
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    currentIndex = Math.max(currentIndex - 1, 0);
-                    updateActive(items);
-                } else if (e.key === 'Enter' && currentIndex >= 0) {
-                    e.preventDefault();
-                    items[currentIndex].click();
-                } else if (e.key === 'Escape') {
-                    dropdown.classList.remove('show');
-                }
+                if (e.key === 'ArrowDown') { e.preventDefault(); currentIndex = Math.min(currentIndex + 1, items.length - 1); updateActive(items); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); currentIndex = Math.max(currentIndex - 1, 0); updateActive(items); }
+                else if (e.key === 'Enter' && currentIndex >= 0) { e.preventDefault(); items[currentIndex].click(); }
+                else if (e.key === 'Escape') { dropdown.classList.remove('show'); }
             });
 
             function updateActive(items) {
                 items.forEach((el, i) => el.classList.toggle('active', i === currentIndex));
                 if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
             }
-
             document.addEventListener('click', (e) => {
                 if (!wrapper.parentElement.contains(e.target)) dropdown.classList.remove('show');
             });
-
-            function escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
+            function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
         })();
     </script>
+
     <%- include('../partials/tail') %>

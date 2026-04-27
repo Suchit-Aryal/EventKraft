@@ -44,11 +44,13 @@ module.exports = {
             if (!q || q.trim().length < 2) return res.json([]);
 
             const result = await pool.query(
-                `SELECT sg.id, sg.title, sg.starting_price, c.name AS category_name
+                `SELECT sg.id, sg.title, sg.starting_price, c.name AS category_name,
+                        TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS worker_name
                  FROM service_gigs sg
                  LEFT JOIN categories c ON sg.category_id = c.id
+                 LEFT JOIN profiles p ON sg.worker_id = p.user_id
                  WHERE sg.status = 'active'
-                   AND (sg.title ILIKE $1 OR sg.description ILIKE $1 OR c.name ILIKE $1)
+                   AND (sg.title ILIKE $1 OR sg.description ILIKE $1 OR c.name ILIKE $1 OR p.first_name ILIKE $1 OR p.last_name ILIKE $1)
                  ORDER BY sg.created_at DESC
                  LIMIT 8`,
                 [`%${q.trim()}%`]
