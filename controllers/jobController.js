@@ -46,11 +46,13 @@ module.exports = {
             if (!q || q.trim().length < 2) return res.json([]);
 
             const result = await pool.query(
-                `SELECT jp.id, jp.title, jp.budget_min, jp.budget_max, jp.event_location, c.name AS category_name
+                `SELECT jp.id, jp.title, jp.budget_min, jp.budget_max, jp.event_location, c.name AS category_name,
+                        TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS customer_name
                  FROM job_postings jp
                  LEFT JOIN categories c ON jp.category_id = c.id
+                 LEFT JOIN profiles p ON jp.customer_id = p.user_id
                  WHERE jp.status = 'published'
-                   AND (jp.title ILIKE $1 OR jp.description ILIKE $1 OR c.name ILIKE $1 OR jp.event_location ILIKE $1)
+                   AND (jp.title ILIKE $1 OR jp.description ILIKE $1 OR c.name ILIKE $1 OR jp.event_location ILIKE $1 OR p.first_name ILIKE $1 OR p.last_name ILIKE $1)
                  ORDER BY jp.created_at DESC
                  LIMIT 8`,
                 [`%${q.trim()}%`]
