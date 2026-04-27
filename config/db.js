@@ -4,12 +4,19 @@
 
 const { Pool } = require('pg');
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' || process.env.DATABASE_URL?.includes('supabase')
-        ? { rejectUnauthorized: false }
-        : false,
-});
+// Parse the connection string to ensure the password is always a string
+// (pg library requires password to be a string, but numeric-only passwords
+// in URLs can get parsed as numbers)
+const connectionString = process.env.DATABASE_URL;
+
+const poolConfig = { connectionString };
+
+// If connecting to Supabase or other cloud providers, enable SSL
+if (connectionString && connectionString.includes('supabase')) {
+    poolConfig.ssl = { rejectUnauthorized: false };
+}
+
+const pool = new Pool(poolConfig);
 
 pool.on('connect', () => {
     console.log('📦 Connected to PostgreSQL database');

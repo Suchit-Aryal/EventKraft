@@ -4,9 +4,7 @@
             <h2><i class="bi bi-calendar-check"></i> Booking Details</h2>
             <a href="/bookings" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Bookings</a>
         </div>
-
         <div class="row g-4">
-            <!-- Booking Info -->
             <div class="col-md-8">
                 <div class="card shadow-sm">
                     <div class="card-body">
@@ -23,9 +21,7 @@
                                 <%= booking.status %>
                             </span>
                         </div>
-
                         <hr>
-
                         <div class="row g-3">
                             <div class="col-sm-6">
                                 <p class="mb-1 text-muted">Customer</p>
@@ -54,22 +50,7 @@
                                     <%= booking.event_location || 'Not specified' %>
                                 </p>
                             </div>
-                            <div class="col-sm-6">
-                                <p class="mb-1 text-muted">Created</p>
-                                <p class="fw-bold">
-                                    <%= new Date(booking.created_at).toLocaleDateString() %>
-                                </p>
-                            </div>
-                            <% if (booking.completed_at) { %>
-                                <div class="col-sm-6">
-                                    <p class="mb-1 text-muted">Completed</p>
-                                    <p class="fw-bold">
-                                        <%= new Date(booking.completed_at).toLocaleDateString() %>
-                                    </p>
-                                </div>
-                                <% } %>
                         </div>
-
                         <% if (booking.requirements) { %>
                             <hr>
                             <h6>Requirements</h6>
@@ -80,53 +61,22 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Payment & Actions -->
             <div class="col-md-4">
                 <div class="card shadow-sm mb-3">
                     <div class="card-body">
                         <h5 class="card-title">Payment Summary</h5>
                         <hr>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Total Amount</span>
-                            <strong>NPR <%= Number(booking.total_amount).toLocaleString() %></strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Commission (<%= booking.commission_rate %>%)</span>
-                            <span>NPR <%= Number(booking.commission_amount).toLocaleString() %></span>
-                        </div>
+                        <div class="d-flex justify-content-between mb-2"><span>Total Amount</span><strong>NPR <%=
+                                    Number(booking.total_amount).toLocaleString() %></strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Commission (<%= booking.commission_rate
+                                    %>%)</span><span>NPR <%= Number(booking.commission_amount).toLocaleString() %>
+                                    </span></div>
                         <hr>
-                        <div class="d-flex justify-content-between">
-                            <strong>Worker Earning</strong>
-                            <strong class="text-success">NPR <%= Number(booking.worker_earning).toLocaleString() %>
-                                    </strong>
+                        <div class="d-flex justify-content-between"><strong>Worker Earning</strong><strong
+                                class="text-success">NPR <%= Number(booking.worker_earning).toLocaleString() %></strong>
                         </div>
                     </div>
                 </div>
-
-                <% if (booking.status==='pending' || booking.status==='accepted' || booking.status==='in_progress' ) {
-                    %>
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">Update Status</h5>
-                            <form action="/bookings/<%= booking.id %>?_method=PUT" method="POST">
-                                <select name="status" class="form-select mb-3">
-                                    <option value="pending" <%=booking.status==='pending' ? 'selected' : '' %>>Pending
-                                    </option>
-                                    <option value="accepted" <%=booking.status==='accepted' ? 'selected' : '' %>
-                                        >Accepted</option>
-                                    <option value="in_progress" <%=booking.status==='in_progress' ? 'selected' : '' %>
-                                        >In Progress</option>
-                                    <option value="completed" <%=booking.status==='completed' ? 'selected' : '' %>
-                                        >Completed</option>
-                                    <option value="cancelled" <%=booking.status==='cancelled' ? 'selected' : '' %>
-                                        >Cancelled</option>
-                                </select>
-                                <button type="submit" class="btn btn-primary w-100">Update</button>
-                            </form>
-                        </div>
-                    </div>
-                    <% } %>
             </div>
         </div>
     </div>
