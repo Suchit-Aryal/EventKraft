@@ -25,7 +25,7 @@ module.exports = {
     async store(req, res) {
         try {
             const booking = await Booking.create({ ...req.body, customer_id: req.user.id });
-            req.flash('success', 'Booking created!');
+            req.flash('success', 'Booking created! The worker will be notified.');
             res.redirect(`/bookings/${booking.id}`);
         } catch (err) {
             console.error(err);
@@ -53,6 +53,42 @@ module.exports = {
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to update booking');
+            res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
+
+    async accept(req, res) {
+        try {
+            await Booking.accept(req.params.id);
+            req.flash('success', 'Booking accepted!');
+            res.redirect(`/bookings/${req.params.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to accept booking');
+            res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
+
+    async complete(req, res) {
+        try {
+            await Booking.complete(req.params.id);
+            req.flash('success', 'Booking marked as completed!');
+            res.redirect(`/bookings/${req.params.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to complete booking');
+            res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
+
+    async cancel(req, res) {
+        try {
+            await Booking.cancel(req.params.id);
+            req.flash('success', 'Booking cancelled');
+            res.redirect(`/bookings/${req.params.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to cancel booking');
             res.redirect(`/bookings/${req.params.id}`);
         }
     }

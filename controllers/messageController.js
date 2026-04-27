@@ -19,9 +19,24 @@ module.exports = {
 
     async show(req, res) {
         try {
+            const conversation = await Message.getConversationById(req.params.conversationId);
+            if (!conversation) return res.redirect('/messages');
+
             const messages = await Message.getByConversation(req.params.conversationId);
             await Message.markAsRead(req.params.conversationId, req.user.id);
-            res.render('pages/conversation', { title: 'Conversation', messages, conversationId: req.params.conversationId });
+
+            // Determine the other participant's info
+            const isP1 = conversation.participant_1 === req.user.id;
+            const otherName = isP1 ? conversation.p2_name : conversation.p1_name;
+            const otherAvatar = null; // avatar not in conversation query, use fallback
+
+            res.render('pages/conversation', {
+                title: 'Conversation',
+                conversation,
+                messages,
+                otherName,
+                otherAvatar
+            });
         } catch (err) {
             console.error(err);
             res.redirect('/messages');
