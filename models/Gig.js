@@ -93,7 +93,7 @@ const Gig = {
         if (minPrice) { query += ` AND sg.starting_price >= $${i++}`; params.push(minPrice); }
         if (maxPrice) { query += ` AND sg.starting_price <= $${i++}`; params.push(maxPrice); }
         //Search base query in this line of code
-        if (keyword) { query += ` AND (sg.title ILIKE $${i} OR sg.description ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
+        if (keyword) { query += ` AND (sg.title ILIKE $${i} OR sg.description ILIKE $${i} OR p.first_name ILIKE $${i} OR p.last_name ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
 
         switch (sortBy) {
             case 'price_low': query += ' ORDER BY sg.starting_price ASC'; break;

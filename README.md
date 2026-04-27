@@ -181,13 +181,14 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 | **READ**   | `SELECT` with `JOIN` across related tables (e.g., booking → customer + worker + gig + job) |
 | **UPDATE** | `COALESCE`-based partial updates (only changes specified fields)                           |
 | **DELETE** | Hard delete + soft delete options                                                          |
-| **SEARCH** | Dynamic `WHERE` clauses with `ILIKE` for text search                                       |
+| **SEARCH** | Dynamic `WHERE` clauses with `ILIKE` for text search (title, description, and provider/customer name) |
 | **STATS**  | Aggregation queries (`COUNT`, `SUM`, `AVG`, `FILTER`) for dashboards                       |
 
 ## User Roles
 
-| Role         | Access                                                  |
-| ------------ | ------------------------------------------------------- |
-| **Customer** | Post jobs, browse services, book workers, leave reviews |
-| **Worker**   | Create service gigs, submit proposals, manage bookings  |
-| **Admin**    | Manage users, resolve disputes, configure commissions   |
+| Role         | Navigation                        | Access                                                  |
+| ------------ | --------------------------------- | ------------------------------------------------------- |
+| **Customer** | Browse Services · Post a Job      | Post jobs, browse services, book workers, leave reviews |
+| **Worker**   | Browse Jobs · Create Service      | Create service gigs, submit proposals, manage bookings  |
+| **Admin**    | Browse Services · Browse Jobs     | Manage users, resolve disputes, configure commissions   |
+| **Guest**    | Browse Services · Browse Jobs     | View listings, register to interact                     |
