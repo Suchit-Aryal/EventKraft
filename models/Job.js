@@ -88,7 +88,8 @@ const Job = {
         if (minBudget) { query += ` AND jp.budget_max >= $${i++}`; params.push(minBudget); }
         if (maxBudget) { query += ` AND jp.budget_min <= $${i++}`; params.push(maxBudget); }
         if (location) { query += ` AND jp.event_location ILIKE $${i++}`; params.push(`%${location}%`); }
-        if (keyword) { query += ` AND (jp.title ILIKE $${i++} OR jp.description ILIKE $${i})`; params.push(`%${keyword}%`); }
+        //Search line query in this line of code which does the searching 
+        if (keyword) { query += ` AND (jp.title ILIKE $${i} OR jp.description ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
 
         query += ' ORDER BY jp.created_at DESC';
         const result = await pool.query(query, params);

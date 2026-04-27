@@ -54,6 +54,50 @@
                                 </h2>
                                 <div id="faq<%= i %>" class="accordion-collapse collapse">
                                     <div class="accordion-body text-muted small"><%= item.answer || item.a %></div>
+    <div class="container py-5">
+        <a href="/gigs" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Services</a>
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h2 class="mb-2">
+                            <%= gig.title %>
+                        </h2>
+                        <span class="badge bg-secondary mb-3">
+                            <%= gig.category_name || 'Uncategorized' %>
+                        </span>
+                        <span class="badge bg-<%= gig.status === 'active' ? 'success' : 'warning' %>">
+                            <%= gig.status %>
+                        </span>
+                        <hr>
+                        <h5>Description</h5>
+                        <p class="text-muted">
+                            <%= gig.description %>
+                        </p>
+                        <% if (gig.delivery_time) { %>
+                            <div class="mb-3"><strong><i class="bi bi-clock"></i> Delivery Time:</strong>
+                                <%= gig.delivery_time %>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body text-center">
+                        <h4 class="text-success mb-1">From NPR <%= Number(gig.starting_price).toLocaleString() %>
+                        </h4>
+                        <p class="text-muted small">Starting price</p>
+                        <hr>
+                        <div class="d-flex justify-content-around text-center mb-3">
+                            <div><i class="bi bi-eye fs-5"></i>
+                                <div class="small">
+                                    <%= gig.view_count || 0 %> views
+                                </div>
+                            </div>
+                            <div><i class="bi bi-bar-chart fs-5"></i>
+                                <div class="small">
+                                    <%= gig.impression_count || 0 %> impressions
                                 </div>
                             </div>
                         <% }); %>
@@ -113,6 +157,21 @@
                                 </form>
                             </div>
                         <% }); %>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">About the Worker</h6>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <i class="bi bi-person-circle fs-1"></i>
+                            <div>
+                                <strong>
+                                    <%= gig.worker_first_name %>
+                                        <%= gig.worker_last_name || '' %>
+                                </strong>
+                                <div class="small text-muted"><i class="bi bi-star-fill text-warning"></i>
+                                    <%= gig.worker_rating || '0' %> · <%= gig.worker_completed || 0 %> completed
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 <% } else { %>
                     <div style="padding:1.5rem">
