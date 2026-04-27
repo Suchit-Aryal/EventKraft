@@ -29,4 +29,7 @@ router.put('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.update);
 // DELETE /jobs/:id    – Delete / cancel job
 router.delete('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.destroy);
 
+// POST /jobs/:id/proposals – Worker submits a proposal
+router.post('/:id/proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.submitProposal);
+
 module.exports = router;

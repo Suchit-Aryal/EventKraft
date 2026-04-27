@@ -82,7 +82,29 @@ module.exports = {
             const gig = await Gig.findById(req.params.id);
             if (!gig) return res.status(404).render('pages/404', { title: 'Service Not Found' });
             await Gig.incrementViews(req.params.id);
-            res.render('pages/gig-detail', { title: gig.title, gig });
+
+            // Get packages for this gig
+            const pkgResult = await pool.query(
+                'SELECT * FROM gig_packages WHERE gig_id = $1 ORDER BY price ASC',
+                [req.params.id]
+            );
+
+            // Get reviews for the worker
+            const reviewResult = await pool.query(
+                `SELECT r.*, p.first_name AS reviewer_first_name, p.last_name AS reviewer_last_name
+                 FROM reviews r
+                 JOIN profiles p ON r.reviewer_id = p.user_id
+                 WHERE r.reviewee_id = $1 AND r.is_public = true
+                 ORDER BY r.created_at DESC LIMIT 10`,
+                [gig.worker_id]
+            );
+
+            res.render('pages/gig-detail', {
+                title: gig.title,
+                gig,
+                packages: pkgResult.rows,
+                reviews: reviewResult.rows
+            });
         } catch (err) {
             console.error(err);
             res.redirect('/gigs');
@@ -91,6 +113,7 @@ module.exports = {
 
     async update(req, res) {
         try {
+            await Gig.update(req.params.id, req.body);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
         } catch (err) {

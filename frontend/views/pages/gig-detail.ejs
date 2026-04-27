@@ -1,0 +1,140 @@
+<%- include('../partials/header') %>
+
+<section class="container py-4">
+    <a href="/gigs" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to services
+    </a>
+
+    <div class="row g-4">
+        <!-- Main -->
+        <div class="col-lg-8">
+            <!-- Portfolio -->
+            <% var images = []; try { images = JSON.parse(gig.portfolio_images || '[]'); } catch(e) {} %>
+            <% if (images.length > 0) { %>
+                <div class="ek-portfolio-grid mb-4">
+                    <% images.slice(0,6).forEach(function(img) { %>
+                        <img src="<%= img %>" alt="Portfolio">
+                    <% }); %>
+                </div>
+            <% } %>
+
+            <!-- Provider Info -->
+            <div class="d-flex align-items-start gap-3 mb-4">
+                <img src="<%= gig.worker_avatar || ('https://ui-avatars.com/api/?name='+(gig.worker_first_name||'U')) %>" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:var(--ek-shadow-soft)">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h1 class="font-display fs-3 fw-semibold mb-0"><%= gig.worker_first_name %> <%= gig.worker_last_name || '' %></h1>
+                        <span class="ek-badge ek-badge-verified"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                    </div>
+                    <p class="text-muted mb-1"><%= gig.title %></p>
+                    <div class="d-flex flex-wrap gap-3" style="font-size:.85rem;color:var(--ek-text-muted)">
+                        <span><i class="bi bi-star-fill me-1" style="color:var(--ek-gold)"></i><strong style="color:var(--ek-text)"><%= gig.worker_rating || 0 %></strong></span>
+                        <span><i class="bi bi-geo-alt me-1"></i><%= gig.category_name || 'Service' %></span>
+                        <span><i class="bi bi-trophy me-1"></i><%= gig.worker_completed || 0 %> completed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About -->
+            <div class="mb-4">
+                <h3 class="font-display fs-5 fw-semibold mb-2">About this service</h3>
+                <p class="text-muted" style="line-height:1.7"><%= gig.description %></p>
+            </div>
+
+            <!-- FAQ -->
+            <% var faq = []; try { faq = JSON.parse(gig.faq || '[]'); } catch(e) {} %>
+            <% if (faq.length > 0) { %>
+                <div class="mb-4">
+                    <h3 class="font-display fs-5 fw-semibold mb-3">FAQ</h3>
+                    <div class="accordion" id="faqAccordion">
+                        <% faq.forEach(function(item, i) { %>
+                            <div class="accordion-item" style="border-color:var(--ek-border);border-radius:var(--ek-radius);margin-bottom:.5rem">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq<%= i %>"><%= item.question || item.q %></button>
+                                </h2>
+                                <div id="faq<%= i %>" class="accordion-collapse collapse">
+                                    <div class="accordion-body text-muted small"><%= item.answer || item.a %></div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Reviews -->
+            <% if (typeof reviews !== 'undefined' && reviews.length > 0) { %>
+                <div>
+                    <h3 class="font-display fs-5 fw-semibold mb-3">Reviews (<%= reviews.length %>)</h3>
+                    <% reviews.forEach(function(r) { %>
+                        <div class="ek-card mb-3" style="padding:1.25rem">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong><%= r.reviewer_first_name || 'Customer' %></strong>
+                                <small class="text-muted"><%= new Date(r.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) %></small>
+                            </div>
+                            <div class="stars mb-2"><% for(var s=0;s<5;s++){ %><i class="bi bi-star<%= s < r.rating ? '-fill' : '' %>"></i><% } %></div>
+                            <p class="text-muted small mb-0"><%= r.comment %></p>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Sidebar: Packages -->
+        <div class="col-lg-4">
+            <div class="ek-card" style="position:sticky;top:80px">
+                <% if (typeof packages !== 'undefined' && packages.length > 0) { %>
+                    <ul class="nav ek-package-tabs" role="tablist">
+                        <% packages.forEach(function(pkg, i) { %>
+                            <li class="nav-item flex-fill text-center" role="presentation">
+                                <button class="nav-link w-100 <%= i===0?'active':'' %>" data-bs-toggle="tab" data-bs-target="#pkg<%= i %>"><%= pkg.tier || pkg.title %></button>
+                            </li>
+                        <% }); %>
+                    </ul>
+                    <div class="tab-content" style="padding:1.5rem">
+                        <% packages.forEach(function(pkg, i) { %>
+                            <div class="tab-pane fade <%= i===0?'show active':'' %>" id="pkg<%= i %>">
+                                <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(pkg.price).toLocaleString('en-IN') %></p>
+                                <p class="text-muted small mb-3"><i class="bi bi-clock me-1"></i><%= pkg.delivery_time || 'Standard delivery' %></p>
+                                <% var features = []; try { features = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || []); } catch(e) {} %>
+                                <ul class="list-unstyled mb-4">
+                                    <% features.forEach(function(f) { %>
+                                        <li class="d-flex align-items-start gap-2 mb-2 small"><i class="bi bi-check-lg" style="color:var(--ek-success);margin-top:2px"></i><span><%= f %></span></li>
+                                    <% }); %>
+                                </ul>
+                                <form action="/bookings" method="POST">
+                                    <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
+                                    <input type="hidden" name="gig_id" value="<%= gig.id %>">
+                                    <input type="hidden" name="package_id" value="<%= pkg.id %>">
+                                    <input type="hidden" name="total_amount" value="<%= pkg.price %>">
+                                    <input type="hidden" name="commission_rate" value="10">
+                                    <input type="hidden" name="commission_amount" value="<%= (pkg.price * 0.1).toFixed(2) %>">
+                                    <input type="hidden" name="worker_earning" value="<%= (pkg.price * 0.9).toFixed(2) %>">
+                                    <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
+                                </form>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div style="padding:1.5rem">
+                        <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(gig.starting_price||0).toLocaleString('en-IN') %></p>
+                        <p class="text-muted small mb-3">Starting price</p>
+                        <form action="/bookings" method="POST">
+                            <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
+                            <input type="hidden" name="gig_id" value="<%= gig.id %>">
+                            <input type="hidden" name="total_amount" value="<%= gig.starting_price %>">
+                            <input type="hidden" name="commission_rate" value="10">
+                            <input type="hidden" name="commission_amount" value="<%= (gig.starting_price * 0.1).toFixed(2) %>">
+                            <input type="hidden" name="worker_earning" value="<%= (gig.starting_price * 0.9).toFixed(2) %>">
+                            <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
+                        </form>
+                    </div>
+                <% } %>
+                <div class="text-center pb-3">
+                    <small class="text-muted">Payments protected by EventKraft</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<%- include('../partials/tail') %>
