@@ -4,32 +4,32 @@
 
 require('dotenv').config();
 
-const express       = require('express');
-const path          = require('path');
-const session       = require('express-session');
-const flash         = require('express-flash');
+const express = require('express');
+const path = require('path');
+const session = require('express-session');
+const flash = require('express-flash');
 const methodOverride = require('method-override');
-const passport      = require('passport');
-const http          = require('http');
-const { Server }    = require('socket.io');
+const passport = require('passport');
+const http = require('http');
+const { Server } = require('socket.io');
 
 // Import config
-const pool            = require('./config/db');
+const pool = require('./config/db');
 const initializePassport = require('./config/passport');
 
 // Import routes
-const authRoutes    = require('./routes/authRoutes');
-const jobRoutes     = require('./routes/jobRoutes');
-const gigRoutes     = require('./routes/gigRoutes');
+const authRoutes = require('./routes/authRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+const gigRoutes = require('./routes/gigRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
-const reviewRoutes  = require('./routes/reviewRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 const messageRoutes = require('./routes/messageRoutes');
-const adminRoutes   = require('./routes/adminRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // ─── App Setup ──────────────────────────────────────────────
-const app    = express();
+const app = express();
 const server = http.createServer(app);
-const io     = new Server(server);
+const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
@@ -62,8 +62,8 @@ app.use(passport.session());
 // Global variables for templates
 app.use((req, res, next) => {
     res.locals.currentUser = req.user || null;
-    res.locals.success     = req.flash('success');
-    res.locals.error       = req.flash('error');
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
     next();
 });
 
@@ -95,13 +95,14 @@ app.get('/', async (req, res) => {
 });
 
 // Mount route modules
-app.use('/auth',     authRoutes);
-app.use('/jobs',     jobRoutes);
-app.use('/gigs',     gigRoutes);
+app.use('/auth', authRoutes);
+app.use('/jobs', jobRoutes);
+app.use('/gigs', gigRoutes);
 app.use('/bookings', bookingRoutes);
-app.use('/reviews',  reviewRoutes);
+app.use('/reviews', reviewRoutes);
 app.use('/messages', messageRoutes);
-app.use('/admin',    adminRoutes);
+app.use('/admin', adminRoutes);
+app.use('/profile', require('./routes/profileRoutes'));
 
 // ─── Socket.io (Real-time Chat) ────────────────────────────
 io.on('connection', (socket) => {
