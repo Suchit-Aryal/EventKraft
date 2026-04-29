@@ -1,14 +1,102 @@
 <%- include('../partials/header') %>
-    <div class="container py-5">
-        <h2>Welcome, Customer!</h2>
-        <p class="text-muted">Manage your job postings and bookings from here.</p>
-        <div class="row g-4 mt-3">
-            <div class="col-md-4"><a href="/jobs/create" class="btn btn-primary w-100 py-3"><i
-                        class="bi bi-plus-circle"></i> Post a Job</a></div>
-            <div class="col-md-4"><a href="/gigs" class="btn btn-outline-primary w-100 py-3"><i
-                        class="bi bi-search"></i> Browse Services</a></div>
-            <div class="col-md-4"><a href="/bookings" class="btn btn-outline-primary w-100 py-3"><i
-                        class="bi bi-calendar-check"></i> My Bookings</a></div>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <div class="flex-grow-1">
+            <h1 class="font-display fs-3 fw-semibold mb-1">Welcome back, <%= profile ? profile.first_name : 'Customer' %> 👋</h1>
+            <p class="text-muted mb-0">Here's what's happening with your events.</p>
+        </div>
+        <a href="/jobs/create" class="btn btn-ek-primary"><i class="bi bi-plus-lg me-1"></i> Post new job</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-briefcase"></i></div>
+                <p class="stat-value"><%= stats.activeJobs || 0 %></p>
+                <p class="stat-label">Active Jobs</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-envelope-paper"></i></div>
+                <p class="stat-value"><%= stats.pendingProposals || 0 %></p>
+                <p class="stat-label">Pending Proposals</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-calendar-check"></i></div>
+                <p class="stat-value"><%= stats.totalBookings || 0 %></p>
+                <p class="stat-label">Total Bookings</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-purple"><i class="bi bi-cash-stack"></i></div>
+                <p class="stat-value">NPR <%= Number(stats.totalSpent || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Total Spent</p>
+            </div>
         </div>
     </div>
-    <%- include('../partials/tail') %>
+
+    <!-- Active Jobs -->
+    <div class="mb-4">
+        <h5 class="dash-section-title"><i class="bi bi-briefcase"></i> Your active jobs</h5>
+        <% if (jobs && jobs.length > 0) { %>
+            <div class="crm-table">
+                <table class="table">
+                    <thead><tr><th>Title</th><th>Category</th><th>Budget</th><th>Proposals</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                        <% jobs.forEach(function(j) { %>
+                            <tr>
+                                <td><a href="/jobs/<%= j.id %>" class="fw-semibold text-decoration-none" style="color:var(--ek-text)"><%= j.title %></a></td>
+                                <td><span class="ek-badge ek-badge-category"><%= j.category_name || '-' %></span></td>
+                                <td class="text-nowrap">NPR <%= Number(j.budget_min||0).toLocaleString('en-IN') %> – <%= Number(j.budget_max||0).toLocaleString('en-IN') %></td>
+                                <td><%= j.proposal_count || 0 %></td>
+                                <td><span class="badge-status badge-<%= j.status %>"><%= j.status %></span></td>
+                                <td><a href="/jobs/<%= j.id %>" class="btn btn-sm btn-ek-outline">View</a></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <i class="bi bi-briefcase"></i>
+                <p>No jobs posted yet. <a href="/jobs/create">Post your first job!</a></p>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- Bookings -->
+    <div>
+        <h5 class="dash-section-title"><i class="bi bi-calendar-check"></i> Recent bookings</h5>
+        <% if (bookings && bookings.length > 0) { %>
+            <div class="crm-table">
+                <table class="table">
+                    <thead><tr><th>Service</th><th>Worker</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                        <% bookings.forEach(function(b) { %>
+                            <tr>
+                                <td><%= b.gig_title || b.job_title || 'Booking' %></td>
+                                <td><%= b.worker_name || '-' %></td>
+                                <td class="fw-semibold">NPR <%= Number(b.total_amount||0).toLocaleString('en-IN') %></td>
+                                <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
+                                <td><a href="/bookings/<%= b.id %>" class="btn btn-sm btn-ek-outline">View</a></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state">
+                <i class="bi bi-calendar-check"></i>
+                <p>No bookings yet. Browse <a href="/gigs">services</a> to get started!</p>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>

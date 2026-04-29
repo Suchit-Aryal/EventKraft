@@ -1,5 +1,5 @@
 // ============================================================
-// Gig Controller
+// Gig Controller — with search/filter support
 // ============================================================
 
 const Gig = require('../models/Gig');
@@ -9,12 +9,56 @@ module.exports = {
 
     async index(req, res) {
         try {
-            const gigs = await Gig.findActive();
-            res.render('pages/gigs', { title: 'Browse Services', gigs });
+            const { keyword, category_id, minPrice, maxPrice, sortBy } = req.query;
+            const hasFilters = keyword || category_id || minPrice || maxPrice || sortBy;
+
+            let gigs;
+            if (hasFilters) {
+                gigs = await Gig.search({ category_id, minPrice, maxPrice, keyword, sortBy });
+            } else {
+                gigs = await Gig.findActive();
+            }
+
+            // Fetch categories for the filter dropdown
+            const categories = await pool.query(
+                'SELECT id, name FROM categories WHERE is_active = true ORDER BY sort_order'
+            );
+
+            res.render('pages/gigs', {
+                title: 'Browse Services',
+                gigs,
+                categories: categories.rows,
+                filters: { keyword: keyword || '', category_id: category_id || '', minPrice: minPrice || '', maxPrice: maxPrice || '', sortBy: sortBy || '' }
+            });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load services');
             res.redirect('/');
+        }
+    },
+
+    // GET /gigs/api/search — JSON autocomplete
+    async apiSearch(req, res) {
+        try {
+            const { q } = req.query;
+            if (!q || q.trim().length < 2) return res.json([]);
+
+            const result = await pool.query(
+                `SELECT sg.id, sg.title, sg.starting_price, c.name AS category_name,
+                        TRIM(COALESCE(p.first_name, '') || ' ' || COALESCE(p.last_name, '')) AS worker_name
+                 FROM service_gigs sg
+                 LEFT JOIN categories c ON sg.category_id = c.id
+                 LEFT JOIN profiles p ON sg.worker_id = p.user_id
+                 WHERE sg.status = 'active'
+                   AND (sg.title ILIKE $1 OR sg.description ILIKE $1 OR c.name ILIKE $1 OR p.first_name ILIKE $1 OR p.last_name ILIKE $1)
+                 ORDER BY sg.created_at DESC
+                 LIMIT 8`,
+                [`%${q.trim()}%`]
+            );
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.json([]);
         }
     },
 
@@ -40,7 +84,29 @@ module.exports = {
             const gig = await Gig.findById(req.params.id);
             if (!gig) return res.status(404).render('pages/404', { title: 'Service Not Found' });
             await Gig.incrementViews(req.params.id);
-            res.render('pages/gig-detail', { title: gig.title, gig });
+
+            // Get packages for this gig
+            const pkgResult = await pool.query(
+                'SELECT * FROM gig_packages WHERE gig_id = $1 ORDER BY price ASC',
+                [req.params.id]
+            );
+
+            // Get reviews for the worker
+            const reviewResult = await pool.query(
+                `SELECT r.*, p.first_name AS reviewer_first_name, p.last_name AS reviewer_last_name
+                 FROM reviews r
+                 JOIN profiles p ON r.reviewer_id = p.user_id
+                 WHERE r.reviewee_id = $1 AND r.is_public = true
+                 ORDER BY r.created_at DESC LIMIT 10`,
+                [gig.worker_id]
+            );
+
+            res.render('pages/gig-detail', {
+                title: gig.title,
+                gig,
+                packages: pkgResult.rows,
+                reviews: reviewResult.rows
+            });
         } catch (err) {
             console.error(err);
             res.redirect('/gigs');
@@ -49,6 +115,7 @@ module.exports = {
 
     async update(req, res) {
         try {
+            await Gig.update(req.params.id, req.body);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
         } catch (err) {

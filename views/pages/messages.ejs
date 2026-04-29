@@ -1,21 +1,35 @@
 <%- include('../partials/header') %>
-    <div class="container py-5">
-        <h2>Messages</h2>
-        <% if (conversations && conversations.length> 0) { %>
-            <div class="list-group mt-3">
-                <% conversations.forEach(c=> { %>
-                    <a href="/messages/<%= c.id %>" class="list-group-item list-group-item-action">
-                        <div class="d-flex justify-content-between">
-                            <strong>Conversation #<%= c.id.substring(0,8) %></strong>
-                            <small class="text-muted">
-                                <%= c.last_message_at || 'No messages' %>
-                            </small>
+
+<div class="container py-4">
+    <h1 class="font-display fs-3 fw-semibold mb-4">Messages</h1>
+
+    <% if (conversations && conversations.length > 0) { %>
+        <div class="row g-0">
+            <% conversations.forEach(function(c) { %>
+                <% var otherName = (c.participant_1 === currentUser.id) ? c.p2_name : c.p1_name; %>
+                <% var otherAvatar = (c.participant_1 === currentUser.id) ? c.p2_avatar : c.p1_avatar; %>
+                <div class="col-12">
+                    <a href="/messages/<%= c.id %>" class="d-flex align-items-center gap-3 text-decoration-none ek-card mb-2" style="padding:1rem 1.25rem;border-radius:var(--ek-radius)">
+                        <img src="<%= otherAvatar || ('https://ui-avatars.com/api/?name='+(otherName||'U')) %>" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex justify-content-between">
+                                <strong style="color:var(--ek-text)"><%= otherName || 'User' %></strong>
+                                <% if (c.unread_count > 0) { %>
+                                    <span class="badge rounded-pill" style="background:var(--ek-maroon);color:#fff;font-size:.7rem"><%= c.unread_count %></span>
+                                <% } %>
+                            </div>
+                            <p class="text-muted small mb-0 text-truncate"><%= c.last_message || 'No messages yet' %></p>
                         </div>
                     </a>
-                    <% }) %>
-            </div>
-            <% } else { %>
-                <p class="text-muted mt-3">No conversations yet.</p>
-                <% } %>
-    </div>
-    <%- include('../partials/tail') %>
+                </div>
+            <% }); %>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <i class="bi bi-chat-dots"></i>
+            <p>No conversations yet. Start by contacting a provider!</p>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/tail') %>

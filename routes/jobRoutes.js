@@ -8,6 +8,9 @@ const jobCtrl = require('../controllers/jobController');
 const { ensureAuthenticated } = require('../middleware/auth');
 const { ensureRole } = require('../middleware/roleCheck');
 
+// GET  /jobs/api/search  – JSON autocomplete results
+router.get('/api/search', jobCtrl.apiSearch);
+
 // GET  /jobs          – Browse all published jobs
 router.get('/', jobCtrl.index);
 
@@ -25,5 +28,8 @@ router.put('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.update);
 
 // DELETE /jobs/:id    – Delete / cancel job
 router.delete('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.destroy);
+
+// POST /jobs/:id/proposals – Worker submits a proposal
+router.post('/:id/proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.submitProposal);
 
 module.exports = router;

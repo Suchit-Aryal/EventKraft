@@ -1,23 +1,49 @@
 <%- include('../partials/header') %>
 
-    <div class="container py-5" style="max-width: 500px;">
-        <h2 class="text-center mb-4">Login to EventKraft</h2>
-
-        <form action="/auth/login" method="POST">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-
-        <p class="text-center mt-3">
-            Don't have an account? <a href="/auth/register">Register here</a>
-        </p>
+<div class="ek-auth-split">
+    <!-- Brand Panel (desktop only) -->
+    <div class="ek-auth-brand d-none d-lg-flex">
+        <a href="/" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem">
+            <i class="bi bi-stars" style="color:var(--ek-gold-light)"></i>
+            <span class="font-display fs-4 fw-semibold">EventKraft</span>
+        </a>
+        <div>
+            <h2>Welcome back to <span class="text-gradient-gold">EventKraft</span></h2>
+            <p style="opacity:.8;max-width:400px" class="mt-3">Continue planning unforgettable events with Nepal's most trusted network of creative professionals.</p>
+        </div>
+        <p class="small" style="opacity:.5">&copy; EventKraft · Nepal</p>
     </div>
 
-    <%- include('../partials/tail') %>
+    <!-- Form Panel -->
+    <div class="ek-auth-form">
+        <div style="width:100%;max-width:380px">
+            <a href="/" class="d-lg-none d-flex align-items-center gap-2 mb-4 text-decoration-none">
+                <i class="bi bi-stars fs-5" style="color:var(--ek-maroon)"></i>
+                <span class="font-display fs-5 fw-semibold">EventKraft</span>
+            </a>
+
+            <h1 class="font-display fs-2 fw-semibold">Log in</h1>
+            <p class="text-muted small mt-1">Welcome back — let's get you signed in.</p>
+
+            <form action="/auth/login" method="POST" class="ek-form mt-4">
+                <div class="mb-3">
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <label class="form-label" for="password">Password</label>
+                    </div>
+                    <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-ek-primary w-100 btn-lg mt-2">Log in</button>
+            </form>
+
+            <p class="text-muted small text-center mt-4">
+                New to EventKraft? <a href="/auth/register" class="fw-semibold">Create an account</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>

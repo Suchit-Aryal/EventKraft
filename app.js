@@ -70,8 +70,28 @@ app.use((req, res, next) => {
 // ─── Routes ─────────────────────────────────────────────────
 
 // Home page
-app.get('/', (req, res) => {
-    res.render('pages/home', { title: 'EventKraft — Where Premium Talent Meets Grand Events' });
+app.get('/', async (req, res) => {
+    try {
+        const catResult = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order LIMIT 8');
+        const gigResult = await pool.query(
+            `SELECT sg.*, c.name AS category_name,
+                    p.first_name AS worker_first_name, p.last_name AS worker_last_name,
+                    p.avatar_url AS worker_avatar, p.avg_rating AS worker_rating
+             FROM service_gigs sg
+             LEFT JOIN categories c ON sg.category_id = c.id
+             LEFT JOIN profiles p ON sg.worker_id = p.user_id
+             WHERE sg.status = 'active'
+             ORDER BY p.avg_rating DESC NULLS LAST LIMIT 8`
+        );
+        res.render('pages/home', {
+            title: 'EventKraft — Where Premium Talent Meets Grand Events',
+            categories: catResult.rows,
+            featuredGigs: gigResult.rows
+        });
+    } catch (err) {
+        console.error('Home page error:', err);
+        res.render('pages/home', { title: 'EventKraft', categories: [], featuredGigs: [] });
+    }
 });
 
 // Mount route modules

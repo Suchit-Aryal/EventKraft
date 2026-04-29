@@ -1,8 +1,38 @@
-<footer class="bg-dark text-light py-4 mt-5">
-    <div class="container text-center">
-        <p class="mb-1"><i class="bi bi-stars"></i> <strong>EventKraft</strong></p>
-        <p class="text-muted small mb-0">Where Premium Talent Meets Grand Events &mdash; &copy; <%= new
-                Date().getFullYear() %>
-        </p>
+<footer class="ek-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="footer-brand mb-2"><i class="bi bi-stars me-1" style="color:var(--ek-gold)"></i> EventKraft</div>
+                <p class="small mb-0" style="max-width:300px">Nepal's premium marketplace for wedding &amp; event professionals. Connecting talent with unforgettable moments.</p>
+            </div>
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold text-white mb-2" style="font-size:.85rem">Platform</h6>
+                <ul class="footer-links">
+                    <li><a href="/gigs">Browse Services</a></li>
+                    <li><a href="/jobs">Browse Jobs</a></li>
+                    <li><a href="/auth/register">Get Started</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold text-white mb-2" style="font-size:.85rem">Categories</h6>
+                <ul class="footer-links">
+                    <li><a href="/gigs">Photography</a></li>
+                    <li><a href="/gigs">Videography</a></li>
+                    <li><a href="/gigs">Decoration</a></li>
+                    <li><a href="/gigs">Mehendi</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="fw-bold text-white mb-2" style="font-size:.85rem">Stay connected</h6>
+                <p class="small">Follow us for wedding inspiration and marketplace updates.</p>
+                <div class="d-flex gap-3">
+                    <a href="#" class="fs-5"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="fs-5"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="fs-5"><i class="bi bi-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4">
+        <p class="text-center small mb-0" style="opacity:.5">&copy; <%= new Date().getFullYear() %> EventKraft. Where Premium Talent Meets Grand Events.</p>
     </div>
 </footer>

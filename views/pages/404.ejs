@@ -1,8 +1,12 @@
 <%- include('../partials/header') %>
-    <div class="container py-5 text-center">
-        <h1 class="display-1 text-muted">404</h1>
-        <h3>Page Not Found</h3>
-        <p class="text-muted">The page you're looking for doesn't exist.</p>
-        <a href="/" class="btn btn-primary">Go Home</a>
+
+<div style="min-height:60vh;display:flex;align-items:center;justify-content:center;padding:3rem">
+    <div class="text-center">
+        <h1 class="font-display" style="font-size:5rem;color:var(--ek-maroon);line-height:1">404</h1>
+        <p class="fs-4 fw-semibold mt-2">Page not found</p>
+        <p class="text-muted">The page you're looking for doesn't exist or has been moved.</p>
+        <a href="/" class="btn btn-ek-primary mt-3">Go home</a>
     </div>
-    <%- include('../partials/tail') %>
+</div>
+
+<%- include('../partials/tail') %>

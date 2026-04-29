@@ -1,0 +1,142 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4" style="max-width:800px">
+    <a href="/bookings" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3"><i class="bi bi-arrow-left"></i> Back to bookings</a>
+
+    <div class="ek-card" style="padding:1.5rem 2rem">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+            <h1 class="font-display fs-3 fw-semibold mb-0"><%= booking.gig_title || booking.job_title || 'Booking #' + booking.id %></h1>
+            <span class="badge-status badge-<%= booking.status %>" style="font-size:.85rem"><%= booking.status %></span>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-6">
+                <p class="text-muted small mb-1">Customer</p>
+                <p class="fw-semibold mb-3"><%= booking.customer_first_name || '' %> <%= booking.customer_last_name || '' %></p>
+
+                <p class="text-muted small mb-1">Worker</p>
+                <p class="fw-semibold mb-3"><%= booking.worker_first_name || '' %> <%= booking.worker_last_name || '' %></p>
+
+                <% if (booking.event_date) { %>
+                    <p class="text-muted small mb-1">Event Date</p>
+                    <p class="fw-semibold mb-3"><%= new Date(booking.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) %></p>
+                <% } %>
+                <% if (booking.event_location) { %>
+                    <p class="text-muted small mb-1">Location</p>
+                    <p class="fw-semibold mb-3"><%= booking.event_location %></p>
+                <% } %>
+            </div>
+            <div class="col-md-6">
+                <div class="ek-card" style="padding:1.25rem;background:var(--ek-gradient-subtle)">
+                    <p class="text-muted small mb-1">Total Amount</p>
+                    <p class="font-display fs-3 fw-semibold mb-2">NPR <%= Number(booking.total_amount||0).toLocaleString('en-IN') %></p>
+                    <div style="font-size:.85rem;color:var(--ek-text-muted)">
+                        <div class="d-flex justify-content-between"><span>Platform fee (<%= booking.commission_rate || 10 %>%)</span><span>NPR <%= Number(booking.commission_amount||0).toLocaleString('en-IN') %></span></div>
+                        <div class="d-flex justify-content-between fw-semibold" style="color:var(--ek-text)"><span>Worker earns</span><span>NPR <%= Number(booking.worker_earning||0).toLocaleString('en-IN') %></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <% if (booking.requirements) { %>
+            <div class="mt-4 pt-3" style="border-top:1px solid var(--ek-border)">
+                <h5 class="fw-semibold mb-2">Requirements</h5>
+                <p class="text-muted"><%= booking.requirements %></p>
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-check"></i> Booking Details</h2>
+            <a href="/bookings" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Bookings</a>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h4 class="mb-1">
+                                    <%= booking.gig_title || booking.job_title || 'Service Booking' %>
+                                </h4>
+                                <small class="text-muted">Booking ID: <%= String(booking.id).substring(0,8) %>
+                                        ...</small>
+                            </div>
+                            <span
+                                class="badge bg-<%= booking.status === 'completed' ? 'success' : booking.status === 'cancelled' ? 'danger' : booking.status === 'in_progress' ? 'primary' : 'warning' %> fs-6">
+                                <%= booking.status %>
+                            </span>
+                        </div>
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Customer</p>
+                                <p class="fw-bold"><i class="bi bi-person"></i>
+                                    <%= booking.customer_first_name || 'N/A' %>
+                                        <%= booking.customer_last_name || '' %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Worker</p>
+                                <p class="fw-bold"><i class="bi bi-tools"></i>
+                                    <%= booking.worker_first_name || 'N/A' %>
+                                        <%= booking.worker_last_name || '' %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Event Date</p>
+                                <p class="fw-bold"><i class="bi bi-calendar3"></i>
+                                    <%= booking.event_date ? new Date(booking.event_date).toLocaleDateString() : 'TBD'
+                                        %>
+                                </p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p class="mb-1 text-muted">Location</p>
+                                <p class="fw-bold"><i class="bi bi-geo-alt"></i>
+                                    <%= booking.event_location || 'Not specified' %>
+                                </p>
+                            </div>
+                        </div>
+                        <% if (booking.requirements) { %>
+                            <hr>
+                            <h6>Requirements</h6>
+                            <p class="text-muted">
+                                <%= booking.requirements %>
+                            </p>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Payment Summary</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2"><span>Total Amount</span><strong>NPR <%=
+                                    Number(booking.total_amount).toLocaleString() %></strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Commission (<%= booking.commission_rate
+                                    %>%)</span><span>NPR <%= Number(booking.commission_amount).toLocaleString() %>
+                                    </span></div>
+                        <hr>
+                        <div class="d-flex justify-content-between"><strong>Worker Earning</strong><strong
+                                class="text-success">NPR <%= Number(booking.worker_earning).toLocaleString() %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Actions -->
+        <div class="d-flex flex-wrap gap-2 mt-4 pt-3" style="border-top:1px solid var(--ek-border)">
+            <% if (booking.status === 'pending' && currentUser.role === 'worker') { %>
+                <form action="/bookings/<%= booking.id %>/accept" method="POST"><button type="submit" class="btn btn-ek-primary">Accept Booking</button></form>
+                <form action="/bookings/<%= booking.id %>/cancel" method="POST"><button type="submit" class="btn btn-outline-danger">Decline</button></form>
+            <% } %>
+            <% if (booking.status === 'in_progress' && currentUser.role === 'customer') { %>
+                <form action="/bookings/<%= booking.id %>/complete" method="POST"><button type="submit" class="btn btn-ek-primary">Mark as Completed</button></form>
+            <% } %>
+            <% if ((booking.status === 'pending' || booking.status === 'accepted') && currentUser.id === booking.customer_id) { %>
+                <form action="/bookings/<%= booking.id %>/cancel" method="POST"><button type="submit" class="btn btn-outline-danger">Cancel Booking</button></form>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>
