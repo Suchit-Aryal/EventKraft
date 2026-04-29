@@ -1,99 +1,107 @@
 <%- include('../partials/header') %>
 
-<div class="ek-auth-split">
-    <!-- Form Panel -->
-    <div class="ek-auth-form">
-        <div style="width:100%;max-width:460px">
-            <a href="/" class="d-lg-none d-flex align-items-center gap-2 mb-4 text-decoration-none">
-                <i class="bi bi-stars fs-5" style="color:var(--ek-maroon)"></i>
-                <span class="font-display fs-5 fw-semibold">EventKraft</span>
-            </a>
+    <div class="ek-auth-split">
+        <!-- Form Panel -->
+        <div class="ek-auth-form">
+            <div style="width:100%;max-width:460px">
+                <a href="/" class="d-lg-none d-flex align-items-center gap-2 mb-4 text-decoration-none">
+                    <i class="bi bi-stars fs-5" style="color:var(--ek-maroon)"></i>
+                    <span class="font-display fs-5 fw-semibold">EventKraft</span>
+                </a>
 
-            <h1 class="font-display fs-2 fw-semibold">Create your account</h1>
-            <p class="text-muted small mt-1">Choose how you'll use EventKraft.</p>
+                <h1 class="font-display fs-2 fw-semibold">Create your account</h1>
+                <p class="text-muted small mt-1">Choose how you'll use EventKraft.</p>
 
-            <!-- Role Selection -->
-            <div class="row g-2 mt-3 mb-4">
-                <div class="col-6">
-                    <div class="ek-role-card active" id="roleCustomer" onclick="selectRole('customer')">
-                        <i class="bi bi-bag fs-5 d-block mb-1" style="color:var(--ek-maroon)"></i>
-                        <p class="fw-semibold small mb-0">I'm a Customer</p>
-                        <p class="text-muted" style="font-size:.75rem;margin:0">Looking for services</p>
+                <!-- Role Selection -->
+                <div class="row g-2 mt-3 mb-4">
+                    <div class="col-6">
+                        <div class="ek-role-card active" id="roleCustomer" onclick="selectRole('customer')">
+                            <i class="bi bi-bag fs-5 d-block mb-1" style="color:var(--ek-maroon)"></i>
+                            <p class="fw-semibold small mb-0">I'm a Customer</p>
+                            <p class="text-muted" style="font-size:.75rem;margin:0">Looking for services</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="ek-role-card" id="roleWorker" onclick="selectRole('worker')">
+                            <i class="bi bi-tools fs-5 d-block mb-1" style="color:var(--ek-maroon)"></i>
+                            <p class="fw-semibold small mb-0">I'm a Worker</p>
+                            <p class="text-muted" style="font-size:.75rem;margin:0">I provide services</p>
+                        </div>
                     </div>
                 </div>
-                <div class="col-6">
-                    <div class="ek-role-card" id="roleWorker" onclick="selectRole('worker')">
-                        <i class="bi bi-tools fs-5 d-block mb-1" style="color:var(--ek-maroon)"></i>
-                        <p class="fw-semibold small mb-0">I'm a Worker</p>
-                        <p class="text-muted" style="font-size:.75rem;margin:0">I provide services</p>
+
+                <form action="/auth/register" method="POST" class="ek-form">
+                    <input type="hidden" name="role" id="roleInput" value="customer">
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="first_name">First name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required
+                                placeholder="Aarav">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="last_name">Last name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required
+                                placeholder="Shrestha">
+                        </div>
                     </div>
-                </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required
+                                placeholder="you@example.com">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="phone">Phone</label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                placeholder="+977 98XXXXXXXX">
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required
+                            placeholder="At least 8 characters" minlength="8">
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label" for="confirmPassword">Confirm password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
+                            placeholder="Re-enter password" minlength="8">
+                    </div>
+
+                    <button type="submit" class="btn btn-ek-primary w-100 btn-lg mt-4">Create account</button>
+                </form>
+
+                <p class="text-muted small text-center mt-4">
+                    Already have an account? <a href="/auth/login" class="fw-semibold">Log in</a>
+                </p>
             </div>
+        </div>
 
-            <form action="/auth/register" method="POST" class="ek-form">
-                <input type="hidden" name="role" id="roleInput" value="customer">
-
-                <div class="row g-3">
-                    <div class="col-sm-6">
-                        <label class="form-label" for="first_name">First name</label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Aarav">
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label" for="last_name">Last name</label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Shrestha">
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-1">
-                    <div class="col-sm-6">
-                        <label class="form-label" for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required placeholder="you@example.com">
-                    </div>
-                    <div class="col-sm-6">
-                        <label class="form-label" for="phone">Phone</label>
-                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="+977 98XXXXXXXX">
-                    </div>
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required placeholder="At least 8 characters" minlength="8">
-                </div>
-
-                <div class="mt-3">
-                    <label class="form-label" for="confirmPassword">Confirm password</label>
-                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="Re-enter password" minlength="8">
-                </div>
-
-                <button type="submit" class="btn btn-ek-primary w-100 btn-lg mt-4">Create account</button>
-            </form>
-
-            <p class="text-muted small text-center mt-4">
-                Already have an account? <a href="/auth/login" class="fw-semibold">Log in</a>
-            </p>
+        <!-- Brand Panel (desktop only) -->
+        <div class="ek-auth-brand d-none d-lg-flex">
+            <a href="/"
+                style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem;align-self:flex-end">
+                <i class="bi bi-stars" style="color:var(--ek-gold-light)"></i>
+                <span class="font-display fs-4 fw-semibold">EventKraft</span>
+            </a>
+            <div>
+                <h2>Plan your perfect day with <span class="text-gradient-gold">premium talent</span>.</h2>
+                <p style="opacity:.8;max-width:400px" class="mt-3">Join hundreds of customers and event professionals
+                    trusting EventKraft for their most important moments.</p>
+            </div>
+            <p class="small" style="opacity:.5">&copy; EventKraft · Nepal</p>
         </div>
     </div>
 
-    <!-- Brand Panel (desktop only) -->
-    <div class="ek-auth-brand d-none d-lg-flex">
-        <a href="/" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:.5rem;align-self:flex-end">
-            <i class="bi bi-stars" style="color:var(--ek-gold-light)"></i>
-            <span class="font-display fs-4 fw-semibold">EventKraft</span>
-        </a>
-        <div>
-            <h2>Plan your perfect day with <span class="text-gradient-gold">premium talent</span>.</h2>
-            <p style="opacity:.8;max-width:400px" class="mt-3">Join hundreds of customers and event professionals trusting EventKraft for their most important moments.</p>
-        </div>
-        <p class="small" style="opacity:.5">&copy; EventKraft · Nepal</p>
-    </div>
-</div>
+    <script>
+        function selectRole(role) {
+            document.getElementById('roleInput').value = role;
+            document.getElementById('roleCustomer').classList.toggle('active', role === 'customer');
+            document.getElementById('roleWorker').classList.toggle('active', role === 'worker');
+        }
+    </script>
 
-<script>
-function selectRole(role) {
-    document.getElementById('roleInput').value = role;
-    document.getElementById('roleCustomer').classList.toggle('active', role === 'customer');
-    document.getElementById('roleWorker').classList.toggle('active', role === 'worker');
-}
-</script>
-
-<%- include('../partials/tail') %>
+    <%- include('../partials/tail') %>
