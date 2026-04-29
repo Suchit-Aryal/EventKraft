@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <h1 class="font-display fs-3 fw-semibold mb-4">Your bookings</h1>
+
+    <% if (bookings && bookings.length > 0) { %>
+        <div class="crm-table">
+            <table class="table">
+                <thead><tr><th>Service</th><th>With</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <% bookings.forEach(function(b) { %>
+                        <tr>
+                            <td><%= b.gig_title || b.job_title || 'Booking #' + b.id %></td>
+                            <td><%= (currentUser.role === 'customer') ? (b.worker_first_name || b.worker_name || '-') : (b.customer_first_name || b.customer_name || '-') %></td>
+                            <td><%= b.event_date ? new Date(b.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '-' %></td>
+                            <td class="fw-semibold">NPR <%= Number(b.total_amount||0).toLocaleString('en-IN') %></td>
+                            <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
+                            <td><a href="/bookings/<%= b.id %>" class="btn btn-sm btn-ek-outline">Details</a></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state">
+            <i class="bi bi-calendar-check"></i>
+            <p>No bookings yet. Browse <a href="/gigs">services</a> or <a href="/jobs">jobs</a> to get started.</p>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/tail') %>

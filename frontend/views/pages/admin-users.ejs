@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">Manage Users</h1>
+        <span class="text-muted">(<%= users.length %> total)</span>
+    </div>
+
+    <div class="crm-table">
+        <table class="table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Verified</th><th>Active</th><th>Joined</th><th></th></tr></thead>
+            <tbody>
+                <% users.forEach(function(u) { %>
+                    <tr>
+                        <td class="fw-semibold"><%= u.first_name || '' %> <%= u.last_name || '' %></td>
+                        <td class="text-muted small"><%= u.email %></td>
+                        <td><span class="ek-badge ek-badge-category"><%= u.role %></span></td>
+                        <td><% if (u.is_verified) { %><i class="bi bi-patch-check-fill" style="color:var(--ek-success)"></i><% } else { %><i class="bi bi-x-circle text-muted"></i><% } %></td>
+                        <td><% if (u.is_active) { %><span class="badge-status badge-active">Active</span><% } else { %><span class="badge-status badge-cancelled">Inactive</span><% } %></td>
+                        <td class="text-muted small"><%= new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <input type="hidden" name="is_verified" value="<%= !u.is_verified %>">
+                                    <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle verified"><i class="bi bi-patch-check"></i></button>
+                                </form>
+                                <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <input type="hidden" name="is_active" value="<%= !u.is_active %>">
+                                    <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle active"><i class="bi bi-toggle-on"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>

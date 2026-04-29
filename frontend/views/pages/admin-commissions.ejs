@@ -1,0 +1,47 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">Commission Settings</h1>
+    </div>
+
+    <% if (commissions && commissions.length > 0) { %>
+        <div class="crm-table">
+            <table class="table">
+                <thead><tr><th>Tier</th><th>Min Amount</th><th>Max Amount</th><th>Rate</th><th>Active</th><th></th></tr></thead>
+                <tbody>
+                    <% commissions.forEach(function(c) { %>
+                        <tr>
+                            <td class="fw-semibold"><%= c.tier_name || 'Tier' %></td>
+                            <td>NPR <%= Number(c.min_amount||0).toLocaleString('en-IN') %></td>
+                            <td>NPR <%= Number(c.max_amount||0).toLocaleString('en-IN') %></td>
+                            <td>
+                                <form action="/admin/commissions/<%= c.id %>?_method=PUT" method="POST" class="d-flex gap-1 align-items-center">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <input type="number" name="rate" value="<%= c.rate %>" class="form-control form-control-sm" style="width:80px" step="0.5" min="0" max="100">
+                                    <span>%</span>
+                                    <input type="hidden" name="is_active" value="<%= c.is_active %>">
+                                    <button type="submit" class="btn btn-sm btn-ek-outline"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                            </td>
+                            <td><% if (c.is_active) { %><span class="badge-status badge-active">Active</span><% } else { %><span class="badge-status badge-cancelled">Inactive</span><% } %></td>
+                            <td>
+                                <form action="/admin/commissions/<%= c.id %>?_method=PUT" method="POST">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <input type="hidden" name="rate" value="<%= c.rate %>">
+                                    <input type="hidden" name="is_active" value="<%= !c.is_active %>">
+                                    <button type="submit" class="btn btn-sm btn-ek-outline"><i class="bi bi-toggle-<%= c.is_active ? 'on' : 'off' %>"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state"><i class="bi bi-percent"></i><p>No commission tiers configured.</p></div>
+    <% } %>
+</div>
+
+<%- include('../partials/tail') %>

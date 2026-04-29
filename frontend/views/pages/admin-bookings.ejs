@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">All Bookings</h1>
+        <span class="text-muted">(<%= bookings.length %> total)</span>
+    </div>
+
+    <% if (bookings.length > 0) { %>
+        <div class="crm-table">
+            <table class="table">
+                <thead><tr><th>#</th><th>Customer</th><th>Worker</th><th>Amount</th><th>Commission</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody>
+                    <% bookings.forEach(function(b) { %>
+                        <tr>
+                            <td><a href="/bookings/<%= b.id %>">#<%= b.id %></a></td>
+                            <td><%= b.customer_name || '-' %></td>
+                            <td><%= b.worker_name || '-' %></td>
+                            <td class="fw-semibold">NPR <%= Number(b.total_amount||0).toLocaleString('en-IN') %></td>
+                            <td class="text-muted">NPR <%= Number(b.commission_amount||0).toLocaleString('en-IN') %></td>
+                            <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
+                            <td class="text-muted small"><%= new Date(b.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state"><i class="bi bi-calendar-check"></i><p>No bookings yet.</p></div>
+    <% } %>
+</div>
+
+<%- include('../partials/tail') %>

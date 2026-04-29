@@ -1,0 +1,150 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <img src="<%= (profile && profile.avatar_url) || ('https://ui-avatars.com/api/?name=' + encodeURIComponent((profile ? profile.first_name : 'U'))) %>" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:var(--ek-shadow-soft)">
+            <div>
+                <h1 class="font-display fs-3 fw-semibold mb-0">Welcome back, <%= profile ? profile.first_name : 'Worker' %></h1>
+                <p class="text-muted small mb-0">★ <%= stats.avgRating || 0 %> · <%= stats.totalBookings || 0 %> completed jobs</p>
+            </div>
+        </div>
+        <a href="/gigs/create" class="btn btn-ek-primary"><i class="bi bi-plus-lg me-1"></i> Create service</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-shop"></i></div>
+                <p class="stat-value"><%= stats.activeGigs || 0 %></p>
+                <p class="stat-label">Active Gigs</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-cash-coin"></i></div>
+                <p class="stat-value">NPR <%= Number(stats.totalEarnings || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Total Earnings</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-star"></i></div>
+                <p class="stat-value"><%= stats.avgRating || '0.0' %></p>
+                <p class="stat-label">Avg Rating</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-purple"><i class="bi bi-envelope-paper"></i></div>
+                <p class="stat-value"><%= stats.pendingProposals || 0 %></p>
+                <p class="stat-label">Pending Proposals</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gigs -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="dash-section-title mb-0"><i class="bi bi-shop"></i> Your services</h5>
+            <a href="/gigs/create" class="btn btn-sm btn-ek-outline">New service</a>
+        </div>
+        <% if (gigs && gigs.length > 0) { %>
+            <div class="crm-table">
+                <table class="table">
+                    <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Views</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <% gigs.forEach(function(g) { %>
+                            <tr>
+                                <td><a href="/gigs/<%= g.id %>" class="fw-semibold text-decoration-none" style="color:var(--ek-text)"><%= g.title %></a></td>
+                                <td><%= g.category_name || '-' %></td>
+                                <td>NPR <%= Number(g.starting_price||0).toLocaleString('en-IN') %></td>
+                                <td><%= g.view_count || 0 %></td>
+                                <td><span class="badge-status badge-<%= g.status %>"><%= g.status %></span></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state"><i class="bi bi-shop"></i><p>No services yet. <a href="/gigs/create">Create your first service!</a></p></div>
+        <% } %>
+    </div>
+
+    <!-- Proposals -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="dash-section-title mb-0"><i class="bi bi-envelope-paper"></i> Your proposals</h5>
+            <a href="/jobs" class="btn btn-sm btn-ek-outline">Browse jobs</a>
+        </div>
+        <% if (proposals && proposals.length > 0) { %>
+            <div class="crm-table">
+                <table class="table">
+                    <thead><tr><th>Job</th><th>Your Bid</th><th>Event Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                        <% proposals.forEach(function(p) { %>
+                            <tr>
+                                <td><%= p.job_title %></td>
+                                <td class="fw-semibold">NPR <%= Number(p.proposed_price||0).toLocaleString('en-IN') %></td>
+                                <td><%= p.event_date ? new Date(p.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '-' %></td>
+                                <td><span class="badge-status badge-<%= p.status %>"><%= p.status %></span></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state"><i class="bi bi-envelope-paper"></i><p>No proposals sent yet. <a href="/jobs">Browse open jobs!</a></p></div>
+        <% } %>
+    </div>
+
+    <!-- Bookings -->
+    <div class="mb-4">
+        <h5 class="dash-section-title"><i class="bi bi-calendar-check"></i> Bookings</h5>
+        <% if (bookings && bookings.length > 0) { %>
+            <div class="crm-table">
+                <table class="table">
+                    <thead><tr><th>Service</th><th>Customer</th><th>Earning</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                        <% bookings.forEach(function(b) { %>
+                            <tr>
+                                <td><%= b.gig_title || b.job_title || 'Booking' %></td>
+                                <td><%= b.customer_name || '-' %></td>
+                                <td class="fw-semibold">NPR <%= Number(b.worker_earning||0).toLocaleString('en-IN') %></td>
+                                <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
+                                <td><a href="/bookings/<%= b.id %>" class="btn btn-sm btn-ek-outline">View</a></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <div class="empty-state"><i class="bi bi-calendar-check"></i><p>No bookings yet.</p></div>
+        <% } %>
+    </div>
+
+    <!-- Reviews -->
+    <% if (reviews && reviews.length > 0) { %>
+        <div>
+            <h5 class="dash-section-title"><i class="bi bi-star"></i> Recent reviews</h5>
+            <% reviews.forEach(function(r) { %>
+                <div class="ek-card mb-2" style="padding:1rem 1.25rem">
+                    <div class="d-flex justify-content-between">
+                        <strong><%= r.reviewer_name || 'Customer' %></strong>
+                        <div class="stars"><% for(var s=0;s<5;s++){ %><i class="bi bi-star<%= s<r.rating?'-fill':'' %>"></i><% } %></div>
+                    </div>
+                    <p class="text-muted small mt-1 mb-0"><%= r.comment || 'No comment' %></p>
+                </div>
+            <% }); %>
+        </div>
+    <% } %>
+
+    <!-- Pro Tip -->
+    <div class="ek-card mt-4" style="padding:1.25rem;background:var(--ek-gradient-subtle)">
+        <h6 class="fw-semibold mb-1"><i class="bi bi-lightbulb me-1"></i> Pro tip</h6>
+        <p class="text-muted small mb-0">Workers who reply to job postings within 1 hour are <strong>3× more likely</strong> to win the job.</p>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>

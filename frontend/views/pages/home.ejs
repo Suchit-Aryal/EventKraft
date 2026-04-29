@@ -1,0 +1,177 @@
+<%- include('../partials/header') %>
+
+<!-- HERO -->
+<section class="ek-hero" style="padding:6rem 0">
+    <div class="ek-hero-overlay"></div>
+    <div class="container ek-hero-content">
+        <div style="max-width:640px">
+            <div class="ek-pill mb-3"><i class="bi bi-stars"></i> Nepal's premium event marketplace</div>
+            <h1>Where premium talent meets <span class="text-gradient-gold">grand events</span>.</h1>
+            <p class="lead mt-3" style="max-width:520px">Hire verified photographers, videographers, decorators and artists for your wedding — or post a job and let proposals come to you.</p>
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <a href="/gigs" class="btn btn-ek-gold btn-lg">Browse Services <i class="bi bi-arrow-right ms-1"></i></a>
+                <a href="<%= currentUser ? '/jobs/create' : '/auth/login' %>" class="btn btn-lg" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:var(--ek-radius)">Post a Job</a>
+            </div>
+            <div class="d-flex flex-wrap gap-4 mt-4" style="font-size:.88rem;opacity:.85">
+                <span><i class="bi bi-shield-check me-1" style="color:var(--ek-gold-light)"></i> Verified providers</span>
+                <span><i class="bi bi-star-fill me-1" style="color:var(--ek-gold-light)"></i> 4.8 avg rating</span>
+                <span><i class="bi bi-heart-fill me-1" style="color:var(--ek-gold-light)"></i> 500+ happy events</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="ek-section ek-section-subtle">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+            <div>
+                <p class="ek-section-title mb-1">Service categories</p>
+                <h2 class="font-display fs-3 fw-semibold">Everything you need for the perfect day</h2>
+            </div>
+            <a href="/gigs" class="text-decoration-none fw-medium" style="font-size:.9rem">View all services →</a>
+        </div>
+        <div class="row g-3">
+            <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
+                <% categories.slice(0, 4).forEach(function(cat) { %>
+                    <div class="col-6 col-lg-3">
+                        <a href="/gigs?category=<%= cat.id %>" class="ek-category-card">
+                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=500&fit=crop" alt="<%= cat.name %>">
+                            <div class="overlay"></div>
+                            <div class="content">
+                                <h3><%= cat.name %></h3>
+                                <p><%= cat.description || 'Premium event services' %></p>
+                            </div>
+                        </a>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <% ['Photography', 'Videography', 'Decoration', 'Mehendi'].forEach(function(name) { %>
+                    <div class="col-6 col-lg-3">
+                        <a href="/gigs" class="ek-category-card">
+                            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=500&fit=crop" alt="<%= name %>">
+                            <div class="overlay"></div>
+                            <div class="content">
+                                <h3><%= name %></h3>
+                                <p>Premium event services</p>
+                            </div>
+                        </a>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="ek-section">
+    <div class="container">
+        <div class="text-center mb-5" style="max-width:600px;margin:0 auto">
+            <p class="ek-section-title mb-1">How it works</p>
+            <h2 class="font-display fs-3 fw-semibold">Two simple ways to find the perfect match</h2>
+        </div>
+        <div class="row g-4 justify-content-center" style="max-width:900px;margin:0 auto">
+            <div class="col-md-6">
+                <div class="ek-how-card h-100">
+                    <div class="icon-box" style="background:var(--ek-gradient-hero)"><i class="bi bi-camera"></i></div>
+                    <h3 class="font-display fs-5 fw-semibold mb-2">Browse &amp; Book</h3>
+                    <p class="text-muted small mb-3">Explore portfolios, compare packages and book directly. Like Fiverr, but for weddings.</p>
+                    <ol class="small text-muted ps-3 mb-3">
+                        <li class="mb-1">Browse providers by category</li>
+                        <li class="mb-1">Compare packages, reviews &amp; portfolio</li>
+                        <li>Book the package that fits your event</li>
+                    </ol>
+                    <a href="/gigs" class="fw-semibold text-decoration-none" style="font-size:.9rem">Browse services →</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="ek-how-card h-100">
+                    <div class="icon-box" style="background:var(--ek-gradient-gold)"><i class="bi bi-people"></i></div>
+                    <h3 class="font-display fs-5 fw-semibold mb-2">Post &amp; Hire</h3>
+                    <p class="text-muted small mb-3">Describe your event and budget — workers send you proposals. Pick the best one.</p>
+                    <ol class="small text-muted ps-3 mb-3">
+                        <li class="mb-1">Post your event requirements</li>
+                        <li class="mb-1">Receive proposals from qualified workers</li>
+                        <li>Shortlist and hire the perfect fit</li>
+                    </ol>
+                    <a href="<%= currentUser ? '/jobs/create' : '/auth/login' %>" class="fw-semibold text-decoration-none" style="font-size:.9rem">Post a job →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURED SERVICES -->
+<section class="ek-section ek-section-subtle">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-end justify-content-between mb-4">
+            <div>
+                <p class="ek-section-title mb-1">Featured talent</p>
+                <h2 class="font-display fs-3 fw-semibold">Top-rated professionals this season</h2>
+            </div>
+            <a href="/gigs" class="text-decoration-none fw-medium" style="font-size:.9rem">See all →</a>
+        </div>
+        <div class="row g-3">
+            <% if (typeof featuredGigs !== 'undefined' && featuredGigs.length > 0) { %>
+                <% featuredGigs.forEach(function(gig) { %>
+                    <div class="col-sm-6 col-lg-3">
+                        <a href="/gigs/<%= gig.id %>" class="ek-provider-card ek-card d-block">
+                            <div class="cover">
+                                <img src="<%= gig.worker_avatar || 'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=200&fit=crop' %>" alt="<%= gig.title %>">
+                            </div>
+                            <div class="info">
+                                <img src="<%= gig.worker_avatar || 'https://ui-avatars.com/api/?name=' + (gig.worker_first_name || 'U') %>" alt="" class="avatar">
+                                <h4><%= gig.worker_first_name %> <%= gig.worker_last_name || '' %></h4>
+                                <p class="tagline"><%= gig.title %></p>
+                                <div class="meta">
+                                    <span><i class="bi bi-star-fill" style="color:var(--ek-gold)"></i> <%= gig.worker_rating || '0' %></span>
+                                    <span><%= gig.category_name || 'Service' %></span>
+                                </div>
+                                <p class="price">From NPR <%= Number(gig.starting_price || 0).toLocaleString('en-IN') %></p>
+                            </div>
+                        </a>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="bi bi-shop"></i>
+                        <p>No services listed yet. Be the first to <a href="/auth/register">create a service</a>!</p>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section class="ek-section">
+    <div class="container">
+        <div class="ek-testimonial mx-auto" style="max-width:750px">
+            <div class="glow"></div>
+            <i class="bi bi-stars fs-3 d-block mb-3" style="color:var(--ek-gold-light)"></i>
+            <blockquote>"EventKraft made finding our wedding photographer effortless. We compared 5 portfolios in an evening, booked Aarav, and the results were beyond our dreams."</blockquote>
+            <div class="d-flex align-items-center gap-3 mt-4" style="position:relative;z-index:2">
+                <div style="width:40px;height:40px;border-radius:50%;background:rgba(200,148,62,.3);display:flex;align-items:center;justify-content:center;font-weight:600">R</div>
+                <div>
+                    <p class="fw-semibold mb-0">Riya &amp; Manish Karki</p>
+                    <p class="small mb-0" style="opacity:.7">Married December 2024 · Kathmandu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="ek-section ek-section-subtle">
+    <div class="container text-center" style="max-width:600px">
+        <h2 class="font-display fs-3 fw-semibold">Ready to plan an unforgettable event?</h2>
+        <p class="text-muted mt-2">Join hundreds of couples and event planners trusting EventKraft for their most important moments.</p>
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+            <a href="/auth/register" class="btn btn-ek-primary btn-lg">Create your account</a>
+            <a href="/gigs" class="btn btn-ek-outline btn-lg">Explore services</a>
+        </div>
+    </div>
+</section>
+
+<%- include('../partials/tail') %>
