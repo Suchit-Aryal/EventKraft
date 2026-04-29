@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">Disputes</h1>
+        <span class="text-muted">(<%= disputes.length %> total)</span>
+    </div>
+
+    <% if (disputes.length > 0) { %>
+        <% disputes.forEach(function(d) { %>
+            <div class="ek-card mb-3" style="padding:1.25rem">
+                <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+                    <div>
+                        <strong>Dispute #<%= d.id %></strong> — Booking #<%= d.booking_id %>
+                        <span class="badge-status badge-<%= d.status %> ms-2"><%= d.status %></span>
+                    </div>
+                    <small class="text-muted"><%= new Date(d.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></small>
+                </div>
+                <p class="text-muted small mb-1"><strong>Raised by:</strong> <%= d.raiser_name %> <%= d.raiser_last || '' %> (<%= d.raiser_email %>)</p>
+                <p class="text-muted small mb-2"><strong>Reason:</strong> <%= d.reason %></p>
+                <% if (d.description) { %><p class="text-muted small mb-2"><%= d.description %></p><% } %>
+                <% if (d.resolution) { %><p class="small mb-2" style="color:var(--ek-success)"><strong>Resolution:</strong> <%= d.resolution %></p><% } %>
+
+                <% if (d.status === 'open') { %>
+                    <form action="/admin/disputes/<%= d.id %>?_method=PUT" method="POST" class="d-flex gap-2 mt-2">
+                        <input type="hidden" name="_method" value="PUT">
+                        <input type="text" name="resolution" class="form-control form-control-sm" placeholder="Resolution notes…" required>
+                        <select name="status" class="form-select form-select-sm" style="width:auto">
+                            <option value="resolved">Resolve</option>
+                            <option value="closed">Close</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-ek-primary">Submit</button>
+                    </form>
+                <% } %>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <div class="empty-state"><i class="bi bi-emoji-smile"></i><p>No disputes — everything is running smoothly!</p></div>
+    <% } %>
+</div>
+
+<%- include('../partials/tail') %>

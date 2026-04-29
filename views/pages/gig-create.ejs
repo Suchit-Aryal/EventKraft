@@ -16,6 +16,7 @@
                     <h5 class="mb-0"><i class="bi bi-1-circle-fill text-primary me-2"></i>Service Details</h5>
                 </div>
                 <div class="card-body">
+                    <!-- Title -->
                     <div class="mb-3">
                         <label class="form-label" for="title">Service Title *</label>
                         <input type="text" class="form-control" id="title" name="title" required
@@ -23,6 +24,7 @@
                     </div>
 
                     <div class="row g-3 mb-3">
+                        <!-- Category -->
                         <div class="col-md-6">
                             <label class="form-label" for="category_id">Category *</label>
                             <select class="form-select" id="category_id" name="category_id" required>
@@ -34,6 +36,7 @@
                                     <% }); %>
                             </select>
                         </div>
+                        <!-- Starting Price -->
                         <div class="col-md-6">
                             <label class="form-label" for="starting_price">Starting Price (NPR) *</label>
                             <input type="number" class="form-control" id="starting_price" name="starting_price" required
@@ -42,12 +45,14 @@
                         </div>
                     </div>
 
+                    <!-- Description -->
                     <div class="mb-3">
                         <label class="form-label" for="description">Description *</label>
                         <textarea class="form-control" id="description" name="description" rows="5" required
                             placeholder="Describe your service, experience, what's included…"></textarea>
                     </div>
 
+                    <!-- Delivery Time -->
                     <div class="mb-3">
                         <label class="form-label" for="delivery_time">Delivery Time</label>
                         <input type="text" class="form-control" id="delivery_time" name="delivery_time"
@@ -67,6 +72,10 @@
                     <p class="text-muted small mb-3">Upload up to 5 images of your previous work. (JPG, PNG, WebP — max
                         5MB each)</p>
 
+                    <p class="text-muted small mb-3">Upload up to 5 images of your previous work. Customers will see
+                        these on your service page. (JPG, PNG, WebP — max 5MB each)</p>
+
+                    <!-- Drop Zone -->
                     <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center"
                         style="cursor:pointer; transition: all 0.2s; border-color: #dee2e6;">
                         <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
@@ -76,6 +85,7 @@
                             accept="image/jpeg,image/png,image/webp,image/gif" class="d-none">
                     </div>
 
+                    <!-- Preview Grid -->
                     <div id="imagePreview" class="row g-2 mt-2"></div>
                 </div>
             </div>
@@ -95,6 +105,10 @@
                 <div class="card-body" id="tiersSection" style="display:none">
                     <p class="text-muted small mb-3">Define pricing tiers to give customers options.</p>
 
+                    <p class="text-muted small mb-3">Define pricing tiers to give customers options. Each tier can have
+                        its own price, description, delivery time, and features.</p>
+
+                    <!-- Tier Cards -->
                     <div class="accordion" id="tierAccordion">
 
                         <!-- BASIC Tier -->
@@ -182,6 +196,8 @@
                                             <input type="text" class="form-control form-control-sm tier-input"
                                                 name="pkg_features"
                                                 placeholder="e.g. 150 photos, Advanced editing, Album" disabled>
+                                                placeholder="e.g. 150 photos, Advanced editing, Album, Digital delivery"
+                                                disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -227,6 +243,7 @@
                                             <input type="text" class="form-control form-control-sm tier-input"
                                                 name="pkg_features"
                                                 placeholder="e.g. Unlimited photos, Drone shots, Premium album"
+                                                placeholder="e.g. Unlimited photos, Drone shots, Premium album, Same-day preview, Digital delivery"
                                                 disabled>
                                         </div>
                                     </div>
@@ -239,6 +256,9 @@
             </div>
 
             <!-- Action Buttons -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- Action Buttons                                         -->
+            <!-- ═══════════════════════════════════════════════════════ -->
             <input type="hidden" name="status" value="active">
             <div class="d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary btn-lg">
@@ -252,6 +272,9 @@
         </form>
     </section>
 
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- Client-Side Scripts                                        -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
     <style>
         #dropZone.dragover {
             border-color: var(--bs-primary) !important;
@@ -294,6 +317,7 @@
 
     <script>
         (function () {
+            // ── Image Upload ────────────────────────────────
             const dropZone = document.getElementById('dropZone');
             const imageInput = document.getElementById('imageInput');
             const previewGrid = document.getElementById('imagePreview');
@@ -305,6 +329,26 @@
             dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
             dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); addFiles(e.dataTransfer.files); });
             imageInput.addEventListener('change', () => { addFiles(imageInput.files); });
+
+            // DataTransfer to manage the FileList
+            let fileStore = new DataTransfer();
+
+            dropZone.addEventListener('click', () => imageInput.click());
+
+            dropZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            dropZone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                addFiles(e.dataTransfer.files);
+            });
+
+            imageInput.addEventListener('change', () => {
+                addFiles(imageInput.files);
+            });
 
             function addFiles(newFiles) {
                 for (const file of newFiles) {
@@ -348,6 +392,48 @@
                 tiersSection.style.display = this.checked ? 'block' : 'none';
                 document.querySelectorAll('.tier-input').forEach(el => el.disabled = !this.checked);
                 document.querySelectorAll('.tier-hidden').forEach(el => el.disabled = !this.checked);
+                    const col = document.createElement('div');
+                    col.className = 'col-4 col-md-2';
+                    const card = document.createElement('div');
+                    card.className = 'img-preview-card';
+
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.alt = file.name;
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'remove-btn';
+                    btn.innerHTML = '&times;';
+                    btn.onclick = () => removeFile(i);
+
+                    card.appendChild(img);
+                    card.appendChild(btn);
+                    col.appendChild(card);
+                    previewGrid.appendChild(col);
+                }
+
+                // Update drop zone text
+                const remaining = MAX_FILES - fileStore.files.length;
+                if (fileStore.files.length > 0) {
+                    dropZone.querySelector('p:first-of-type').textContent =
+                        `${fileStore.files.length} image${fileStore.files.length > 1 ? 's' : ''} selected` +
+                        (remaining > 0 ? ` — ${remaining} more allowed` : '');
+                } else {
+                    dropZone.querySelector('p:first-of-type').textContent = 'Drag & drop images here or click to browse';
+                }
+            }
+
+            // ── Tier Toggle ─────────────────────────────────
+            const tiersToggle = document.getElementById('enableTiers');
+            const tiersSection = document.getElementById('tiersSection');
+            const tierInputs = document.querySelectorAll('.tier-input');
+            const tierHiddens = document.querySelectorAll('.tier-hidden');
+
+            tiersToggle.addEventListener('change', function () {
+                tiersSection.style.display = this.checked ? 'block' : 'none';
+                tierInputs.forEach(el => el.disabled = !this.checked);
+                tierHiddens.forEach(el => el.disabled = !this.checked);
             });
         })();
     </script>

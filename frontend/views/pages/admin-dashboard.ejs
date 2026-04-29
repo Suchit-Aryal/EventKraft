@@ -1,0 +1,129 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <div class="flex-grow-1">
+            <h1 class="font-display fs-3 fw-semibold mb-1">Admin Dashboard</h1>
+            <p class="text-muted mb-0">Platform overview &amp; management</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/admin/users" class="btn btn-ek-outline btn-sm"><i class="bi bi-people me-1"></i>Users</a>
+            <a href="/admin/bookings" class="btn btn-ek-outline btn-sm"><i class="bi bi-calendar-check me-1"></i>Bookings</a>
+            <a href="/admin/disputes" class="btn btn-ek-outline btn-sm"><i class="bi bi-exclamation-triangle me-1"></i>Disputes</a>
+            <a href="/admin/commissions" class="btn btn-ek-outline btn-sm"><i class="bi bi-percent me-1"></i>Commissions</a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-people"></i></div>
+                <p class="stat-value"><%= stats.users.total %></p>
+                <p class="stat-label">Total Users</p>
+                <small class="text-muted"><%= stats.users.customers %> customers · <%= stats.users.workers %> workers</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-briefcase"></i></div>
+                <p class="stat-value"><%= stats.jobs.total %></p>
+                <p class="stat-label">Jobs Posted</p>
+                <small class="text-muted"><%= stats.jobs.active %> active</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-cash-stack"></i></div>
+                <p class="stat-value">NPR <%= Number(stats.bookings.revenue || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Total Revenue</p>
+                <small class="text-muted"><%= stats.bookings.completed %> completed bookings</small>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-purple"><i class="bi bi-percent"></i></div>
+                <p class="stat-value">NPR <%= Number(stats.bookings.commission || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Commission Earned</p>
+                <small class="text-muted"><%= stats.bookings.pending %> pending bookings</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Recent Bookings -->
+        <div class="col-lg-7">
+            <h5 class="dash-section-title"><i class="bi bi-calendar-check"></i> Recent bookings</h5>
+            <% if (recentBookings && recentBookings.length > 0) { %>
+                <div class="crm-table">
+                    <table class="table">
+                        <thead><tr><th>#</th><th>Customer</th><th>Worker</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <% recentBookings.forEach(function(b) { %>
+                                <tr>
+                                    <td><a href="/bookings/<%= b.id %>">#<%= b.id %></a></td>
+                                    <td><%= b.customer_name || '-' %></td>
+                                    <td><%= b.worker_name || '-' %></td>
+                                    <td>NPR <%= Number(b.total_amount || 0).toLocaleString('en-IN') %></td>
+                                    <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+                <a href="/admin/bookings" class="btn btn-sm btn-ek-outline mt-2">View all bookings</a>
+            <% } else { %>
+                <div class="empty-state"><i class="bi bi-calendar-check"></i><p>No bookings yet.</p></div>
+            <% } %>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="col-lg-5">
+            <h5 class="dash-section-title"><i class="bi bi-person-plus"></i> Recent registrations</h5>
+            <% if (recentUsers && recentUsers.length > 0) { %>
+                <% recentUsers.forEach(function(u) { %>
+                    <div class="ek-card mb-2" style="padding:.75rem 1rem">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent((u.first_name||'U')+ ' ' + (u.last_name||'')) %>&size=32" alt="" style="width:32px;height:32px;border-radius:50%">
+                            <div class="flex-grow-1">
+                                <p class="mb-0 fw-semibold small"><%= u.first_name || '' %> <%= u.last_name || '' %></p>
+                                <p class="mb-0 text-muted" style="font-size:.75rem"><%= u.email %></p>
+                            </div>
+                            <span class="ek-badge ek-badge-category"><%= u.role %></span>
+                        </div>
+                    </div>
+                <% }); %>
+                <a href="/admin/users" class="btn btn-sm btn-ek-outline mt-2">View all users</a>
+            <% } else { %>
+                <div class="empty-state"><i class="bi bi-people"></i><p>No users yet.</p></div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mt-3">
+        <div class="col-md-4">
+            <div class="ek-card" style="padding:1.25rem;background:var(--ek-gradient-subtle)">
+                <h6 class="fw-semibold mb-1"><i class="bi bi-shop me-1"></i> Services</h6>
+                <p class="font-display fs-3 fw-semibold mb-0"><%= stats.gigs.total %></p>
+                <small class="text-muted"><%= stats.gigs.active %> active services</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ek-card" style="padding:1.25rem;background:var(--ek-gradient-subtle)">
+                <h6 class="fw-semibold mb-1"><i class="bi bi-shield-check me-1"></i> Verified Users</h6>
+                <p class="font-display fs-3 fw-semibold mb-0"><%= stats.users.verified %></p>
+                <small class="text-muted">of <%= stats.users.total %> total users</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ek-card" style="padding:1.25rem;background:var(--ek-gradient-subtle)">
+                <h6 class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1"></i> Open Disputes</h6>
+                <p class="font-display fs-3 fw-semibold mb-0"><%= stats.disputes ? stats.disputes.open : 0 %></p>
+                <small class="text-muted"><%= stats.disputes ? stats.disputes.total : 0 %> total disputes</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/tail') %>

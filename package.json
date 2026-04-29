@@ -8,7 +8,8 @@
         "dev": "nodemon app.js",
         "db:setup": "node database/setup.js",
         "db:seed": "node database/seed.js",
-        "db:reset": "node database/reset.js"
+        "db:reset": "node database/reset.js",
+        "db:init": "node database/setup.js && node database/seed.js"
     },
     "keywords": [
         "marketplace",
@@ -21,7 +22,7 @@
     "license": "ISC",
     "dependencies": {
         "bcrypt": "^5.1.1",
-        "cloudinary": "^1.41.0",
+        "cloudinary": "^2.9.0",
         "connect-pg-simple": "^9.0.1",
         "cookie-parser": "^1.4.6",
         "dotenv": "^16.4.5",

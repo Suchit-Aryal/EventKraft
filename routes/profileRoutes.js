@@ -5,6 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const Profile = require('../models/Profile');
+const Gig = require('../models/Gig');
 const pool = require('../config/db');
 
 // GET /profile/:id — Public profile page
