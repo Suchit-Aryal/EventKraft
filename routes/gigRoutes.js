@@ -19,13 +19,13 @@ router.get('/', gigCtrl.index);
 router.get('/create', ensureAuthenticated, ensureRole('worker'), gigCtrl.create);
 
 // POST /gigs          – Submit new gig (with up to 5 images)
-router.post('/', ensureAuthenticated, ensureRole('worker'), upload.array('images', 5), gigCtrl.store);
+router.post('/', ensureAuthenticated, ensureRole('worker'), upload.array('portfolio_images', 5), gigCtrl.store);
 
 // GET  /gigs/:id      – View single gig
 router.get('/:id', gigCtrl.show);
 
 // PUT  /gigs/:id      – Update gig
-router.put('/:id', ensureAuthenticated, ensureRole('worker'), upload.array('images', 5), gigCtrl.update);
+router.put('/:id', ensureAuthenticated, ensureRole('worker'), upload.array('portfolio_images', 5), gigCtrl.update);
 
 // DELETE /gigs/:id    – Delete gig
 router.delete('/:id', ensureAuthenticated, ensureRole('worker'), gigCtrl.destroy);

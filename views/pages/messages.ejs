@@ -1,35 +1,177 @@
 <%- include('../partials/header') %>
 
-<div class="container py-4">
-    <h1 class="font-display fs-3 fw-semibold mb-4">Messages</h1>
+<div class="container py-4" style="max-width:700px">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="font-display fs-3 fw-semibold mb-0"><i class="bi bi-chat-dots me-2"></i>Messages</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newChatModal">
+            <i class="bi bi-plus-lg me-1"></i>New Chat
+        </button>
+    </div>
 
     <% if (conversations && conversations.length > 0) { %>
-        <div class="row g-0">
+        <!-- Search Bar -->
+        <div class="mb-3">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0" id="chatSearch" placeholder="Search conversations by name…" autocomplete="off" style="box-shadow:none">
+            </div>
+        </div>
+
+        <!-- Conversation List -->
+        <div id="conversationList">
             <% conversations.forEach(function(c) { %>
                 <% var otherName = (c.participant_1 === currentUser.id) ? c.p2_name : c.p1_name; %>
                 <% var otherAvatar = (c.participant_1 === currentUser.id) ? c.p2_avatar : c.p1_avatar; %>
-                <div class="col-12">
-                    <a href="/messages/<%= c.id %>" class="d-flex align-items-center gap-3 text-decoration-none ek-card mb-2" style="padding:1rem 1.25rem;border-radius:var(--ek-radius)">
-                        <img src="<%= otherAvatar || ('https://ui-avatars.com/api/?name='+(otherName||'U')) %>" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
-                        <div class="flex-grow-1 min-width-0">
-                            <div class="d-flex justify-content-between">
-                                <strong style="color:var(--ek-text)"><%= otherName || 'User' %></strong>
-                                <% if (c.unread_count > 0) { %>
-                                    <span class="badge rounded-pill" style="background:var(--ek-maroon);color:#fff;font-size:.7rem"><%= c.unread_count %></span>
-                                <% } %>
-                            </div>
-                            <p class="text-muted small mb-0 text-truncate"><%= c.last_message || 'No messages yet' %></p>
+                <a href="/messages/<%= c.id %>" class="conversation-item d-flex align-items-center gap-3 text-decoration-none ek-card mb-2" data-name="<%= (otherName || 'User').toLowerCase() %>" style="padding:1rem 1.25rem;border-radius:var(--ek-radius);transition:transform .15s,box-shadow .15s">
+                    <img src="<%= otherAvatar || ('https://ui-avatars.com/api/?name='+(otherName||'U')+'&background=6b1d2a&color=fff') %>" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+                    <div class="flex-grow-1 min-width-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong style="color:var(--ek-text)"><%= otherName || 'User' %></strong>
+                            <% if (c.unread_count > 0) { %>
+                                <span class="badge rounded-pill" style="background:var(--ek-maroon);color:#fff;font-size:.7rem"><%= c.unread_count %></span>
+                            <% } %>
                         </div>
-                    </a>
-                </div>
+                        <p class="text-muted small mb-0 text-truncate"><%= c.last_message || 'No messages yet' %></p>
+                    </div>
+                </a>
             <% }); %>
         </div>
+
+        <div id="noSearchResults" class="text-center py-4 d-none">
+            <i class="bi bi-search fs-2 text-muted"></i>
+            <p class="text-muted mt-2 mb-0">No conversations match your search.</p>
+        </div>
+
     <% } else { %>
-        <div class="empty-state">
-            <i class="bi bi-chat-dots"></i>
-            <p>No conversations yet. Start by contacting a provider!</p>
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,rgba(107,29,42,0.08),rgba(140,58,74,0.12));display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+                <i class="bi bi-chat-square-text fs-1" style="color:var(--ek-maroon)"></i>
+            </div>
+            <h3 class="font-display fs-4 fw-semibold mb-2">No conversations yet</h3>
+            <p class="text-muted mb-4" style="max-width:400px;margin:0 auto">Start a conversation by searching for someone or browsing services!</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <button class="btn btn-primary btn-lg d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#newChatModal" style="border-radius:50px;padding:.75rem 2rem">
+                    <i class="bi bi-person-plus fs-5"></i> Find Someone
+                </button>
+                <a href="/gigs" class="btn btn-outline-primary btn-lg d-flex align-items-center gap-2" style="border-radius:50px;padding:.75rem 2rem">
+                    <i class="bi bi-search fs-5"></i> Browse Services
+                </a>
+                <a href="/jobs" class="btn btn-outline-primary btn-lg d-flex align-items-center gap-2" style="border-radius:50px;padding:.75rem 2rem">
+                    <i class="bi bi-briefcase fs-5"></i> Browse Jobs
+                </a>
+            </div>
         </div>
     <% } %>
 </div>
+
+<!-- ═══ New Chat Modal ═══ -->
+<div class="modal fade" id="newChatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden">
+            <div class="modal-header" style="background:linear-gradient(135deg,rgba(107,29,42,0.05),rgba(140,58,74,0.08));border-bottom:1px solid #eee">
+                <h5 class="modal-title fw-semibold"><i class="bi bi-person-plus me-2"></i>Start a New Chat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" class="form-control form-control-lg" id="userSearch" placeholder="Search by name…" autocomplete="off" style="border-radius:50px;padding:.6rem 1.25rem">
+                </div>
+                <div id="userSearchResults" style="max-height:300px;overflow-y:auto">
+                    <div class="text-center text-muted py-3" id="userSearchHint">
+                        <i class="bi bi-search fs-4 d-block mb-2"></i>
+                        Type at least 2 characters to search
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .conversation-item:hover { transform: translateY(-1px); box-shadow: var(--ek-shadow-soft) !important; }
+    .user-result { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; border-radius:12px; text-decoration:none; color:inherit; transition:background .15s; cursor:pointer; }
+    .user-result:hover { background:#f0f0f0; }
+    .user-result img { width:44px; height:44px; border-radius:50%; object-fit:cover; }
+    .user-result .badge { font-size:.65rem; padding:.25rem .5rem; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Conversation search ──────────────────────
+    const chatSearch = document.getElementById('chatSearch');
+    if (chatSearch) {
+        chatSearch.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.conversation-item');
+            const noResults = document.getElementById('noSearchResults');
+            let visible = 0;
+            items.forEach(item => {
+                const match = !query || (item.dataset.name || '').includes(query);
+                item.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            noResults.classList.toggle('d-none', visible > 0);
+        });
+    }
+
+    // ── User search (New Chat modal) ─────────────
+    const userSearch = document.getElementById('userSearch');
+    const resultsDiv = document.getElementById('userSearchResults');
+    const hintDiv = document.getElementById('userSearchHint');
+    let searchTimeout;
+
+    if (userSearch) {
+        userSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const q = this.value.trim();
+
+            if (q.length < 2) {
+                resultsDiv.innerHTML = '';
+                resultsDiv.appendChild(hintDiv);
+                hintDiv.style.display = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch('/messages/api/search-users?q=' + encodeURIComponent(q));
+                    const users = await res.json();
+
+                    if (users.length === 0) {
+                        resultsDiv.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-person-x fs-4 d-block mb-2"></i>No users found</div>';
+                        return;
+                    }
+
+                    resultsDiv.innerHTML = users.map(u => {
+                        const name = (u.first_name || '') + ' ' + (u.last_name || '');
+                        const avatar = u.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name.trim() || 'U') + '&background=6b1d2a&color=fff');
+                        const roleBadge = u.role === 'worker' ? '<span class="badge bg-primary">Worker</span>'
+                            : u.role === 'customer' ? '<span class="badge bg-success">Customer</span>'
+                            : '<span class="badge bg-secondary">' + u.role + '</span>';
+                        return '<form action="/messages/start/' + u.id + '" method="POST" style="margin:0">' +
+                            '<button type="submit" class="user-result w-100 border-0 bg-transparent text-start">' +
+                            '<img src="' + avatar + '" alt="">' +
+                            '<div class="flex-grow-1"><strong>' + name.trim() + '</strong> ' + roleBadge + '</div>' +
+                            '<i class="bi bi-chat-dots text-muted"></i>' +
+                            '</button></form>';
+                    }).join('');
+                } catch(e) {
+                    console.error(e);
+                }
+            }, 300);
+        });
+
+        // Auto-focus search when modal opens
+        document.getElementById('newChatModal').addEventListener('shown.bs.modal', function() {
+            userSearch.focus();
+            userSearch.value = '';
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(hintDiv);
+            hintDiv.style.display = '';
+        });
+    }
+});
+</script>
 
 <%- include('../partials/tail') %>
