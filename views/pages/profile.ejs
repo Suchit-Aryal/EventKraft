@@ -1,0 +1,116 @@
+<%- include('../partials/header') %>
+
+    <section class="container py-5" style="max-width:900px">
+
+        <!-- Cover & Avatar -->
+        <div class="position-relative mb-4">
+            <div class="rounded-3"
+                style="height:180px;background:<%= profile.cover_photo_url ? 'url('+profile.cover_photo_url+') center/cover' : 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)' %>">
+            </div>
+            <div class="d-flex align-items-end gap-3 px-3" style="margin-top:-50px">
+                <img src="<%= profile.avatar_url || ('https://ui-avatars.com/api/?name='+(profile.first_name||'U')+'&size=120&background=random') %>"
+                    alt=""
+                    style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+                <div class="pb-1">
+                    <h1 class="fs-4 fw-bold mb-0">
+                        <%= profile.first_name %>
+                            <%= profile.last_name || '' %>
+                    </h1>
+                    <span class="badge bg-<%= profile.role === 'worker' ? 'primary' : 'success' %> text-capitalize">
+                        <%= profile.role %>
+                    </span>
+                    <% if (profile.is_admin_verified) { %>
+                        <span class="badge bg-info"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+                        <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left: Info -->
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <% if (profile.city) { %>
+                            <div class="mb-2"><i class="bi bi-geo-alt me-2 text-muted"></i>
+                                <%= profile.city %>
+                            </div>
+                            <% } %>
+                                <div class="mb-2"><i class="bi bi-calendar me-2 text-muted"></i>Member since <%= new
+                                        Date(profile.member_since).toLocaleDateString('en-GB', {month:'short',
+                                        year:'numeric'}) %>
+                                </div>
+                                <div class="mb-2"><i class="bi bi-star-fill me-2 text-warning"></i>
+                                    <%= profile.avg_rating || '0' %> (<%= profile.total_reviews || 0 %> reviews)
+                                </div>
+                                <div><i class="bi bi-trophy me-2 text-muted"></i>
+                                    <%= profile.total_completed || 0 %> completed
+                                </div>
+                    </div>
+                </div>
+
+                <% if (profile.bio) { %>
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-2">About</h6>
+                            <p class="text-muted small mb-0">
+                                <%= profile.bio %>
+                            </p>
+                        </div>
+                    </div>
+                    <% } %>
+            </div>
+
+            <!-- Right: Services -->
+            <div class="col-md-8">
+                <h5 class="fw-semibold mb-3">
+                    <%= profile.first_name %>'s Services
+                </h5>
+                <% if (gigs && gigs.length> 0) { %>
+                    <div class="row g-3">
+                        <% gigs.forEach(function(gig) { %>
+                            <div class="col-sm-6">
+                                <div class="card shadow-sm h-100">
+                                    <% var cardImages=[]; try { if (Array.isArray(gig.portfolio_images)) {
+                                        cardImages=gig.portfolio_images; } else if (typeof
+                                        gig.portfolio_images==='string' ) { cardImages=JSON.parse(gig.portfolio_images
+                                        || '[]' ); } } catch(e) {} %>
+                                        <% if (cardImages.length> 0) { %>
+                                            <img src="<%= cardImages[0] %>" class="card-img-top" alt="<%= gig.title %>"
+                                                style="height:140px;object-fit:cover">
+                                            <% } else { %>
+                                                <div class="card-img-top d-flex align-items-center justify-content-center"
+                                                    style="height:140px;background:linear-gradient(135deg,#667eea,#764ba2)">
+                                                    <i class="bi bi-camera fs-2 text-white opacity-50"></i>
+                                                </div>
+                                                <% } %>
+                                                    <div class="card-body">
+                                                        <h6 class="card-title mb-1">
+                                                            <%= gig.title %>
+                                                        </h6>
+                                                        <span class="badge bg-secondary mb-2">
+                                                            <%= gig.category_name || 'Service' %>
+                                                        </span>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="text-success fw-bold small">NPR <%=
+                                                                    Number(gig.starting_price).toLocaleString() %>
+                                                                    </span>
+                                                            <a href="/gigs/<%= gig.id %>"
+                                                                class="btn btn-sm btn-outline-primary">View</a>
+                                                        </div>
+                                                    </div>
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <% } else { %>
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-briefcase fs-1"></i>
+                            <p class="mt-2">No services listed yet.</p>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/tail') %>

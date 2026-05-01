@@ -3,6 +3,7 @@
 // ============================================================
 
 const Gig = require('../models/Gig');
+const GigPackage = require('../models/GigPackage');
 const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
 
@@ -91,11 +92,40 @@ module.exports = {
                 imageUrls = await Promise.all(uploads);
             }
 
+            // Create the gig with images
             const gig = await Gig.create({
                 ...req.body,
                 worker_id: req.user.id,
                 portfolio_images: imageUrls
             });
+
+            // Handle tier/package creation if tiers were provided
+            const { pkg_tier, pkg_title, pkg_description, pkg_price, pkg_delivery_time, pkg_features } = req.body;
+            if (pkg_tier && pkg_title) {
+                const tiers = Array.isArray(pkg_tier) ? pkg_tier : [pkg_tier];
+                const titles = Array.isArray(pkg_title) ? pkg_title : [pkg_title];
+                const descriptions = Array.isArray(pkg_description) ? pkg_description : [pkg_description || ''];
+                const prices = Array.isArray(pkg_price) ? pkg_price : [pkg_price];
+                const deliveryTimes = Array.isArray(pkg_delivery_time) ? pkg_delivery_time : [pkg_delivery_time || ''];
+                const featuresList = Array.isArray(pkg_features) ? pkg_features : [pkg_features || ''];
+
+                const packages = [];
+                for (let i = 0; i < tiers.length; i++) {
+                    if (!titles[i] || !prices[i]) continue;
+                    packages.push({
+                        tier: tiers[i],
+                        title: titles[i],
+                        description: descriptions[i] || '',
+                        price: parseFloat(prices[i]),
+                        delivery_time: deliveryTimes[i] || '',
+                        features: (featuresList[i] || '').split(',').map(f => f.trim()).filter(Boolean)
+                    });
+                }
+
+                if (packages.length > 0) {
+                    await GigPackage.createAll(gig.id, packages);
+                }
+            }
             req.flash('success', 'Service created!');
             res.redirect(`/gigs/${gig.id}`);
         } catch (err) {

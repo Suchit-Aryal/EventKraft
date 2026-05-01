@@ -3,8 +3,33 @@
 // ============================================================
 
 const Message = require('../models/Message');
+const pool = require('../config/db');
 
 module.exports = {
+
+    // GET /messages/api/search-users — search users by name (JSON)
+    async searchUsers(req, res) {
+        try {
+            const { q } = req.query;
+            if (!q || q.trim().length < 2) return res.json([]);
+
+            const result = await pool.query(
+                `SELECT u.id, p.first_name, p.last_name, p.avatar_url, u.role
+                 FROM users u
+                 LEFT JOIN profiles p ON u.id = p.user_id
+                 WHERE u.id != $1
+                   AND (p.first_name ILIKE $2 OR p.last_name ILIKE $2
+                        OR CONCAT(p.first_name, ' ', p.last_name) ILIKE $2)
+                 ORDER BY p.first_name ASC
+                 LIMIT 8`,
+                [req.user.id, `%${q.trim()}%`]
+            );
+            res.json(result.rows);
+        } catch (err) {
+            console.error(err);
+            res.json([]);
+        }
+    },
 
     async index(req, res) {
         try {
@@ -14,6 +39,24 @@ module.exports = {
             console.error(err);
             req.flash('error', 'Failed to load messages');
             res.redirect('/auth/dashboard');
+        }
+    },
+
+    // POST /messages/start/:userId — Create or open a conversation with a user
+    async startConversation(req, res) {
+        try {
+            const otherUserId = req.params.userId;
+            if (otherUserId === req.user.id) {
+                req.flash('error', 'You cannot message yourself');
+                return res.redirect('/messages');
+            }
+
+            const conversation = await Message.getOrCreateConversation(req.user.id, otherUserId);
+            res.redirect(`/messages/${conversation.id}`);
+        } catch (err) {
+            console.error('Start conversation error:', err);
+            req.flash('error', 'Failed to start conversation');
+            res.redirect('/messages');
         }
     },
 

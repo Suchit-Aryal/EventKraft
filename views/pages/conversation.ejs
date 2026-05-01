@@ -1,69 +1,52 @@
 <%- include('../partials/header') %>
 
-<div class="container py-4">
-    <a href="/messages" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3"><i class="bi bi-arrow-left"></i> Back to messages</a>
+<div class="container py-4" style="max-width:800px">
+    <a href="/messages" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to messages
+    </a>
 
-    <div class="ek-card" style="max-width:800px;margin:0 auto">
+    <div class="ek-card" style="border-radius:var(--ek-radius-lg);overflow:hidden">
         <!-- Header -->
-        <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--ek-border)" class="d-flex align-items-center gap-3">
-            <img src="<%= otherAvatar || 'https://ui-avatars.com/api/?name=U' %>" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">
-            <strong><%= otherName || 'User' %></strong>
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--ek-border);background:linear-gradient(135deg,rgba(107,29,42,0.03),rgba(140,58,74,0.06))" class="d-flex align-items-center gap-3">
+            <img src="<%= otherAvatar || ('https://ui-avatars.com/api/?name='+(otherName||'U')+'&background=6b1d2a&color=fff') %>" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">
+            <div>
+                <strong style="color:var(--ek-text)"><%= otherName || 'User' %></strong>
+                <p class="text-muted small mb-0">Conversation</p>
+            </div>
         </div>
 
         <!-- Messages -->
-        <div id="messageArea" style="height:400px;overflow-y:auto;padding:1rem 1.25rem">
-            <% messages.forEach(function(m) { %>
-                <div class="ek-chat-bubble <%= m.sender_id === currentUser.id ? 'sent' : 'received' %>">
-                    <p class="mb-0"><%= m.content %></p>
-                    <small style="opacity:.6;font-size:.7rem"><%= new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) %></small>
-                </div>
-            <% }); %>
-    <div class="container py-5">
-        <a href="/messages" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Back to Messages</a>
-        <div class="card shadow-sm">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Conversation</h5>
-            </div>
-            <div class="card-body" style="max-height: 500px; overflow-y: auto;" id="messageContainer">
-                <% if (messages && messages.length> 0) { %>
-                    <% messages.forEach(msg=> { %>
-                        <div
-                            class="d-flex mb-3 <%= msg.sender_id === currentUser.id ? 'justify-content-end' : 'justify-content-start' %>">
-                            <div class="p-3 rounded-3 <%= msg.sender_id === currentUser.id ? 'bg-primary text-white' : 'bg-light' %>"
-                                style="max-width: 70%;">
-                                <strong class="small">
-                                    <%= msg.sender_name || 'User' %>
-                                </strong>
-                                <p class="mb-0">
-                                    <%= msg.content %>
-                                </p>
-                            </div>
+        <div id="messageArea" style="height:450px;overflow-y:auto;padding:1.25rem;background:#fafafa">
+            <% if (messages && messages.length > 0) { %>
+                <% messages.forEach(function(m) { %>
+                    <div class="d-flex mb-3 <%= m.sender_id === currentUser.id ? 'justify-content-end' : 'justify-content-start' %>">
+                        <div class="<%= m.sender_id === currentUser.id ? 'chat-sent' : 'chat-received' %>" style="max-width:70%;padding:.6rem 1rem;border-radius:16px">
+                            <p class="mb-0" style="font-size:.9rem"><%= m.content %></p>
+                            <small style="opacity:.5;font-size:.7rem"><%= new Date(m.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) %></small>
                         </div>
-                        <% }) %>
-                            <% } else { %>
-                                <div class="text-center text-muted py-5"><i class="bi bi-chat fs-1"></i>
-                                    <p>No messages yet.</p>
-                                </div>
-                                <% } %>
-            </div>
-            <div class="card-footer">
-                <form action="/messages/<%= conversationId %>" method="POST">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="content" placeholder="Type a message..." required>
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Send</button>
                     </div>
-                </form>
-            </div>
+                <% }); %>
+            <% } else { %>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-chat fs-1"></i>
+                    <p class="mt-2">No messages yet. Say hello!</p>
+                </div>
+            <% } %>
         </div>
 
         <!-- Send -->
-        <form action="/messages/<%= conversation.id %>/send" method="POST" style="padding:1rem 1.25rem;border-top:1px solid var(--ek-border)" class="d-flex gap-2">
+        <form action="/messages/<%= conversation.id %>/send" method="POST" style="padding:1rem 1.25rem;border-top:1px solid var(--ek-border);background:#fff" class="d-flex gap-2">
             <input type="hidden" name="receiver_id" value="<%= conversation.participant_1 === currentUser.id ? conversation.participant_2 : conversation.participant_1 %>">
             <input type="text" name="content" class="form-control" placeholder="Type a message…" required autocomplete="off" style="border-radius:50px">
-            <button type="submit" class="btn btn-ek-primary" style="border-radius:50px;padding:.5rem 1.25rem"><i class="bi bi-send"></i></button>
+            <button type="submit" class="btn btn-primary" style="border-radius:50px;padding:.5rem 1.25rem"><i class="bi bi-send"></i></button>
         </form>
     </div>
 </div>
+
+<style>
+    .chat-sent { background: var(--ek-maroon, #6b1d2a); color: #fff; border-bottom-right-radius: 4px !important; }
+    .chat-received { background: #fff; color: var(--ek-text); border: 1px solid #eee; border-bottom-left-radius: 4px !important; }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -73,5 +56,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <%- include('../partials/tail') %>
-    <script>const c = document.getElementById('messageContainer'); if (c) c.scrollTop = c.scrollHeight;</script>
-    <%- include('../partials/tail') %>
