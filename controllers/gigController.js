@@ -5,6 +5,21 @@
 const Gig = require('../models/Gig');
 const GigPackage = require('../models/GigPackage');
 const pool = require('../config/db');
+const cloudinary = require('../config/cloudinary');
+
+// Upload a buffer to Cloudinary and return the secure URL
+function uploadToCloudinary(fileBuffer, mimetype) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'eventkraft/gigs', resource_type: 'image' },
+            (err, result) => {
+                if (err) return reject(err);
+                resolve(result.secure_url);
+            }
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 module.exports = {
 
@@ -70,13 +85,23 @@ module.exports = {
 
     async store(req, res) {
         try {
-            // Create the gig
-            const gig = await Gig.create({ ...req.body, worker_id: req.user.id });
+            // Upload images to Cloudinary
+            let imageUrls = [];
+            if (req.files && req.files.length > 0) {
+                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
+                imageUrls = await Promise.all(uploads);
+            }
+
+            // Create the gig with images
+            const gig = await Gig.create({
+                ...req.body,
+                worker_id: req.user.id,
+                portfolio_images: imageUrls
+            });
 
             // Handle tier/package creation if tiers were provided
             const { pkg_tier, pkg_title, pkg_description, pkg_price, pkg_delivery_time, pkg_features } = req.body;
             if (pkg_tier && pkg_title) {
-                // Form fields come as arrays when multiple tiers are submitted
                 const tiers = Array.isArray(pkg_tier) ? pkg_tier : [pkg_tier];
                 const titles = Array.isArray(pkg_title) ? pkg_title : [pkg_title];
                 const descriptions = Array.isArray(pkg_description) ? pkg_description : [pkg_description || ''];
@@ -86,7 +111,6 @@ module.exports = {
 
                 const packages = [];
                 for (let i = 0; i < tiers.length; i++) {
-                    // Skip tiers without a title or price
                     if (!titles[i] || !prices[i]) continue;
                     packages.push({
                         tier: tiers[i],
@@ -102,7 +126,6 @@ module.exports = {
                     await GigPackage.createAll(gig.id, packages);
                 }
             }
-
             req.flash('success', 'Service created!');
             res.redirect(`/gigs/${gig.id}`);
         } catch (err) {
@@ -148,6 +171,12 @@ module.exports = {
 
     async update(req, res) {
         try {
+            // If new images uploaded, upload to Cloudinary
+            if (req.files && req.files.length > 0) {
+                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
+                req.body.portfolio_images = await Promise.all(uploads);
+            }
+
             await Gig.update(req.params.id, req.body);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
