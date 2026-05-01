@@ -6,46 +6,10 @@
         <p class="text-muted">Showcase your skills and start getting bookings.</p>
     </div>
     <div class="ek-card" style="padding:1.5rem 2rem">
-        <form action="/gigs" method="POST" class="ek-form">
+        <form action="/gigs" method="POST" enctype="multipart/form-data" class="ek-form">
             <div class="mb-3">
                 <label class="form-label" for="title">Service title *</label>
                 <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Professional Wedding Photography">
-    <div class="container py-5" style="max-width: 750px;">
-        <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Create a Service</h2>
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form action="/gigs" method="POST">
-                    <div class="mb-3"><label for="title" class="form-label">Service Title *</label><input type="text"
-                            class="form-control" id="title" name="title"
-                            placeholder="e.g. Professional Wedding Photography" required></div>
-                    <div class="mb-3"><label for="category_id" class="form-label">Category *</label><select
-                            class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Select a category</option>
-                            <% categories.forEach(cat=> { %><option value="<%= cat.id %>">
-                                    <%= cat.name %>
-                                </option>
-                                <% }) %>
-                        </select></div>
-                    <div class="mb-3"><label for="description" class="form-label">Description *</label><textarea
-                            class="form-control" id="description" name="description" rows="5"
-                            placeholder="Describe your service in detail..." required></textarea></div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label for="starting_price" class="form-label">Starting Price (NPR)
-                                *</label><input type="number" class="form-control" id="starting_price"
-                                name="starting_price" min="0" step="100" required></div>
-                        <div class="col-md-6"><label for="delivery_time" class="form-label">Delivery Time</label><input
-                                type="text" class="form-control" id="delivery_time" name="delivery_time"
-                                placeholder="e.g. 3 days"></div>
-                    </div>
-                    <div class="mb-3"><label for="status" class="form-label">Status</label><select class="form-select"
-                            id="status" name="status">
-                            <option value="draft">Draft</option>
-                            <option value="active">Active (Publish Now)</option>
-                        </select></div>
-                    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary"><i
-                                class="bi bi-check-lg"></i> Create Service</button><a href="/auth/dashboard"
-                            class="btn btn-outline-secondary">Cancel</a></div>
-                </form>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col-md-6">
@@ -70,6 +34,15 @@
                 <label class="form-label" for="delivery_time">Delivery time</label>
                 <input type="text" class="form-control" id="delivery_time" name="delivery_time" placeholder="e.g. 7 days">
             </div>
+
+            <!-- Portfolio Images -->
+            <div class="mb-3">
+                <label class="form-label" for="images">Portfolio images <span class="text-muted small">(up to 5)</span></label>
+                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                <div class="form-text">Upload your best work samples (JPEG, PNG, WebP — max 5MB each)</div>
+                <div id="imagePreview" class="d-flex gap-2 flex-wrap mt-2"></div>
+            </div>
+
             <input type="hidden" name="status" value="active">
             <div class="d-flex flex-wrap gap-2 pt-2">
                 <button type="submit" class="btn btn-ek-primary btn-lg">Publish service</button>
@@ -78,5 +51,22 @@
         </form>
     </div>
 </section>
+
+<script>
+document.getElementById('images').addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    Array.from(e.target.files).slice(0, 5).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const img = document.createElement('img');
+            img.src = ev.target.result;
+            img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #eee';
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+</script>
 
 <%- include('../partials/tail') %>
