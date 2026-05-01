@@ -1,0 +1,89 @@
+<%- include('../partials/header') %>
+
+<section class="container py-5" style="max-width:720px">
+    <a href="/auth/dashboard" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+
+    <h1 class="font-display fs-2 fw-semibold mb-1">Settings</h1>
+    <p class="text-muted mb-4">Manage your account security and preferences.</p>
+
+    <!-- Account Info -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-person-circle text-primary me-2"></i>Account</h5></div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label class="form-label text-muted small mb-0">Name</label>
+                    <p class="fw-semibold mb-0"><%= profile ? `${profile.first_name} ${profile.last_name || ''}` : 'N/A' %></p>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label text-muted small mb-0">Email</label>
+                    <p class="fw-semibold mb-0"><%= userData.email %></p>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label text-muted small mb-0">Login Method</label>
+                    <p class="fw-semibold mb-0">
+                        <% if (userData.google_id) { %><i class="bi bi-google text-danger me-1"></i>Google
+                        <% } else { %><i class="bi bi-envelope me-1"></i>Email & Password<% } %>
+                    </p>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label text-muted small mb-0">Role</label>
+                    <p class="fw-semibold mb-0 text-capitalize"><%= currentUser.role %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Two-Factor Authentication -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white"><h5 class="mb-0"><i class="bi bi-shield-check text-success me-2"></i>Two-Factor Authentication</h5></div>
+        <div class="card-body">
+            <% if (userData.totp_enabled) { %>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width:48px;height:48px;border-radius:50%;background:rgba(25,135,84,0.1);display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-shield-fill-check fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <p class="fw-semibold mb-0">2FA is enabled</p>
+                        <p class="text-muted small mb-0">Your account is protected with an authenticator app.</p>
+                    </div>
+                </div>
+                <form action="/auth/settings/2fa/disable" method="POST">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure? This will make your account less secure.')">
+                        <i class="bi bi-shield-x me-1"></i>Disable 2FA
+                    </button>
+                </form>
+            <% } else { %>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,193,7,0.1);display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-shield-exclamation fs-4 text-warning"></i>
+                    </div>
+                    <div>
+                        <p class="fw-semibold mb-0">2FA is not enabled</p>
+                        <p class="text-muted small mb-0">Add an extra layer of security with an authenticator app.</p>
+                    </div>
+                </div>
+                <form action="/auth/settings/2fa/setup" method="POST">
+                    <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-shield-plus me-1"></i>Enable 2FA</button>
+                </form>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Security Tips -->
+    <div class="card shadow-sm border-0" style="background:linear-gradient(135deg,rgba(107,29,42,0.03),rgba(140,58,74,0.06))">
+        <div class="card-body">
+            <h6 class="text-muted mb-3"><i class="bi bi-lightbulb me-1"></i>Security Tips</h6>
+            <ul class="list-unstyled text-muted small mb-0">
+                <li class="d-flex gap-2 mb-2"><i class="bi bi-check-circle text-success"></i> Use a strong, unique password</li>
+                <li class="d-flex gap-2 mb-2"><i class="bi bi-check-circle text-success"></i> Enable two-factor authentication</li>
+                <li class="d-flex gap-2 mb-2"><i class="bi bi-check-circle text-success"></i> Never share your verification codes</li>
+                <li class="d-flex gap-2"><i class="bi bi-check-circle text-success"></i> Log out from shared devices</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<%- include('../partials/tail') %>
