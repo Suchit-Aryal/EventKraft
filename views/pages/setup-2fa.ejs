@@ -1,0 +1,75 @@
+<%- include('../partials/header') %>
+
+<section class="container py-5" style="max-width:560px">
+    <a href="/auth/settings" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to Settings
+    </a>
+
+    <div class="text-center mb-4">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#198754,#20c997);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <i class="bi bi-qr-code fs-2 text-white"></i>
+        </div>
+        <h1 class="font-display fs-3 fw-semibold">Setup Two-Factor Authentication</h1>
+        <p class="text-muted small">Scan this QR code with your authenticator app, then enter the 6-digit code to verify.</p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center py-4">
+            <p class="text-muted small mb-3">Scan with Google Authenticator, Authy, or any TOTP app:</p>
+            <img src="<%= qrCode %>" alt="2FA QR Code" style="width:200px;height:200px;border-radius:12px;border:2px solid #eee">
+            <div class="mt-3">
+                <p class="text-muted small mb-1">Can't scan? Enter this key manually:</p>
+                <div class="bg-light rounded-3 p-2 d-inline-block" style="font-family:monospace;font-size:13px;letter-spacing:2px;word-break:break-all"><%= secret %></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h6 class="mb-3">Enter the code from your authenticator app:</h6>
+            <form action="/auth/settings/2fa/verify" method="POST">
+                <div class="mb-3">
+                    <div class="d-flex gap-2 justify-content-center" id="setupDigits">
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px" autofocus>
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px">
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px">
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px">
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px">
+                        <input type="text" class="form-control text-center fw-bold setup-digit" maxlength="1" style="width:48px;height:56px;font-size:24px;border-radius:12px">
+                    </div>
+                    <input type="hidden" name="token" id="setupHidden">
+                </div>
+                <button type="submit" class="btn btn-success w-100 btn-lg"><i class="bi bi-shield-check me-1"></i>Enable 2FA</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    const digits = document.querySelectorAll('.setup-digit');
+    const hidden = document.getElementById('setupHidden');
+    digits.forEach((input, i) => {
+        input.addEventListener('input', function () {
+            this.value = this.value.replace(/\D/g, '').slice(0, 1);
+            if (this.value && i < digits.length - 1) digits[i + 1].focus();
+            hidden.value = Array.from(digits).map(d => d.value).join('');
+        });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && !this.value && i > 0) {
+                digits[i - 1].focus(); digits[i - 1].value = '';
+                hidden.value = Array.from(digits).map(d => d.value).join('');
+            }
+        });
+        input.addEventListener('paste', function (e) {
+            e.preventDefault();
+            const data = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+            data.split('').forEach((ch, j) => { if (digits[j]) digits[j].value = ch; });
+            if (digits[Math.min(data.length, 5)]) digits[Math.min(data.length, 5)].focus();
+            hidden.value = Array.from(digits).map(d => d.value).join('');
+        });
+    });
+})();
+</script>
+
+<%- include('../partials/tail') %>
