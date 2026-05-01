@@ -4,6 +4,21 @@
 
 const Gig = require('../models/Gig');
 const pool = require('../config/db');
+const cloudinary = require('../config/cloudinary');
+
+// Upload a buffer to Cloudinary and return the secure URL
+function uploadToCloudinary(fileBuffer, mimetype) {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'eventkraft/gigs', resource_type: 'image' },
+            (err, result) => {
+                if (err) return reject(err);
+                resolve(result.secure_url);
+            }
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 module.exports = {
 
@@ -69,7 +84,18 @@ module.exports = {
 
     async store(req, res) {
         try {
-            const gig = await Gig.create({ ...req.body, worker_id: req.user.id });
+            // Upload images to Cloudinary
+            let imageUrls = [];
+            if (req.files && req.files.length > 0) {
+                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
+                imageUrls = await Promise.all(uploads);
+            }
+
+            const gig = await Gig.create({
+                ...req.body,
+                worker_id: req.user.id,
+                portfolio_images: imageUrls
+            });
             req.flash('success', 'Service created!');
             res.redirect(`/gigs/${gig.id}`);
         } catch (err) {
@@ -115,6 +141,12 @@ module.exports = {
 
     async update(req, res) {
         try {
+            // If new images uploaded, upload to Cloudinary
+            if (req.files && req.files.length > 0) {
+                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
+                req.body.portfolio_images = await Promise.all(uploads);
+            }
+
             await Gig.update(req.params.id, req.body);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
