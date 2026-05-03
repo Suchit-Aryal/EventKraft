@@ -86,10 +86,10 @@ function initialize(passport) {
                         }
                     }
 
-                    // Create new user from Google profile
+                    // Create new user from Google profile (profile_complete = false triggers onboarding)
                     const newUser = await pool.query(
-                        `INSERT INTO users (email, google_id, role, is_verified, is_active)
-                         VALUES ($1, $2, 'customer', true, true) RETURNING *`,
+                        `INSERT INTO users (email, google_id, role, is_verified, is_active, profile_complete)
+                         VALUES ($1, $2, 'customer', true, true, false) RETURNING *`,
                         [email ? email.toLowerCase() : `google_${profile.id}@temp.eventkraft`, profile.id]
                     );
 
@@ -120,7 +120,7 @@ function initialize(passport) {
     passport.deserializeUser(async (id, done) => {
         try {
             const result = await pool.query(
-                'SELECT id, email, role, is_verified, is_active, totp_enabled, google_id FROM users WHERE id = $1',
+                'SELECT id, email, role, is_verified, is_active, totp_enabled, google_id, profile_complete FROM users WHERE id = $1',
                 [id]
             );
             done(null, result.rows[0]);

@@ -88,16 +88,25 @@ module.exports = {
 
     async send(req, res) {
         try {
-            await Message.send({
+            const msg = await Message.send({
                 conversationId: req.params.conversationId,
                 senderId: req.user.id,
                 receiverId: req.body.receiver_id,
                 content: req.body.content,
                 attachments: req.body.attachments
             });
+
+            // If request is JSON (from chat.js fetch), return JSON
+            if (req.is('application/json')) {
+                return res.json({ id: msg.id, created_at: msg.created_at });
+            }
+            // Otherwise redirect (form fallback)
             res.redirect(`/messages/${req.params.conversationId}`);
         } catch (err) {
             console.error(err);
+            if (req.is('application/json')) {
+                return res.status(500).json({ error: 'Failed to send message' });
+            }
             req.flash('error', 'Failed to send message');
             res.redirect(`/messages/${req.params.conversationId}`);
         }

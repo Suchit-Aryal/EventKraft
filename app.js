@@ -60,10 +60,18 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Global variables for templates
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     res.locals.currentUser = req.user || null;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
+    res.locals.unreadMessages = 0;
+
+    if (req.user) {
+        try {
+            const Message = require('./models/Message');
+            res.locals.unreadMessages = await Message.getTotalUnread(req.user.id);
+        } catch (e) { /* silently fail */ }
+    }
     next();
 });
 
@@ -103,22 +111,26 @@ app.use('/reviews', reviewRoutes);
 app.use('/messages', messageRoutes);
 app.use('/admin', adminRoutes);
 app.use('/profile', require('./routes/profileRoutes'));
+app.use('/onboarding', require('./routes/onboardingRoutes'));
 
 // ─── Socket.io (Real-time Chat) ────────────────────────────
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
-
-    socket.on('join-room', (roomId) => {
-        socket.join(roomId);
+    socket.on('join-conversation', (conversationId) => {
+        socket.join(`conversation_${conversationId}`);
     });
 
     socket.on('send-message', (data) => {
-        io.to(data.roomId).emit('new-message', data);
+        // Broadcast to everyone in the room EXCEPT the sender
+        socket.to(`conversation_${data.conversationId}`).emit('new-message', {
+            id: data.id,
+            content: data.content,
+            sender_id: data.sender_id,
+            sender_name: data.sender_name,
+            created_at: data.created_at
+        });
     });
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
+    socket.on('disconnect', () => {});
 });
 
 // ─── 404 Handler ────────────────────────────────────────────

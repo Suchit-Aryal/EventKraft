@@ -1,0 +1,84 @@
+<%- include('../partials/header') %>
+
+<div class="container py-5" style="max-width:500px">
+    <h2 class="font-display fs-3 fw-semibold mb-1">Create a password</h2>
+    <p class="text-muted mb-4">This lets you log in with email later, in addition to Google.</p>
+
+    <form method="POST" action="/onboarding/step3" id="passwordForm" class="ek-form">
+        <div class="mb-3">
+            <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="password" name="password"
+                    minlength="8" required oninput="checkStrength(this.value)">
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePw('password', this)"><i class="bi bi-eye"></i></button>
+            </div>
+            <div class="progress mt-2" style="height:4px">
+                <div id="strengthBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+            </div>
+            <small id="strengthLabel" class="text-muted">At least 8 characters</small>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="confirm_password">Confirm Password <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                    minlength="8" required oninput="checkMatch()">
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePw('confirm_password', this)"><i class="bi bi-eye"></i></button>
+            </div>
+            <small id="matchLabel" class="text-muted"></small>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="/onboarding/step2" class="btn btn-ek-outline btn-lg">← Back</a>
+            <button type="submit" class="btn btn-ek-primary btn-lg">Finish Setup 🎉</button>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <span class="rounded-circle" style="width:8px;height:8px;background:var(--ek-maroon)"></span>
+        <span class="rounded-circle" style="width:8px;height:8px;background:var(--ek-maroon)"></span>
+        <span class="rounded-circle bg-dark" style="width:8px;height:8px"></span>
+    </div>
+</div>
+
+<script>
+function checkStrength(val) {
+    var bar = document.getElementById('strengthBar');
+    var label = document.getElementById('strengthLabel');
+    var score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    var colors = ['bg-danger','bg-warning','bg-info','bg-success'];
+    var labels = ['Too weak','Weak','Good','Strong'];
+    bar.style.width = (score * 25) + '%';
+    bar.className = 'progress-bar ' + (colors[score - 1] || '');
+    label.textContent = labels[score - 1] || 'At least 8 characters';
+}
+
+function checkMatch() {
+    var p = document.getElementById('password').value;
+    var c = document.getElementById('confirm_password').value;
+    var label = document.getElementById('matchLabel');
+    if (!c) { label.textContent = ''; return; }
+    label.textContent = p === c ? '✓ Passwords match' : "Passwords don't match";
+    label.style.color = p === c ? 'green' : 'red';
+}
+
+function togglePw(id, btn) {
+    var input = document.getElementById(id);
+    var isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    btn.querySelector('i').className = isPw ? 'bi bi-eye-slash' : 'bi bi-eye';
+}
+
+document.getElementById('passwordForm').addEventListener('submit', function(e) {
+    if (document.getElementById('password').value !== document.getElementById('confirm_password').value) {
+        e.preventDefault();
+        alert("Passwords don't match");
+    }
+});
+</script>
+
+<%- include('../partials/tail') %>
