@@ -245,6 +245,9 @@ module.exports = {
 
     // Google OAuth callback
     googleCallback(req, res) {
+        if (!req.user.profile_complete) {
+            return res.redirect('/onboarding/step1');
+        }
         req.flash('success', 'Welcome!');
         res.redirect('/auth/dashboard');
     },

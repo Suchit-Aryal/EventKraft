@@ -2,116 +2,199 @@
 
 <section class="container py-5" style="max-width:720px">
     <div class="text-center mb-4">
-        <h1 class="font-display fs-2 fw-semibold">Post a job</h1>
+        <h1 class="font-display fs-2 fw-semibold">Post a Job</h1>
         <p class="text-muted">Tell us what you need — workers will reach out within hours.</p>
     </div>
+
+    <!-- Step Indicator -->
+    <div class="d-flex justify-content-center gap-2 mb-4">
+        <span class="wizard-step active" id="dot1">1 · Basics</span>
+        <span class="wizard-divider"></span>
+        <span class="wizard-step" id="dot2">2 · Event Details</span>
+        <span class="wizard-divider"></span>
+        <span class="wizard-step" id="dot3">3 · Review</span>
+    </div>
+
     <div class="ek-card" style="padding:1.5rem 2rem">
-        <form action="/jobs" method="POST" class="ek-form">
-            <div class="mb-3">
-                <label class="form-label" for="title">Job title *</label>
-                <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Wedding photographer for 3-day ceremony">
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="category_id">Service category *</label>
-                    <select class="form-select" id="category_id" name="category_id" required>
-                        <option value="" disabled selected>Select a category</option>
-                        <% categories.forEach(function(c) { %>
-                            <option value="<%= c.id %>"><%= c.name %></option>
-                        <% }); %>
-                    </select>
+        <form action="/jobs" method="POST" id="jobForm" class="ek-form">
+            <input type="hidden" name="status" value="published" id="statusInput">
+
+            <!-- ═══ Step 1: Basics ═══ -->
+            <div class="wizard-panel" id="step1">
+                <h5 class="fw-semibold mb-3"><i class="bi bi-1-circle me-2" style="color:var(--ek-maroon)"></i>What do you need?</h5>
+
+                <div class="mb-3">
+                    <label class="form-label" for="title">Job title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Wedding Photographer for June Reception">
+                    <small class="text-muted">Be specific — workers use this to decide if your job fits them.</small>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="event_type">Event type *</label>
-                    <select class="form-select" id="event_type" name="event_type" required>
-                        <option value="" disabled selected>Select event type</option>
-                        <option>Wedding</option><option>Reception</option><option>Engagement</option>
-                        <option>Mehendi</option><option>Birthday</option><option>Corporate</option><option>Other</option>
-                    </select>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label" for="description">Description *</label>
-                <textarea class="form-control" id="description" name="description" rows="5" required placeholder="Describe your event, guest count, special requests…"></textarea>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="event_date">Event date *</label>
-                    <input type="date" class="form-control" id="event_date" name="event_date" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="event_location">Location *</label>
-                    <input type="text" class="form-control" id="event_location" name="event_location" required placeholder="Kathmandu, Hyatt Regency">
-                </div>
-    <div class="container py-5" style="max-width: 750px;">
-        <h2 class="mb-4"><i class="bi bi-megaphone"></i> Post a Job</h2>
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form action="/jobs" method="POST">
-                    <div class="mb-3"><label for="title" class="form-label">Job Title *</label><input type="text"
-                            class="form-control" id="title" name="title"
-                            placeholder="e.g. Need a Photographer for Wedding" required></div>
-                    <div class="mb-3"><label for="category_id" class="form-label">Category *</label><select
-                            class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Select a category</option>
-                            <% categories.forEach(cat=> { %><option value="<%= cat.id %>">
-                                    <%= cat.name %>
-                                </option>
-                                <% }) %>
-                        </select></div>
-                    <div class="mb-3"><label for="description" class="form-label">Description *</label><textarea
-                            class="form-control" id="description" name="description" rows="5"
-                            placeholder="Describe what you need..." required></textarea></div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label for="event_type" class="form-label">Event Type</label><input
-                                type="text" class="form-control" id="event_type" name="event_type"
-                                placeholder="e.g. Wedding"></div>
-                        <div class="col-md-6"><label for="event_date" class="form-label">Event Date</label><input
-                                type="date" class="form-control" id="event_date" name="event_date"></div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="category_id">Service category <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category_id" name="category_id" required>
+                            <option value="" disabled selected>Select a category</option>
+                            <% categories.forEach(function(c) { %>
+                                <option value="<%= c.id %>"><%= c.name %></option>
+                            <% }); %>
+                        </select>
                     </div>
-                    <div class="mb-3"><label for="event_location" class="form-label">Location</label><input type="text"
-                            class="form-control" id="event_location" name="event_location" placeholder="e.g. Kathmandu">
+                    <div class="col-md-6">
+                        <label class="form-label" for="event_type">Event type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="event_type" name="event_type" required>
+                            <option value="" disabled selected>Select event type</option>
+                            <option>Wedding</option><option>Reception</option><option>Engagement</option>
+                            <option>Mehendi</option><option>Birthday</option><option>Corporate</option><option>Other</option>
+                        </select>
                     </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6"><label for="budget_min" class="form-label">Budget Min (NPR)
-                                *</label><input type="number" class="form-control" id="budget_min" name="budget_min"
-                                min="0" step="100" required></div>
-                        <div class="col-md-6"><label for="budget_max" class="form-label">Budget Max (NPR)
-                                *</label><input type="number" class="form-control" id="budget_max" name="budget_max"
-                                min="0" step="100" required></div>
-                    </div>
-                    <div class="mb-3"><label for="status" class="form-label">Status</label><select class="form-select"
-                            id="status" name="status">
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                        </select></div>
-                    <div class="d-flex gap-2"><button type="submit" class="btn btn-primary"><i
-                                class="bi bi-check-lg"></i> Post Job</button><a href="/auth/dashboard"
-                            class="btn btn-outline-secondary">Cancel</a></div>
-                </form>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label class="form-label" for="budget_min">Budget min (NPR) *</label>
-                    <input type="number" class="form-control" id="budget_min" name="budget_min" required min="1000" placeholder="50000">
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="budget_max">Budget max (NPR) *</label>
-                    <input type="number" class="form-control" id="budget_max" name="budget_max" required min="1000" placeholder="120000">
+
+                <div class="mb-3">
+                    <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe your event, guest count, and exactly what you need. Be specific."></textarea>
+                </div>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-ek-primary btn-lg" onclick="goStep(2)">Next <i class="bi bi-arrow-right"></i></button>
                 </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label" for="special_requirements">Special requirements (optional)</label>
-                <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Drone coverage, specific style, language…"></textarea>
+
+            <!-- ═══ Step 2: Event Details ═══ -->
+            <div class="wizard-panel d-none" id="step2">
+                <h5 class="fw-semibold mb-3"><i class="bi bi-2-circle me-2" style="color:var(--ek-maroon)"></i>Event Details</h5>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="event_date">Event date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="event_date" name="event_date" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="event_location">Event location <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="event_location" name="event_location" required placeholder="Kathmandu, Hyatt Regency">
+                        <small class="text-muted">Full address or venue name</small>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="budget_min">Budget min (NPR) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="budget_min" name="budget_min" required min="500" placeholder="50000">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="budget_max">Budget max (NPR) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="budget_max" name="budget_max" required min="500" placeholder="120000">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="proposal_deadline">Proposal deadline (optional)</label>
+                    <input type="date" class="form-control" id="proposal_deadline" name="proposal_deadline">
+                    <small class="text-muted">Leave blank to keep it open until you close it manually.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="special_requirements">Special requirements (optional)</label>
+                    <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Drone coverage, specific style, language preference…"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-ek-outline btn-lg" onclick="goStep(1)"><i class="bi bi-arrow-left"></i> Back</button>
+                    <button type="button" class="btn btn-ek-primary btn-lg" onclick="goStep(3)">Review <i class="bi bi-arrow-right"></i></button>
+                </div>
             </div>
-            <input type="hidden" name="status" value="published">
-            <div class="d-flex flex-wrap gap-2 pt-2">
-                <button type="submit" class="btn btn-ek-primary btn-lg">Publish job</button>
-                <button type="submit" name="status" value="draft" class="btn btn-ek-outline btn-lg">Save as draft</button>
+
+            <!-- ═══ Step 3: Review ═══ -->
+            <div class="wizard-panel d-none" id="step3">
+                <h5 class="fw-semibold mb-3"><i class="bi bi-3-circle me-2" style="color:var(--ek-maroon)"></i>Review & Publish</h5>
+
+                <div class="mb-4" style="background:#fafafa;border-radius:12px;padding:1.25rem">
+                    <div class="review-row mb-2">
+                        <small class="text-muted">Job Title</small>
+                        <p class="fw-semibold mb-0" id="rev-title"></p>
+                    </div>
+                    <div class="review-row mb-2">
+                        <small class="text-muted">Category / Event Type</small>
+                        <p class="mb-0" id="rev-category"></p>
+                    </div>
+                    <div class="review-row mb-2">
+                        <small class="text-muted">Description</small>
+                        <p class="mb-0 text-truncate" id="rev-desc" style="max-width:100%"></p>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Date</small>
+                            <p class="mb-0" id="rev-date"></p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Location</small>
+                            <p class="mb-0" id="rev-location"></p>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Budget</small>
+                        <p class="mb-0 fw-semibold" id="rev-budget"></p>
+                    </div>
+                </div>
+
+                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i> Your posting goes live immediately. Workers can start submitting proposals right away.</p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-ek-outline btn-lg" onclick="goStep(2)"><i class="bi bi-arrow-left"></i> Back</button>
+                    <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1" id="publishBtn">
+                        <i class="bi bi-rocket-takeoff me-1"></i> Publish Job
+                    </button>
+                    <button type="submit" class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('statusInput').value='draft'">
+                        <i class="bi bi-save me-1"></i> Save Draft
+                    </button>
+                </div>
+
+                <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you hire.</p>
             </div>
-            <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you hire.</p>
         </form>
     </div>
 </section>
+
+<style>
+    .wizard-step { font-size:.85rem; font-weight:600; color:#aaa; padding:.4rem .8rem; border-radius:50px; transition:all .2s; }
+    .wizard-step.active { color:var(--ek-maroon); background:rgba(107,29,42,0.08); }
+    .wizard-divider { width:30px; height:2px; background:#ddd; align-self:center; }
+</style>
+
+<script>
+function goStep(step) {
+    var form = document.getElementById('jobForm');
+
+    // Validate current step before advancing
+    if (step > 1) {
+        var step1Fields = document.querySelectorAll('#step1 [required]');
+        for (var i = 0; i < step1Fields.length; i++) {
+            if (!step1Fields[i].checkValidity()) { step1Fields[i].reportValidity(); return; }
+        }
+    }
+    if (step > 2) {
+        var step2Fields = document.querySelectorAll('#step2 [required]');
+        for (var i = 0; i < step2Fields.length; i++) {
+            if (!step2Fields[i].checkValidity()) { step2Fields[i].reportValidity(); return; }
+        }
+    }
+
+    // Populate review
+    if (step === 3) {
+        document.getElementById('rev-title').textContent = document.getElementById('title').value;
+        var catSelect = document.getElementById('category_id');
+        document.getElementById('rev-category').textContent = (catSelect.options[catSelect.selectedIndex]?.text || '') + ' / ' + (document.getElementById('event_type').value || '');
+        document.getElementById('rev-desc').textContent = document.getElementById('description').value;
+        document.getElementById('rev-date').textContent = document.getElementById('event_date').value;
+        document.getElementById('rev-location').textContent = document.getElementById('event_location').value;
+        document.getElementById('rev-budget').textContent = 'NPR ' + Number(document.getElementById('budget_min').value).toLocaleString() + ' – ' + Number(document.getElementById('budget_max').value).toLocaleString();
+    }
+
+    // Show/hide panels
+    document.querySelectorAll('.wizard-panel').forEach(function(p) { p.classList.add('d-none'); });
+    document.getElementById('step' + step).classList.remove('d-none');
+    document.querySelectorAll('.wizard-step').forEach(function(d, idx) { d.classList.toggle('active', idx < step); });
+}
+</script>
 
 <%- include('../partials/tail') %>
