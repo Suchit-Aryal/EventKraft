@@ -30,12 +30,12 @@
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <% if (currentUser) { %>
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="/messages">
-                            <i class="bi bi-chat-dots"></i> Messages
+                        <a class="nav-link ek-nav-icon" href="/messages" title="Messages" id="navMsgLink">
+                            <i class="bi bi-chat-dots-fill fs-5"></i>
                             <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.6rem">
-                                    <%= unreadMessages > 9 ? '9+' : unreadMessages %>
-                                </span>
+                                <span class="ek-nav-badge" id="navMsgBadge"><%= unreadMessages > 9 ? '9+' : unreadMessages %></span>
+                            <% } else { %>
+                                <span class="ek-nav-badge d-none" id="navMsgBadge"></span>
                             <% } %>
                         </a>
                     </li>
