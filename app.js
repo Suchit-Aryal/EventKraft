@@ -120,13 +120,22 @@ io.on('connection', (socket) => {
     });
 
     socket.on('send-message', (data) => {
-        // Broadcast to everyone in the room EXCEPT the sender
         socket.to(`conversation_${data.conversationId}`).emit('new-message', {
             id: data.id,
             content: data.content,
             sender_id: data.sender_id,
             sender_name: data.sender_name,
-            created_at: data.created_at
+            created_at: data.created_at,
+            file_url: data.file_url,
+            file_name: data.file_name,
+            file_type: data.file_type,
+            reply_to: data.reply_to
+        });
+    });
+
+    socket.on('message-unsent', (data) => {
+        socket.to(`conversation_${data.conversationId}`).emit('message-unsent', {
+            messageId: data.messageId
         });
     });
 
