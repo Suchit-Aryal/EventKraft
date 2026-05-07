@@ -65,6 +65,8 @@ module.exports = {
 
             res.render('pages/admin-dashboard', {
                 title: 'Admin Dashboard',
+                layout: 'dashboard',
+                activePage: 'admin',
                 stats,
                 recentBookings: recentBookings.rows,
                 recentUsers: recentUsers.rows
@@ -85,7 +87,7 @@ module.exports = {
                 FROM users u LEFT JOIN profiles p ON u.id = p.user_id
                 ORDER BY u.created_at DESC
             `);
-            res.render('pages/admin-users', { title: 'Manage Users', users: users.rows });
+            res.render('pages/admin-users', { title: 'Manage Users', layout: 'dashboard', activePage: 'admin', users: users.rows });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load users');
@@ -118,7 +120,7 @@ module.exports = {
                 LEFT JOIN profiles wp ON b.worker_id = wp.user_id
                 ORDER BY b.created_at DESC
             `);
-            res.render('pages/admin-bookings', { title: 'All Bookings', bookings: result.rows });
+            res.render('pages/admin-bookings', { title: 'All Bookings', layout: 'dashboard', activePage: 'admin', bookings: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -138,7 +140,7 @@ module.exports = {
                 JOIN users ru ON d.raised_by = ru.id
                 ORDER BY d.created_at DESC
             `);
-            res.render('pages/admin-disputes', { title: 'Disputes', disputes: result.rows });
+            res.render('pages/admin-disputes', { title: 'Disputes', layout: 'dashboard', activePage: 'admin', disputes: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -164,7 +166,7 @@ module.exports = {
     async commissions(req, res) {
         try {
             const result = await pool.query('SELECT * FROM commission_settings ORDER BY min_amount');
-            res.render('pages/admin-commissions', { title: 'Commission Settings', commissions: result.rows });
+            res.render('pages/admin-commissions', { title: 'Commission Settings', layout: 'dashboard', activePage: 'admin', commissions: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');

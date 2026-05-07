@@ -34,7 +34,7 @@ module.exports = {
     async index(req, res) {
         try {
             const conversations = await Message.getConversations(req.user.id);
-            res.render('pages/messages', { title: 'Messages', conversations });
+            res.render('pages/messages', { title: 'Messages', layout: 'dashboard', activePage: 'messages', conversations });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load messages');
@@ -75,6 +75,8 @@ module.exports = {
 
             res.render('pages/conversation', {
                 title: 'Conversation',
+                layout: 'dashboard',
+                activePage: 'messages',
                 conversation,
                 messages,
                 otherName,

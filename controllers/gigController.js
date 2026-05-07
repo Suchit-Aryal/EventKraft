@@ -42,6 +42,8 @@ module.exports = {
 
             res.render('pages/gigs', {
                 title: 'Browse Services',
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'gigs',
                 gigs,
                 categories: categories.rows,
                 filters: { keyword: keyword || '', category_id: category_id || '', minPrice: minPrice || '', maxPrice: maxPrice || '', sortBy: sortBy || '' }
@@ -80,7 +82,7 @@ module.exports = {
 
     async create(req, res) {
         const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
-        res.render('pages/gig-create', { title: 'Create a Service', categories: categories.rows });
+        res.render('pages/gig-create', { title: 'Create a Service', layout: 'dashboard', activePage: 'create-gig', categories: categories.rows });
     },
 
     async store(req, res) {
@@ -159,6 +161,8 @@ module.exports = {
 
             res.render('pages/gig-detail', {
                 title: gig.title,
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'gigs',
                 gig,
                 packages: pkgResult.rows,
                 reviews: reviewResult.rows

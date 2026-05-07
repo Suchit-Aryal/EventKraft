@@ -82,7 +82,7 @@
 
         <!-- Upload form (show if not pending or approved) -->
         <% if (currentUser.kyc_status !== 'pending' && currentUser.kyc_status !== 'approved') { %>
-          <form method="POST" action="/dashboard/kyc/submit" enctype="multipart/form-data">
+          <form method="POST" action="/dashboard/kyc/submit" enctype="multipart/form-data" class="kyc-form" id="kyc-form">
 
             <div class="form-group">
               <label class="form-label">Document Type <span class="req">*</span></label>
@@ -110,30 +110,30 @@
               <div class="form-group">
                 <label class="form-label">Front Side <span class="req">*</span></label>
                 <div class="upload-zone" id="front-zone">
-                  <input type="file" name="doc_front" accept="image/*,.pdf" required onchange="previewDoc(this, 'front')">
-                  <div class="upload-zone__inner">
+                  <input type="file" id="doc-front" name="doc_front" accept="image/jpeg,image/png,application/pdf" required onchange="previewFile(this,'front-preview','front-zone')">
+                  <label for="doc-front" class="upload-zone__inner">
                     <div class="upload-zone__text">📤 Click or drag to upload</div>
-                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 5 MB</div>
-                  </div>
+                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 10 MB</div>
+                  </label>
                   <div class="upload-zone__preview is-hidden" id="front-preview"></div>
                 </div>
               </div>
               <div class="form-group">
                 <label class="form-label">Back Side <span class="form-hint-inline">(optional)</span></label>
                 <div class="upload-zone" id="back-zone">
-                  <input type="file" name="doc_back" accept="image/*,.pdf" onchange="previewDoc(this, 'back')">
-                  <div class="upload-zone__inner">
+                  <input type="file" id="doc-back" name="doc_back" accept="image/jpeg,image/png,application/pdf" onchange="previewFile(this,'back-preview','back-zone')">
+                  <label for="doc-back" class="upload-zone__inner">
                     <div class="upload-zone__text">📤 Click or drag to upload</div>
-                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 5 MB</div>
-                  </div>
+                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 10 MB</div>
+                  </label>
                   <div class="upload-zone__preview is-hidden" id="back-preview"></div>
                 </div>
               </div>
             </div>
 
             <label class="checkbox-row">
-              <input type="checkbox" required>
-              I confirm that the uploaded document is genuine and belongs to me. I understand that submitting false documents may result in account suspension.
+              <input type="checkbox" name="consent" required>
+              I confirm these documents are genuine and belong to me. I understand EventKraft stores them securely and uses them solely for identity verification.
             </label>
 
             <div class="profile-form-footer">
@@ -149,19 +149,19 @@
   </div>
 
   <script>
-  function previewDoc(input, side) {
-    const zone = document.getElementById(side + '-zone');
-    const preview = document.getElementById(side + '-preview');
-    if (!input.files[0]) return;
-    zone.classList.add('upload-zone--has-file');
-    preview.classList.remove('is-hidden');
+  function previewFile(input, previewId, zoneId) {
+    const preview = document.getElementById(previewId);
+    const zone    = document.getElementById(zoneId);
+    if (!input.files || !input.files[0]) return;
     const file = input.files[0];
-    if (file.type.startsWith('image/')) {
-      const r = new FileReader();
-      r.onload = (e) => { preview.innerHTML = `<img src="${e.target.result}" alt="preview">`; };
-      r.readAsDataURL(file);
-    } else {
+    preview.classList.remove('is-hidden');
+    zone.classList.add('upload-zone--has-file');
+    if (file.type === 'application/pdf') {
       preview.innerHTML = `<div class="upload-zone__pdf-label">📄 ${file.name}</div>`;
+    } else {
+      const reader = new FileReader();
+      reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="preview">`; };
+      reader.readAsDataURL(file);
     }
   }
   </script>

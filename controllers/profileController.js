@@ -6,6 +6,8 @@ const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
 const multer = require('multer');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const { createNotification } = require('../utils/notify');
 const upload = multer({ dest: 'uploads/profiles/', limits: { fileSize: 5 * 1024 * 1024 } });
 
 // ─── GET /dashboard/profile ─────────────────────────────────
@@ -50,6 +52,7 @@ exports.save = [
           transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
         });
         avatarUrl = r.secure_url;
+        fs.unlinkSync(req.files.avatar[0].path);
       }
 
       // Upload cover if new file provided
@@ -59,6 +62,7 @@ exports.save = [
           transformation: [{ width: 1200, height: 360, crop: 'fill' }],
         });
         coverUrl = r.secure_url;
+        fs.unlinkSync(req.files.cover[0].path);
       }
 
       const socialLinks = {
@@ -146,20 +150,24 @@ exports.kycSubmit = [
         return res.redirect('/dashboard/kyc');
       }
 
-      // Upload front
+      // Upload front (authenticated / private)
       const frontResult = await cloudinary.uploader.upload(req.files.doc_front[0].path, {
-        folder: 'eventkraft/kyc',
+        folder: `eventkraft/kyc/${userId}`,
         resource_type: 'auto',
+        type: 'authenticated',
       });
+      fs.unlinkSync(req.files.doc_front[0].path);
 
       let backUrl = null, backPublicId = null;
       if (req.files.doc_back) {
         const backResult = await cloudinary.uploader.upload(req.files.doc_back[0].path, {
-          folder: 'eventkraft/kyc',
+          folder: `eventkraft/kyc/${userId}`,
           resource_type: 'auto',
+          type: 'authenticated',
         });
         backUrl = backResult.secure_url;
         backPublicId = backResult.public_id;
+        fs.unlinkSync(req.files.doc_back[0].path);
       }
 
       // Upsert KYC submission
@@ -182,7 +190,19 @@ exports.kycSubmit = [
       // Update user kyc_status
       await pool.query('UPDATE users SET kyc_status = $1 WHERE id = $2', ['pending', userId]);
 
-      req.flash('success', 'Documents submitted! We will review them within 24-48 hours.');
+      // Notify all admins
+      const admins = await pool.query(`SELECT id FROM users WHERE role = 'admin'`);
+      for (const admin of admins.rows) {
+        await createNotification(pool, req.app.get('io'), {
+          userId: admin.id,
+          type: 'kyc_submitted',
+          title: 'New KYC submission',
+          message: `${req.user.first_name || ''} ${req.user.last_name || ''} submitted identity documents.`,
+          link: `/admin/kyc`,
+        });
+      }
+
+      req.flash('success', 'Documents submitted! We\'ll review them within 1–2 business days.');
       res.redirect('/dashboard/kyc');
 
     } catch (err) {
@@ -297,5 +317,59 @@ exports.savePrivacy = async (req, res) => {
     console.error('Save privacy error:', err);
     req.flash('error', 'Could not save settings.');
     res.redirect('/dashboard/settings?tab=privacy');
+  }
+};
+
+// ─── GET /dashboard/notifications ───────────────────────────
+exports.notificationsPage = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
+      [req.user.id]
+    );
+    // Mark as read when viewing
+    await pool.query(
+      'UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false',
+      [req.user.id]
+    );
+    res.render('pages/dashboard-notifications', {
+      pageTitle: 'Notifications',
+      activePage: 'notifications',
+      notifications: rows,
+    });
+  } catch (err) {
+    console.error('Notifications page error:', err);
+    req.flash('error', 'Could not load notifications.');
+    res.redirect('/dashboard');
+  }
+};
+
+// ─── POST /dashboard/settings/deactivate ────────────────────
+exports.deactivateAccount = async (req, res) => {
+  try {
+    await pool.query('UPDATE users SET is_active = false WHERE id = $1', [req.user.id]);
+    req.flash('success', 'Account deactivated. You can reactivate by logging in again.');
+    req.logout(() => {
+      res.redirect('/');
+    });
+  } catch (err) {
+    console.error('Deactivate error:', err);
+    req.flash('error', 'Could not deactivate account.');
+    res.redirect('/dashboard/settings?tab=security');
+  }
+};
+
+// ─── POST /dashboard/settings/delete ──────────────────────────
+exports.deleteAccount = async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+    req.flash('success', 'Your account has been permanently deleted.');
+    req.logout(() => {
+      res.redirect('/');
+    });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    req.flash('error', 'Could not delete account.');
+    res.redirect('/dashboard/settings?tab=security');
   }
 };

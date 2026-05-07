@@ -1,4 +1,8 @@
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-start') %>
+<% } else { %>
 <%- include('../partials/header') %>
+<% } %>
 
 <section class="container py-4">
     <a href="/jobs" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
@@ -184,4 +188,8 @@
     </div>
 </section>
 
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-end') %>
+<% } else { %>
 <%- include('../partials/tail') %>
+<% } %>
