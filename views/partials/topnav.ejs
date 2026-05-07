@@ -39,15 +39,16 @@
         </a>
 
         <!-- Avatar dropdown -->
-        <div class="topnav__user">
+        <div class="topnav__user" id="user-menu">
           <img src="<%= locals.currentUser.avatar_url || '/images/default-avatar.png' %>"
-               class="topnav__avatar" alt="">
+               class="topnav__avatar"
+               alt="<%= locals.currentUser.first_name %>">
           <svg class="topnav__chevron" width="16" height="16" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
 
-          <div class="topnav__dropdown">
+          <div class="topnav__dropdown" id="user-dropdown">
             <div class="topnav__dropdown-head">
               <img src="<%= locals.currentUser.avatar_url || '/images/default-avatar.png' %>"
                    class="topnav__dropdown-avatar" alt="">
@@ -58,15 +59,18 @@
             </div>
             <div class="topnav__dropdown-sep"></div>
             <a href="/dashboard" class="topnav__dropdown-item">Dashboard</a>
-            <a href="/dashboard/profile" class="topnav__dropdown-item">My Profile</a>
+            <a href="/profile/<%= locals.currentUser.id %>" class="topnav__dropdown-item">View Public Profile</a>
+            <a href="/dashboard/profile" class="topnav__dropdown-item">Edit Profile</a>
             <a href="/dashboard/settings" class="topnav__dropdown-item">Account Settings</a>
             <% if (locals.currentUser.role === 'admin') { %>
               <a href="/admin" class="topnav__dropdown-item">Admin Panel</a>
             <% } %>
             <div class="topnav__dropdown-sep"></div>
-            <a href="/auth/logout" class="topnav__dropdown-item topnav__dropdown-item--danger">
-              Log out
-            </a>
+            <form method="POST" action="/auth/logout" style="margin:0">
+              <button type="submit" class="topnav__dropdown-item topnav__dropdown-item--danger" style="width:100%;text-align:left;background:none;border:none;cursor:pointer">
+                Log out
+              </button>
+            </form>
           </div>
         </div>
 

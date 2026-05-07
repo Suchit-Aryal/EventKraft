@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
     if (role === 'customer') {
       const statsQ = await pool.query(
         `SELECT
-          (SELECT COUNT(*) FROM job_postings WHERE customer_id = $1 AND status = 'open') AS active_jobs,
+          (SELECT COUNT(*) FROM job_postings WHERE customer_id = $1 AND status = 'published') AS active_jobs,
           (SELECT COUNT(*) FROM bookings WHERE customer_id = $1 AND status = 'pending') AS pending_proposals,
           (SELECT COUNT(*) FROM bookings WHERE customer_id = $1) AS total_bookings,
           (SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE customer_id = $1 AND status = 'completed') AS total_spent`,
@@ -100,5 +100,10 @@ router.post('/settings/contact', profileController.saveContact);
 router.post('/settings/password', profileController.changePassword);
 router.post('/settings/notifications', profileController.saveNotifications);
 router.post('/settings/privacy', profileController.savePrivacy);
+router.post('/settings/deactivate', profileController.deactivateAccount);
+router.post('/settings/delete', profileController.deleteAccount);
+
+// ─── Notifications ────────────────────────────────────────────
+router.get('/notifications', profileController.notificationsPage);
 
 module.exports = router;

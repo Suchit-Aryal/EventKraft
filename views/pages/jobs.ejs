@@ -1,4 +1,8 @@
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-start') %>
+<% } else { %>
 <%- include('../partials/header') %>
+<% } %>
 
     <div class="container py-5">
         <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
@@ -279,4 +283,8 @@
         })();
     </script>
 
-    <%- include('../partials/tail') %>
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-end') %>
+<% } else { %>
+<%- include('../partials/tail') %>
+<% } %>

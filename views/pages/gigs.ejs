@@ -1,4 +1,8 @@
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-start') %>
+<% } else { %>
 <%- include('../partials/header') %>
+<% } %>
 
     <div class="container py-5">
         <h2><i class="bi bi-briefcase"></i> Browse Services</h2>
@@ -282,4 +286,8 @@
         })();
     </script>
 
-    <%- include('../partials/tail') %>
+    <% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-end') %>
+<% } else { %>
+<%- include('../partials/tail') %>
+<% } %>

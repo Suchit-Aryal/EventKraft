@@ -70,8 +70,8 @@
                   <input class="form-input" type="text" name="first_name" value="<%= currentUser.first_name || '' %>" required>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Last Name</label>
-                  <input class="form-input" type="text" name="last_name" value="<%= currentUser.last_name || '' %>">
+                  <label class="form-label">Last Name <span class="req">*</span></label>
+                  <input class="form-input" type="text" name="last_name" value="<%= currentUser.last_name || '' %>" required>
                 </div>
               </div>
 
@@ -86,8 +86,8 @@
 
               <div class="form-row-2">
                 <div class="form-group">
-                  <label class="form-label">City</label>
-                  <input class="form-input" type="text" name="city" value="<%= currentUser.city || '' %>" placeholder="e.g. Kathmandu">
+                  <label class="form-label">City <span class="req">*</span></label>
+                  <input class="form-input" type="text" name="city" value="<%= currentUser.city || '' %>" placeholder="e.g. Kathmandu" required>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Address</label>

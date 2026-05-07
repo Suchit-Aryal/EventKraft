@@ -15,8 +15,7 @@ module.exports = async (req, res, next) => {
        JOIN conversations c ON c.id = m.conversation_id
        WHERE (c.participant_1 = $1 OR c.participant_2 = $1)
          AND m.sender_id != $1
-         AND m.is_read = false
-         AND (m.is_unsent = false OR m.is_unsent IS NULL)`,
+         AND m.is_read = false`,
       [req.user.id]
     );
 
