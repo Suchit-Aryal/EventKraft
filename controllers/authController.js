@@ -267,25 +267,9 @@ module.exports = {
         return res.redirect('/dashboard');
     },
 
-    // GET /auth/settings
+    // GET /auth/settings  → redirect to unified dashboard settings
     async getSettings(req, res) {
-        try {
-            const user = await pool.query(
-                'SELECT id, email, totp_enabled, google_id FROM users WHERE id = $1',
-                [req.user.id]
-            );
-            const profile = await Profile.findByUserId(req.user.id);
-
-            res.render('pages/settings', {
-                title: 'Settings — EventKraft',
-                userData: user.rows[0],
-                profile
-            });
-        } catch (err) {
-            console.error(err);
-            req.flash('error', 'Failed to load settings');
-            res.redirect('/auth/dashboard');
-        }
+        return res.redirect('/dashboard/settings');
     },
 
     // POST /auth/settings/2fa/setup
