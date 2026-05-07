@@ -1,0 +1,121 @@
+.topnav {
+  position: sticky; top: 0; z-index: 200;
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #E4E7EC;
+  box-shadow: 0 1px 2px rgba(16,24,40,.06);
+}
+.topnav__inner {
+  max-width: 1400px; margin: 0 auto; padding: 0 24px;
+  height: 100%; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px;
+}
+.topnav__logo img { display: block; }
+.topnav__logo { text-decoration: none; font-size: 20px; font-weight: 800; color: #101828; display: flex; align-items: center; gap: 8px; }
+.topnav__logo-icon { font-size: 22px; }
+.topnav__right { display: flex; align-items: center; gap: 6px; }
+
+/* Links (logged out) */
+.topnav__link {
+  padding: 7px 12px; border-radius: 7px;
+  font-size: 14px; font-weight: 500; color: #475467;
+  text-decoration: none; transition: background .13s;
+}
+.topnav__link:hover { background: #F2F4F7; color: #101828; }
+
+/* Dashboard button */
+.topnav__dashboard-btn {
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; color: #344054;
+  text-decoration: none; transition: background .13s;
+  margin-right: 6px;
+}
+.topnav__dashboard-btn:hover,
+.topnav__dashboard-btn--active { background: #F2F4F7; }
+
+/* Icon buttons */
+.topnav__icon-btn {
+  position: relative; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; color: #667085; text-decoration: none;
+  transition: background .13s, color .13s;
+}
+.topnav__icon-btn:hover { background: #F2F4F7; color: #101828; }
+
+/* Badge */
+.topnav__badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 17px; height: 17px; padding: 0 3px;
+  background: #F04438; color: #fff;
+  font-size: 10px; font-weight: 700; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #fff; pointer-events: none;
+  transition: transform .2s;
+}
+.topnav__badge.is-hidden { display: none; }
+.topnav__badge:not(.is-hidden) { animation: badgePop .2s ease; }
+@keyframes badgePop { 0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)} }
+
+/* Avatar / dropdown */
+.topnav__user {
+  position: relative; display: flex; align-items: center;
+  gap: 5px; padding: 4px 8px 4px 4px;
+  border-radius: 100px; cursor: pointer;
+  transition: background .13s; margin-left: 4px;
+}
+.topnav__user:hover { background: #F2F4F7; }
+.topnav__avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  object-fit: cover; border: 2px solid #E4E7EC;
+}
+.topnav__chevron { color: #98A2B3; }
+
+.topnav__dropdown {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  background: #fff; border: 1px solid #E4E7EC;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(16,24,40,.14), 0 4px 8px rgba(16,24,40,.06);
+  min-width: 228px; padding: 6px; z-index: 400;
+}
+.topnav__user:hover .topnav__dropdown { display: block; }
+
+.topnav__dropdown-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px 14px;
+}
+.topnav__dropdown-avatar {
+  width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+}
+.topnav__dropdown-head strong { display: block; font-size: 13px; color: #101828; }
+.topnav__dropdown-head span { font-size: 12px; color: #667085; }
+
+.topnav__dropdown-sep { height: 1px; background: #F2F4F7; margin: 4px 0; }
+
+.topnav__dropdown-item {
+  display: block; padding: 9px 12px; border-radius: 8px;
+  font-size: 14px; color: #344054; text-decoration: none;
+  border: none; background: none; width: 100%; text-align: left;
+  cursor: pointer; transition: background .1s;
+}
+.topnav__dropdown-item:hover { background: #F9FAFB; color: #101828; }
+.topnav__dropdown-item--danger { color: #B42318; }
+.topnav__dropdown-item--danger:hover { background: #FEF3F2; }
+
+/* Logged-out CTA buttons */
+.topnav__btn-outline {
+  padding: 8px 16px; border: 1.5px solid #D0D5DD;
+  border-radius: 8px; font-size: 14px; font-weight: 600;
+  color: #344054; text-decoration: none; transition: background .13s;
+}
+.topnav__btn-outline:hover { background: #F9FAFB; }
+.topnav__btn-primary {
+  padding: 8px 16px; background: #4338CA;
+  border-radius: 8px; font-size: 14px; font-weight: 600;
+  color: #fff; text-decoration: none; transition: background .13s;
+}
+.topnav__btn-primary:hover { background: #3730A3; }
+
+@media (max-width: 640px) {
+  .topnav__dashboard-btn span { display: none; }
+  .topnav__link { display: none; }
+}

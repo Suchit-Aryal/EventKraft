@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Settings — EventKraft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/topnav.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/forms.css">
+</head>
+<body class="dashboard-body">
+  <%- include('../partials/topnav') %>
+  <div class="dashboard-shell">
+    <%- include('../partials/sidebar') %>
+    <main class="dashboard-main">
+      <div class="dashboard-main__inner">
+
+        <% if (locals.success && success.length > 0) { %>
+          <% success.forEach(function(msg) { %><div class="flash flash--success"><%= msg %></div><% }) %>
+        <% } %>
+        <% if (locals.error && error.length > 0) { %>
+          <% error.forEach(function(msg) { %><div class="flash flash--error"><%= msg %></div><% }) %>
+        <% } %>
+
+        <div class="page-header">
+          <h1 class="page-title">Account Settings</h1>
+        </div>
+
+        <!-- Tab bar -->
+        <div class="tabs-bar">
+          <a class="tab-link <%= activeTab==='contact' ? 'tab-link--active':'' %>" href="?tab=contact">Contact</a>
+          <a class="tab-link <%= activeTab==='security' ? 'tab-link--active':'' %>" href="?tab=security">Security</a>
+          <a class="tab-link <%= activeTab==='notifications' ? 'tab-link--active':'' %>" href="?tab=notifications">Notifications</a>
+          <a class="tab-link <%= activeTab==='privacy' ? 'tab-link--active':'' %>" href="?tab=privacy">Privacy</a>
+          <% if (currentUser.role === 'worker') { %>
+            <a class="tab-link" href="/dashboard/kyc">
+              Verification
+              <% if (currentUser.kyc_status !== 'approved') { %><span class="tab-dot"></span><% } %>
+            </a>
+          <% } %>
+        </div>
+
+        <!-- TAB: Contact -->
+        <% if (activeTab === 'contact') { %>
+          <form method="POST" action="/dashboard/settings/contact" class="settings-form">
+            <div class="settings-card">
+              <h3 class="settings-card__title">Contact Information</h3>
+              <div class="settings-row">
+                <label class="settings-row__label">Email Address</label>
+                <div class="settings-row__control">
+                  <input class="form-input" type="email" name="email" value="<%= currentUser.email %>" required>
+                  <% if (currentUser.is_verified) { %>
+                    <span class="chip chip--success">✓ Verified</span>
+                  <% } else { %>
+                    <a href="/auth/verify-email" class="chip chip--warn">Verify email</a>
+                  <% } %>
+                </div>
+              </div>
+              <div class="settings-row">
+                <label class="settings-row__label">Phone Number</label>
+                <div class="settings-row__control">
+                  <div class="input-prefix-wrap">
+                    <span class="input-prefix">+977</span>
+                    <input class="form-input form-input--prefixed" type="tel" name="phone"
+                           value="<%= (currentUser.phone || '').replace(/^\+977/,'') %>"
+                           placeholder="98XXXXXXXX" maxlength="10">
+                  </div>
+                  <span class="form-hint">Not shown publicly. Used for booking confirmations.</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <label class="settings-row__label">Full Address</label>
+                <div class="settings-row__control">
+                  <input class="form-input" type="text" name="address"
+                         value="<%= currentUser.address || '' %>"
+                         placeholder="e.g. Thamel, Kathmandu 44600">
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h3 class="settings-card__title">Connected Accounts</h3>
+              <div class="settings-row settings-row--center">
+                <div class="connected-account">
+                  <div>
+                    <strong>Google</strong>
+                    <span><%= currentUser.google_id ? currentUser.email : 'Not connected' %></span>
+                  </div>
+                </div>
+                <% if (!currentUser.google_id) { %>
+                  <a href="/auth/google" class="btn-outline-sm">Connect Google</a>
+                <% } else { %>
+                  <span class="chip chip--info">Connected</span>
+                <% } %>
+              </div>
+            </div>
+
+            <div class="settings-footer">
+              <button type="submit" class="btn-primary">Save Changes</button>
+            </div>
+          </form>
+        <% } %>
+
+        <!-- TAB: Security -->
+        <% if (activeTab === 'security') { %>
+          <div class="settings-card">
+            <h3 class="settings-card__title">Password</h3>
+            <form method="POST" action="/dashboard/settings/password" class="settings-form">
+              <div class="settings-row">
+                <label class="settings-row__label">Current Password</label>
+                <input class="form-input settings-row__control" type="password" name="current_password" autocomplete="current-password" required>
+              </div>
+              <div class="settings-row">
+                <label class="settings-row__label">New Password</label>
+                <div class="settings-row__control">
+                  <input class="form-input" type="password" name="new_password" minlength="8" autocomplete="new-password" required oninput="pwStrength(this.value)">
+                  <div class="pw-strength-bar"><div id="pw-fill"></div></div>
+                  <span id="pw-label" class="form-hint">Min 8 characters</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <label class="settings-row__label">Confirm Password</label>
+                <input class="form-input settings-row__control" type="password" name="confirm_password" minlength="8" autocomplete="new-password" required>
+              </div>
+              <div class="settings-footer">
+                <button type="submit" class="btn-primary">Update Password</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <h3 class="settings-card__title">Two-Factor Authentication (2FA)</h3>
+            <div class="settings-row settings-row--center">
+              <div>
+                <strong>Authenticator App (TOTP)</strong>
+                <p class="form-hint">Use Google Authenticator, Authy or any TOTP app for extra security.</p>
+              </div>
+              <% if (currentUser.totp_enabled) { %>
+                <span class="chip chip--success">Enabled</span>
+              <% } else { %>
+                <a href="/auth/2fa/setup" class="btn-outline-sm">Enable 2FA</a>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="settings-card settings-card--danger">
+            <h3 class="settings-card__title settings-card__title--danger">Danger Zone</h3>
+            <div class="settings-row settings-row--center">
+              <div>
+                <strong>Delete Account</strong>
+                <p class="form-hint">Permanently deletes all your data. Cannot be undone.</p>
+              </div>
+              <a href="#" class="btn-danger-sm" onclick="return confirm('This permanently deletes your account. Are you sure?')">Delete Account</a>
+            </div>
+          </div>
+
+          <script>
+          function pwStrength(val) {
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const colors = ['#F04438','#F79009','#EAAA08','#12B76A'];
+            const labels = ['Weak','Fair','Good','Strong'];
+            const fill = document.getElementById('pw-fill');
+            fill.style.width = (score * 25) + '%';
+            fill.style.background = colors[score-1] || '#E4E7EC';
+            document.getElementById('pw-label').textContent = labels[score-1] || 'Min 8 characters';
+          }
+          </script>
+        <% } %>
+
+        <!-- TAB: Notifications -->
+        <% if (activeTab === 'notifications') { %>
+          <form method="POST" action="/dashboard/settings/notifications" class="settings-form">
+            <div class="settings-card">
+              <h3 class="settings-card__title">Email Notifications</h3>
+              <%
+                const np = (currentUser.notification_prefs && typeof currentUser.notification_prefs === 'object') ? currentUser.notification_prefs : {};
+                const emailPrefs = [
+                  { key:'email_messages', label:'New messages', desc:'When someone sends you a message' },
+                  { key:'email_bookings', label:'Booking updates', desc:'Confirmations, cancellations and reminders' },
+                  { key:'email_proposals', label:'New proposals', desc:'When a worker applies to your job' },
+                  { key:'email_reviews', label:'New reviews', desc:'When you receive a review' },
+                  { key:'email_announcements', label:'Platform announcements', desc:'EventKraft news and features' },
+                ];
+              %>
+              <% emailPrefs.forEach(function(pref) { %>
+                <div class="settings-row settings-row--center">
+                  <div>
+                    <strong><%= pref.label %></strong>
+                    <p class="form-hint"><%= pref.desc %></p>
+                  </div>
+                  <label class="toggle">
+                    <input type="checkbox" name="<%= pref.key %>" <%= np[pref.key] !== false ? 'checked' : '' %>>
+                    <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                  </label>
+                </div>
+              <% }) %>
+            </div>
+            <div class="settings-footer">
+              <button type="submit" class="btn-primary">Save Preferences</button>
+            </div>
+          </form>
+        <% } %>
+
+        <!-- TAB: Privacy -->
+        <% if (activeTab === 'privacy') { %>
+          <form method="POST" action="/dashboard/settings/privacy" class="settings-form">
+            <div class="settings-card">
+              <h3 class="settings-card__title">Profile Visibility</h3>
+              <div class="settings-row settings-row--center">
+                <div>
+                  <strong>Appear in search results</strong>
+                  <p class="form-hint">When off, your profile won't show up in Browse Services.</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="profile_visible" <%= currentUser.profile_visible !== false ? 'checked' : '' %>>
+                  <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                </label>
+              </div>
+              <div class="settings-row settings-row--center">
+                <div>
+                  <strong>Show phone number on profile</strong>
+                  <p class="form-hint">Visible only to users you've completed a booking with.</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="show_phone" <%= currentUser.show_phone ? 'checked' : '' %>>
+                  <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                </label>
+              </div>
+              <div class="settings-row settings-row--center">
+                <div>
+                  <strong>Allow messages from anyone</strong>
+                  <p class="form-hint">When off, only booking partners can message you.</p>
+                </div>
+                <label class="toggle">
+                  <input type="checkbox" name="open_messaging" <%= currentUser.open_messaging !== false ? 'checked' : '' %>>
+                  <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-footer">
+              <button type="submit" class="btn-primary">Save Privacy Settings</button>
+            </div>
+          </form>
+        <% } %>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

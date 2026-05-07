@@ -75,6 +75,9 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// Dashboard nav data (icons, unread counts, profile completion)
+app.use(require('./middleware/injectNavData'));
+
 // ─── Routes ─────────────────────────────────────────────────
 
 // Home page
@@ -112,6 +115,7 @@ app.use('/messages', messageRoutes);
 app.use('/admin', adminRoutes);
 app.use('/profile', require('./routes/profileRoutes'));
 app.use('/onboarding', require('./routes/onboardingRoutes'));
+app.use('/dashboard', require('./routes/dashboardRoutes'));
 
 // ─── Socket.io (Real-time Chat) ────────────────────────────
 io.on('connection', (socket) => {
