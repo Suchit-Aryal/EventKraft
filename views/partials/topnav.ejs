@@ -1,0 +1,83 @@
+<nav class="topnav">
+  <div class="topnav__inner">
+
+    <!-- Logo -->
+    <a href="/" class="topnav__logo">
+      <span class="topnav__logo-icon">✦</span>
+      EventKraft
+    </a>
+
+    <!-- RIGHT SIDE -->
+    <div class="topnav__right">
+      <% if (locals.currentUser) { %>
+
+        <!-- Dashboard pill button -->
+        <a href="/dashboard" class="topnav__dashboard-btn
+          <%= locals.activePage === 'dashboard' ? 'topnav__dashboard-btn--active' : '' %>">
+          Dashboard
+        </a>
+
+        <!-- Notification bell -->
+        <a href="/dashboard/notifications" class="topnav__icon-btn" id="notif-btn" title="Notifications">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="topnav__badge <%= (locals.unreadNotifs || 0) === 0 ? 'is-hidden' : '' %>"
+                id="notif-badge"><%= locals.unreadNotifs || 0 %></span>
+        </a>
+
+        <!-- Messages -->
+        <a href="/messages" class="topnav__icon-btn" id="msg-btn" title="Messages">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="topnav__badge <%= (locals.unreadMsgs || 0) === 0 ? 'is-hidden' : '' %>"
+                id="msg-badge"><%= locals.unreadMsgs || 0 %></span>
+        </a>
+
+        <!-- Avatar dropdown -->
+        <div class="topnav__user">
+          <img src="<%= locals.currentUser.avatar_url || '/images/default-avatar.png' %>"
+               class="topnav__avatar" alt="">
+          <svg class="topnav__chevron" width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+
+          <div class="topnav__dropdown">
+            <div class="topnav__dropdown-head">
+              <img src="<%= locals.currentUser.avatar_url || '/images/default-avatar.png' %>"
+                   class="topnav__dropdown-avatar" alt="">
+              <div>
+                <strong><%= locals.currentUser.first_name || '' %> <%= locals.currentUser.last_name || '' %></strong>
+                <span><%= locals.currentUser.email %></span>
+              </div>
+            </div>
+            <div class="topnav__dropdown-sep"></div>
+            <a href="/dashboard" class="topnav__dropdown-item">Dashboard</a>
+            <a href="/dashboard/profile" class="topnav__dropdown-item">My Profile</a>
+            <a href="/dashboard/settings" class="topnav__dropdown-item">Account Settings</a>
+            <% if (locals.currentUser.role === 'admin') { %>
+              <a href="/admin" class="topnav__dropdown-item">Admin Panel</a>
+            <% } %>
+            <div class="topnav__dropdown-sep"></div>
+            <a href="/auth/logout" class="topnav__dropdown-item topnav__dropdown-item--danger">
+              Log out
+            </a>
+          </div>
+        </div>
+
+      <% } else { %>
+        <!-- Logged-out nav links -->
+        <a href="/gigs" class="topnav__link">Services</a>
+        <a href="/jobs" class="topnav__link">Jobs</a>
+        <a href="/auth/login" class="topnav__btn-outline">Log in</a>
+        <a href="/auth/register" class="topnav__btn-primary">Sign up free</a>
+      <% } %>
+    </div>
+
+  </div>
+</nav>

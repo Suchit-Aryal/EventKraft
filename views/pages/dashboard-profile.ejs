@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile — EventKraft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/topnav.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/forms.css">
+</head>
+<body class="dashboard-body">
+  <%- include('../partials/topnav') %>
+  <div class="dashboard-shell">
+    <%- include('../partials/sidebar') %>
+    <main class="dashboard-main">
+      <div class="dashboard-main__inner">
+
+        <% if (locals.success && success.length > 0) { %>
+          <% success.forEach(function(msg) { %><div class="flash flash--success"><%= msg %></div><% }) %>
+        <% } %>
+        <% if (locals.error && error.length > 0) { %>
+          <% error.forEach(function(msg) { %><div class="flash flash--error"><%= msg %></div><% }) %>
+        <% } %>
+
+        <div class="page-header">
+          <h1 class="page-title">Edit Profile</h1>
+          <p class="page-desc">This information will be displayed on your public profile. <a href="/profile/<%= currentUser.id %>" class="link" target="_blank">View public profile →</a></p>
+        </div>
+
+        <form method="POST" action="/dashboard/profile" enctype="multipart/form-data">
+
+          <!-- Avatar & Cover -->
+          <div class="profile-section">
+            <div class="profile-section__label">
+              <h3>Photo</h3>
+              <p>Your profile photo and cover image.</p>
+            </div>
+            <div>
+              <div class="avatar-row">
+                <div class="avatar-preview" id="avatar-preview">
+                  <img src="<%= currentUser.avatar_url || '/images/default-avatar.png' %>" alt="Avatar" id="avatar-img">
+                </div>
+                <div class="avatar-controls">
+                  <label class="btn-outline-sm" style="cursor:pointer">
+                    Change photo
+                    <input type="file" name="avatar" accept="image/*" hidden onchange="previewAvatar(this)">
+                  </label>
+                  <span class="form-hint">JPG, PNG · Max 5 MB · 400×400 recommended</span>
+                </div>
+              </div>
+              <div class="cover-preview" id="cover-preview"
+                   style="<%= currentUser.cover_photo_url ? 'background-image:url('+currentUser.cover_photo_url+')' : '' %>">
+                <input type="file" name="cover" accept="image/*" onchange="previewCover(this)">
+                <div class="cover-btn">📷 Upload cover</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Info -->
+          <div class="profile-section">
+            <div class="profile-section__label">
+              <h3>Basic Info</h3>
+              <p>Your name and personal details.</p>
+            </div>
+            <div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">First Name <span class="req">*</span></label>
+                  <input class="form-input" type="text" name="first_name" value="<%= currentUser.first_name || '' %>" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name</label>
+                  <input class="form-input" type="text" name="last_name" value="<%= currentUser.last_name || '' %>">
+                </div>
+              </div>
+
+              <% if (currentUser.role === 'worker') { %>
+                <div class="form-group">
+                  <label class="form-label">Professional Tagline</label>
+                  <input class="form-input" type="text" name="tagline" value="<%= currentUser.tagline || '' %>"
+                         placeholder="e.g. Award-Winning Wedding Photographer" maxlength="120">
+                  <span class="form-hint">Appears under your name in search results.</span>
+                </div>
+              <% } %>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">City</label>
+                  <input class="form-input" type="text" name="city" value="<%= currentUser.city || '' %>" placeholder="e.g. Kathmandu">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Address</label>
+                  <input class="form-input" type="text" name="address" value="<%= currentUser.address || '' %>" placeholder="e.g. Thamel, Kathmandu">
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Date of Birth</label>
+                  <input class="form-input" type="date" name="date_of_birth"
+                         value="<%= currentUser.date_of_birth ? new Date(currentUser.date_of_birth).toISOString().split('T')[0] : '' %>">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Gender</label>
+                  <select class="form-input" name="gender">
+                    <option value="">Prefer not to say</option>
+                    <option value="male" <%= currentUser.gender === 'male' ? 'selected' : '' %>>Male</option>
+                    <option value="female" <%= currentUser.gender === 'female' ? 'selected' : '' %>>Female</option>
+                    <option value="other" <%= currentUser.gender === 'other' ? 'selected' : '' %>>Other</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <div class="profile-section">
+            <div class="profile-section__label">
+              <h3>Introduction</h3>
+              <p>Tell clients about yourself, your experience, and what makes you unique.</p>
+            </div>
+            <div>
+              <div class="form-group">
+                <div class="form-meta-row">
+                  <label class="form-label">Bio <% if (currentUser.role === 'worker') { %><span class="req">*</span><% } %></label>
+                  <span class="form-hint-inline" id="bio-count">0 words</span>
+                </div>
+                <textarea class="form-input form-textarea" name="bio" id="bio-textarea"
+                          placeholder="Write at least 50 words about yourself..."
+                          oninput="updateBioCount()"><%= currentUser.bio || '' %></textarea>
+                <span class="form-hint">Minimum 50 words to unlock service posting (workers).</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills (worker only) -->
+          <% if (currentUser.role === 'worker') { %>
+            <div class="profile-section">
+              <div class="profile-section__label">
+                <h3>Skills</h3>
+                <p>Add up to 15 skills that describe your expertise.</p>
+              </div>
+              <div>
+                <div class="form-group">
+                  <div class="skills-wrap" id="skills-wrap">
+                    <% if (currentUser.skills && currentUser.skills.length > 0) { %>
+                      <% currentUser.skills.forEach(function(skill) { %>
+                        <span class="skill-chip">
+                          <%= skill %>
+                          <button type="button" class="skill-chip__rm" onclick="removeSkill(this)">×</button>
+                          <input type="hidden" name="skills[]" value="<%= skill %>">
+                        </span>
+                      <% }) %>
+                    <% } %>
+                    <input type="text" class="skills-input" id="skill-input"
+                           placeholder="Type a skill and press Enter" onkeydown="addSkill(event)">
+                  </div>
+                  <span class="form-hint">Press Enter or comma to add. Click × to remove.</span>
+                </div>
+              </div>
+            </div>
+          <% } %>
+
+          <!-- Social Links -->
+          <div class="profile-section">
+            <div class="profile-section__label">
+              <h3>Social Links</h3>
+              <p>Optional — shown on your public profile.</p>
+            </div>
+            <div>
+              <%
+                const social = (currentUser.social_links && typeof currentUser.social_links === 'object') ? currentUser.social_links : {};
+              %>
+              <div class="form-group">
+                <label class="form-label">Instagram</label>
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix">instagram.com/</span>
+                  <input class="form-input form-input--prefixed" type="text" name="instagram" value="<%= social.instagram || '' %>" placeholder="username">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Facebook</label>
+                <div class="input-prefix-wrap">
+                  <span class="input-prefix">facebook.com/</span>
+                  <input class="form-input form-input--prefixed" type="text" name="facebook" value="<%= social.facebook || '' %>" placeholder="username">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Website</label>
+                <input class="form-input" type="url" name="website" value="<%= social.website || '' %>" placeholder="https://yoursite.com">
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-form-footer">
+            <a href="/dashboard" class="btn-outline">Cancel</a>
+            <button type="submit" class="btn-primary">Save Changes</button>
+          </div>
+
+        </form>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+  function updateBioCount() {
+    const words = document.getElementById('bio-textarea').value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('bio-count').textContent = words + ' words';
+  }
+  updateBioCount();
+
+  function previewAvatar(input) {
+    if (!input.files[0]) return;
+    const r = new FileReader();
+    r.onload = (e) => { document.getElementById('avatar-img').src = e.target.result; };
+    r.readAsDataURL(input.files[0]);
+  }
+
+  function previewCover(input) {
+    if (!input.files[0]) return;
+    const r = new FileReader();
+    r.onload = (e) => { document.getElementById('cover-preview').style.backgroundImage = `url(${e.target.result})`; };
+    r.readAsDataURL(input.files[0]);
+  }
+
+  function addSkill(e) {
+    if (!['Enter', ','].includes(e.key)) return;
+    e.preventDefault();
+    const input = document.getElementById('skill-input');
+    const val = input.value.trim().replace(/,$/,'');
+    if (!val) return;
+    const wrap = document.getElementById('skills-wrap');
+    if (wrap.querySelectorAll('.skill-chip').length >= 15) return;
+    const chip = document.createElement('span');
+    chip.className = 'skill-chip';
+    chip.innerHTML = `${val.replace(/</g,'&lt;')}
+      <button type="button" class="skill-chip__rm" onclick="removeSkill(this)">×</button>
+      <input type="hidden" name="skills[]" value="${val.replace(/"/g,'&quot;')}">`;
+    wrap.insertBefore(chip, input);
+    input.value = '';
+  }
+
+  function removeSkill(btn) { btn.parentElement.remove(); }
+  </script>
+</body>
+</html>
