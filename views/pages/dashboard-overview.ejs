@@ -53,6 +53,37 @@
           <p class="page-desc">Here's what's happening with your account.</p>
         </div>
 
+        <% const pc = locals.profileCompletion || { percentage: 100, steps: [] }; %>
+        <% if (pc.percentage < 100) { %>
+        <div class="settings-card" style="margin-bottom:24px;border-left:4px solid #F79009;">
+          <div class="d-flex align-items-center gap-3" style="justify-content:space-between;">
+            <div>
+              <h3 style="margin:0 0 4px;font-size:15px;">Complete your profile</h3>
+              <p style="margin:0;font-size:13px;color:#667085;">A complete profile gets 3× more views and enquiries.</p>
+            </div>
+            <div style="text-align:center;flex-shrink:0;">
+              <div style="width:68px;height:68px;border-radius:50%;border:3px solid #F2F4F7;position:relative;display:flex;align-items:center;justify-content:center;">
+                <svg width="68" height="68" viewBox="0 0 36 36" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
+                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#F2F4F7" stroke-width="3"/>
+                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#4338CA" stroke-width="3"
+                          stroke-dasharray="<%= pc.percentage %>, 100" stroke-linecap="round"/>
+                </svg>
+                <span style="font-size:11px;font-weight:700;color:#101828;position:relative;z-index:1;"><%= pc.percentage %>%</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
+            <% pc.steps.filter(s => !s.done).forEach(function(step) { %>
+              <a href="<%= step.href %>" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #E4E7EC;text-decoration:none;background:#FAFAFA;color:#344054;font-size:14px;">
+                <span style="width:20px;height:20px;border-radius:50%;border:2px solid #D0D5DD;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">○</span>
+                <span style="flex:1;"><%= step.label %></span>
+                <span style="font-size:12px;color:#98A2B3;">→</span>
+              </a>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
         <% if (currentUser.role === 'customer') { %>
           <!-- Customer Stats -->
           <div class="dash-stats">
@@ -174,5 +205,7 @@
     </main>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime-badges.js"></script>
 </body>
 </html>

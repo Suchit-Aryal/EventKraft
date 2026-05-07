@@ -137,7 +137,9 @@
                 <p class="form-hint">Use Google Authenticator, Authy or any TOTP app for extra security.</p>
               </div>
               <% if (currentUser.totp_enabled) { %>
-                <span class="chip chip--success">Enabled</span>
+                <form method="POST" action="/auth/settings/2fa/disable">
+                  <button type="submit" class="btn-danger-sm">Disable 2FA</button>
+                </form>
               <% } else { %>
                 <a href="/auth/2fa/setup" class="btn-outline-sm">Enable 2FA</a>
               <% } %>
@@ -148,10 +150,21 @@
             <h3 class="settings-card__title settings-card__title--danger">Danger Zone</h3>
             <div class="settings-row settings-row--center">
               <div>
+                <strong>Deactivate Account</strong>
+                <p class="form-hint">Hides your profile. You can reactivate by logging in again.</p>
+              </div>
+              <form method="POST" action="/dashboard/settings/deactivate">
+                <button type="submit" class="btn-danger-sm" onclick="return confirm('Deactivate your account?')">Deactivate</button>
+              </form>
+            </div>
+            <div class="settings-row settings-row--center">
+              <div>
                 <strong>Delete Account</strong>
                 <p class="form-hint">Permanently deletes all your data. Cannot be undone.</p>
               </div>
-              <a href="#" class="btn-danger-sm" onclick="return confirm('This permanently deletes your account. Are you sure?')">Delete Account</a>
+              <form method="POST" action="/dashboard/settings/delete">
+                <button type="submit" class="btn-danger-sm" onclick="return confirm('This permanently deletes your account. Are you sure?')">Delete Account</button>
+              </form>
             </div>
           </div>
 
