@@ -16,6 +16,8 @@ Nepal's first marketplace for premium event professionals — photographers, vid
 | Auth           | Passport.js (session-based) |
 | File Uploads   | Multer + Cloudinary         |
 | Real-time Chat | Socket.io                   |
+| Notifications  | Socket.io + In-app badge system |
+| Theming        | CSS Variables + Dark/Light toggle |
 
 ## Folder Structure
 
@@ -33,7 +35,9 @@ project/
 │
 ├── middleware/
 │   ├── auth.js                     # ensureAuthenticated / ensureGuest
-│   └── roleCheck.js                # ensureRole (customer/worker/admin)
+│   ├── roleCheck.js                # ensureRole (customer/worker/admin)
+│   ├── requireProfileReady.js      # blocks incomplete worker profiles
+│   └── injectNavData.js            # injects unread counts into res.locals
 │
 ├── models/                         # 14 model files — full CRUD + relational JOINs
 │   ├── index.js                    # Barrel export for all models
@@ -53,13 +57,14 @@ project/
 │   └── CommissionSetting.js        # tiered commission rate calculation
 │
 ├── controllers/
-│   ├── authController.js           # login, register, logout, dashboard redirect
+│   ├── authController.js           # login, register, logout, 2FA, settings redirect
 │   ├── jobController.js            # CRUD for job postings
 │   ├── gigController.js            # CRUD for service gigs
 │   ├── bookingController.js        # booking management
 │   ├── reviewController.js         # submit + view reviews
 │   ├── messageController.js        # conversations + chat
-│   └── adminController.js          # dashboard stats, users, disputes, commissions
+│   ├── profileController.js        # profile CRUD, KYC upload, public profile
+│   └── adminController.js          # dashboard stats, users, KYC, disputes, commissions
 │
 ├── routes/
 │   ├── authRoutes.js
@@ -68,16 +73,54 @@ project/
 │   ├── bookingRoutes.js
 │   ├── reviewRoutes.js
 │   ├── messageRoutes.js
+│   ├── profileRoutes.js            # public profile + dashboard profile routes
+│   ├── dashboardRoutes.js          # unified dashboard (overview, profile, KYC, settings, notifications)
 │   └── adminRoutes.js
 │
 ├── views/
-│   ├── partials/                   # header, tail, navbar, footer
-│   └── pages/                      # home, login, register, dashboards (×3),
-│                                   # jobs, gigs, bookings, messages, 404, error
+│   ├── partials/
+│   │   ├── header.ejs              # public layout header
+│   │   ├── tail.ejs                # public layout footer
+│   │   ├── navbar.ejs              # public navbar
+│   │   ├── footer.ejs              # public footer
+│   │   ├── topnav.ejs              # dashboard top navigation
+│   │   ├── sidebar.ejs             # dashboard sidebar navigation
+│   │   ├── dashboard-wrapper-start.ejs   # dashboard layout opener
+│   │   └── dashboard-wrapper-end.ejs     # dashboard layout closer
+│   ├── layouts/
+│   │   └── dashboard-layout.ejs    # legacy dashboard layout (deprecated)
+│   └── pages/                      # all page templates
+│       ├── home.ejs
+│       ├── login.ejs / register.ejs
+│       ├── gigs.ejs / gig-detail.ejs / gig-create.ejs
+│       ├── jobs.ejs / job-detail.ejs / job-create.ejs
+│       ├── bookings.ejs / booking-detail.ejs
+│       ├── messages.ejs / conversation.ejs
+│       ├── dashboard-overview.ejs
+│       ├── dashboard-profile.ejs
+│       ├── dashboard-settings.ejs
+│       ├── dashboard-kyc.ejs
+│       ├── dashboard-notifications.ejs
+│       ├── setup-2fa.ejs / verify-2fa.ejs
+│       ├── public-profile.ejs
+│       ├── admin-dashboard.ejs / admin-bookings.ejs
+│       ├── admin-users.ejs / admin-disputes.ejs
+│       ├── admin-commissions.ejs / admin-kyc-list.ejs
+│       ├── 404.ejs / error.ejs
+│       └── onboarding.ejs
 │
 ├── public/
-│   ├── css/style.css               # Custom CSS on top of Bootstrap 5
-│   ├── js/main.js                  # Client-side JS
+│   ├── css/
+│   │   ├── style.css               # base styles + CSS variables + public pages
+│   │   ├── topnav.css              # dashboard topnav styles
+│   │   ├── sidebar.css             # dashboard sidebar styles
+│   │   ├── forms.css               # form, upload, KYC, tab styles
+│   │   ├── cards.css               # gig/job cards + badges
+│   │   └── chat.css                # messaging/conversation styles
+│   ├── js/
+│   │   ├── main.js                 # client-side JS + theme toggle
+│   │   ├── chat.js                 # real-time chat handler
+│   │   └── realtime-badges.js     # notification badge updater
 │   └── images/
 │
 └── database/
@@ -95,8 +138,6 @@ project/
 cd project
 npm install
 ```
-
-then Now again
 
 ### 2. Setup PostgreSQL
 
@@ -119,11 +160,14 @@ sudo -u postgres psql -d eventkraft -f database/schema.sql
 cp .env.example .env
 ```
 
-Edit `.env` with your PostgreSQL credentials:
+Edit `.env` with your PostgreSQL credentials and Cloudinary keys:
 
-```
+```env
 DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/YOUR_DATABASE_NAME
 SESSION_SECRET=any_random_string_here
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
 ### 4. Run the server
@@ -139,7 +183,7 @@ Open [http://localhost:3000](http://localhost:3000)
 | Command            | What It Does                                                          |
 | ------------------ | --------------------------------------------------------------------- |
 | `npm run db:setup` | Runs schema.sql + creates admin account + seeds commission tiers      |
-| `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, proposals) |
+| `npm run db:seed`  | Populates sample data (3 customers, 4 workers, gigs, jobs, bookings) |
 | `npm run db:reset` | ⚠️ Drops ALL tables and recreates from scratch                        |
 
 ### Sample Logins (after running seed)
@@ -190,5 +234,54 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 | ------------ | --------------------------------- | ------------------------------------------------------- |
 | **Customer** | Browse Services · Post a Job      | Post jobs, browse services, book workers, leave reviews |
 | **Worker**   | Browse Jobs · Create Service      | Create service gigs, submit proposals, manage bookings  |
-| **Admin**    | Browse Services · Browse Jobs     | Manage users, resolve disputes, configure commissions   |
+| **Admin**    | Browse Services · Browse Jobs     | Manage users, resolve disputes, configure commissions, KYC verification |
 | **Guest**    | Browse Services · Browse Jobs     | View listings, register to interact                     |
+
+## Key Features
+
+### Dashboard System
+- Unified dashboard with **sidebar + topnav** layout for all authenticated pages
+- Conditional layout: public header/footer for guests, dashboard layout for logged-in users
+- Responsive design with mobile-friendly sidebar toggle
+- Active page highlighting in sidebar
+
+### Profile & KYC
+- Full profile management (avatar, cover, bio, skills, social links)
+- **KYC/Identity Verification** with document upload (passport, citizenship, license)
+- Admin KYC approval workflow
+- Public profile page with active gigs listing
+
+### Real-time Features
+- **Socket.io-powered messaging** with read receipts
+- **In-app notifications** with real-time badge updates
+- Notification center page with mark-as-read
+
+### Authentication & Security
+- Passport.js session-based auth
+- **2FA/TOTP support** via speakeasy
+- Role-based access control (customer / worker / admin)
+- Profile completion enforcement for workers
+- Account deactivation & deletion
+
+### Browse & Discovery
+- Services (Gigs) browsing with category, price, keyword filters
+- Jobs browsing with search and sort
+- Public gig/job detail pages
+
+### Bookings & Reviews
+- Booking lifecycle (pending → confirmed → completed → reviewed)
+- Review submission with auto-rating recalculation
+- Dispute filing and admin resolution
+
+### Admin Panel
+- Dashboard statistics and charts
+- User management
+- Booking management
+- KYC verification queue
+- Dispute resolution
+- Commission settings
+
+### Theming
+- **Light/Dark mode toggle** with sun/moon icon in topnav
+- CSS custom properties for consistent theming
+- Persistent theme preference via `localStorage`
