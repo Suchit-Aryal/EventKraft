@@ -1,211 +1,196 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= locals.pageTitle || 'Dashboard' %> — EventKraft</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/topnav.css">
-  <link rel="stylesheet" href="/css/sidebar.css">
-  <link rel="stylesheet" href="/css/forms.css">
-  <style>
-    .dash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-    .dash-stat { background: #fff; border: 1px solid #E4E7EC; border-radius: 14px; padding: 20px; }
-    .dash-stat__label { font-size: 13px; color: #667085; margin: 0 0 6px; }
-    .dash-stat__value { font-size: 28px; font-weight: 800; color: #101828; margin: 0; }
-    .dash-section { margin-bottom: 32px; }
-    .dash-section__title { font-size: 16px; font-weight: 700; color: #101828; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
-    .dash-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #E4E7EC; border-radius: 12px; overflow: hidden; }
-    .dash-table th { font-size: 12px; font-weight: 600; color: #667085; text-transform: uppercase; letter-spacing: .04em; padding: 10px 14px; border-bottom: 1px solid #E4E7EC; text-align: left; }
-    .dash-table td { padding: 12px 14px; font-size: 14px; color: #344054; border-bottom: 1px solid #F2F4F7; }
-    .dash-table tr:last-child td { border-bottom: none; }
-    .dash-table a { color: #3538CD; text-decoration: none; font-weight: 600; }
-    .dash-table a:hover { text-decoration: underline; }
-    .badge-status { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
-    .badge-open, .badge-active { background: #ECFDF3; color: #027A48; }
-    .badge-pending { background: #FFFAEB; color: #B54708; }
-    .badge-completed { background: #EEF4FF; color: #3538CD; }
-    .badge-cancelled { background: #FEF3F2; color: #B42318; }
-    .empty-box { background: #F9FAFB; border: 1px solid #E4E7EC; border-radius: 12px; padding: 40px; text-align: center; color: #667085; font-size: 14px; }
-    .empty-box a { color: #3538CD; font-weight: 600; text-decoration: none; }
-  </style>
-</head>
-<body class="dashboard-body">
+<%- include('../partials/dashboard-wrapper-start') %>
 
-  <%- include('../partials/topnav') %>
+<div class="page-header mb-4">
+    <h1 class="font-display fs-2 fw-bold mb-1">Welcome back, <%= currentUser.first_name || 'there' %> 👋</h1>
+    <p class="text-muted">Here's a summary of your activity on EventKraft.</p>
+</div>
 
-  <div class="dashboard-shell">
-    <%- include('../partials/sidebar') %>
-
-    <main class="dashboard-main">
-      <div class="dashboard-main__inner">
-
-        <!-- Flash -->
-        <% if (locals.success && success.length > 0) { %>
-          <% success.forEach(function(msg) { %><div class="flash flash--success"><%= msg %></div><% }) %>
-        <% } %>
-        <% if (locals.error && error.length > 0) { %>
-          <% error.forEach(function(msg) { %><div class="flash flash--error"><%= msg %></div><% }) %>
-        <% } %>
-
-        <div class="page-header">
-          <h1 class="page-title">Welcome back, <%= currentUser.first_name || 'there' %> 👋</h1>
-          <p class="page-desc">Here's what's happening with your account.</p>
+<% const pc = locals.profileCompletion || { percentage: 100, steps: [] }; %>
+<% if (pc.percentage < 100) { %>
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-left: 4px solid var(--ek-gold) !important;">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
+                <div>
+                    <h5 class="fw-bold mb-1">Complete your profile</h5>
+                    <p class="text-muted small mb-0">A complete profile attracts more business and builds trust with clients.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="position-relative" style="width: 60px; height: 60px;">
+                        <svg class="w-100 h-100" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="#f5ece0" stroke-width="3"></circle>
+                            <circle cx="18" cy="18" r="16" fill="none" stroke="var(--ek-maroon)" stroke-width="3" stroke-dasharray="<%= pc.percentage %>, 100" stroke-linecap="round"></circle>
+                        </svg>
+                        <div class="position-absolute top-50 start-50 translate-middle fw-bold small"><%= pc.percentage %>%</div>
+                    </div>
+                    <a href="/dashboard/profile" class="btn btn-ek-primary btn-sm rounded-pill px-4">Finish Setup</a>
+                </div>
+            </div>
         </div>
+    </div>
+<% } %>
 
-        <% const pc = locals.profileCompletion || { percentage: 100, steps: [] }; %>
-        <% if (pc.percentage < 100) { %>
-        <div class="settings-card" style="margin-bottom:24px;border-left:4px solid #F79009;">
-          <div class="d-flex align-items-center gap-3" style="justify-content:space-between;">
-            <div>
-              <h3 style="margin:0 0 4px;font-size:15px;">Complete your profile</h3>
-              <p style="margin:0;font-size:13px;color:#667085;">A complete profile gets 3× more views and enquiries.</p>
+<% if (currentUser.role === 'customer') { %>
+    <!-- Customer Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-maroon"><i class="bi bi-megaphone"></i></div>
+                <div class="stat-value text-dark"><%= stats.active_jobs || 0 %></div>
+                <div class="stat-label">Active Jobs</div>
             </div>
-            <div style="text-align:center;flex-shrink:0;">
-              <div style="width:68px;height:68px;border-radius:50%;border:3px solid #F2F4F7;position:relative;display:flex;align-items:center;justify-content:center;">
-                <svg width="68" height="68" viewBox="0 0 36 36" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#F2F4F7" stroke-width="3"/>
-                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#4338CA" stroke-width="3"
-                          stroke-dasharray="<%= pc.percentage %>, 100" stroke-linecap="round"/>
-                </svg>
-                <span style="font-size:11px;font-weight:700;color:#101828;position:relative;z-index:1;"><%= pc.percentage %>%</span>
-              </div>
-            </div>
-          </div>
-          <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">
-            <% pc.steps.filter(s => !s.done).forEach(function(step) { %>
-              <a href="<%= step.href %>" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid #E4E7EC;text-decoration:none;background:#FAFAFA;color:#344054;font-size:14px;">
-                <span style="width:20px;height:20px;border-radius:50%;border:2px solid #D0D5DD;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">○</span>
-                <span style="flex:1;"><%= step.label %></span>
-                <span style="font-size:12px;color:#98A2B3;">→</span>
-              </a>
-            <% }) %>
-          </div>
         </div>
-        <% } %>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-envelope-paper"></i></div>
+                <div class="stat-value text-dark"><%= stats.pending_proposals || 0 %></div>
+                <div class="stat-label">Proposals</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-value text-dark"><%= stats.total_bookings || 0 %></div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-wallet2"></i></div>
+                <div class="stat-value text-dark">NPR <%= Number(stats.total_spent || 0).toLocaleString() %></div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+    </div>
 
-        <% if (currentUser.role === 'customer') { %>
-          <!-- Customer Stats -->
-          <div class="dash-stats">
-            <div class="dash-stat">
-              <p class="dash-stat__label">Active Jobs</p>
-              <p class="dash-stat__value"><%= stats.active_jobs || 0 %></p>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Active Job Postings</h5>
+                <a href="/jobs" class="text-decoration-none small fw-semibold">View all</a>
             </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Pending Proposals</p>
-              <p class="dash-stat__value"><%= stats.pending_proposals || 0 %></p>
-            </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Total Bookings</p>
-              <p class="dash-stat__value"><%= stats.total_bookings || 0 %></p>
-            </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Total Spent</p>
-              <p class="dash-stat__value">NPR <%= Number(stats.total_spent || 0).toLocaleString('en-IN') %></p>
-            </div>
-          </div>
-
-          <div class="dash-section">
-            <h3 class="dash-section__title">Your Active Jobs</h3>
             <% if (jobs && jobs.length > 0) { %>
-              <table class="dash-table">
-                <thead><tr><th>Title</th><th>Category</th><th>Proposals</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  <% jobs.forEach(function(j) { %>
-                    <tr>
-                      <td><a href="/jobs/<%= j.id %>"><%= j.title %></a></td>
-                      <td><%= j.category_name || '-' %></td>
-                      <td><%= j.proposal_count || 0 %></td>
-                      <td><span class="badge-status badge-<%= j.status %>"><%= j.status %></span></td>
-                      <td><a href="/jobs/<%= j.id %>">View</a></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
+                <div class="crm-table">
+                    <table class="table">
+                        <thead><tr><th>Title</th><th>Proposals</th><th>Status</th></tr></thead>
+                        <tbody>
+                            <% jobs.forEach(function(j) { %>
+                                <tr>
+                                    <td><a href="/jobs/<%= j.id %>" class="fw-semibold text-dark text-decoration-none"><%= j.title %></a></td>
+                                    <td><span class="badge bg-light text-dark rounded-pill px-3"><%= j.proposal_count || 0 %></span></td>
+                                    <td><span class="badge-status badge-<%= j.status %>"><%= j.status %></span></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
             <% } else { %>
-              <div class="empty-box">No jobs posted yet. <a href="/jobs/create">Post your first job!</a></div>
+                <div class="empty-state">
+                    <i class="bi bi-file-earmark-plus"></i>
+                    <p>No active jobs found.</p>
+                    <a href="/jobs/create" class="btn btn-ek-gold btn-sm">Post a Job</a>
+                </div>
             <% } %>
-          </div>
-
-          <div class="dash-section">
-            <h3 class="dash-section__title">Recent Bookings</h3>
+        </div>
+        <div class="col-lg-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Recent Bookings</h5>
+                <a href="/bookings" class="text-decoration-none small fw-semibold">History</a>
+            </div>
             <% if (bookings && bookings.length > 0) { %>
-              <table class="dash-table">
-                <thead><tr><th>Service</th><th>Worker</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  <% bookings.forEach(function(b) { %>
-                    <tr>
-                      <td><%= b.gig_title || 'Booking' %></td>
-                      <td><%= b.worker_name || '-' %></td>
-                      <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
-                      <td><a href="/bookings/<%= b.id %>">View</a></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
+                <div class="list-group list-group-flush border rounded-4 overflow-hidden">
+                    <% bookings.forEach(function(b) { %>
+                        <a href="/bookings/<%= b.id %>" class="list-group-item list-group-item-action p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-dark"><%= b.gig_title || 'Service Booking' %></span>
+                                <span class="badge-status badge-<%= b.status %>" style="font-size: 0.65rem;"><%= b.status %></span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">with <%= b.worker_name %></div>
+                        </a>
+                    <% }) %>
+                </div>
             <% } else { %>
-              <div class="empty-box">No bookings yet. <a href="/gigs">Browse services</a> to get started!</div>
+                <div class="empty-state py-4">
+                    <p class="mb-0">No bookings yet.</p>
+                </div>
             <% } %>
-          </div>
+        </div>
+    </div>
 
-        <% } else if (currentUser.role === 'worker') { %>
-          <!-- Worker Stats -->
-          <div class="dash-stats">
-            <div class="dash-stat">
-              <p class="dash-stat__label">Active Services</p>
-              <p class="dash-stat__value"><%= stats.active_gigs || 0 %></p>
+<% } else if (currentUser.role === 'worker') { %>
+    <!-- Worker Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-maroon"><i class="bi bi-shop"></i></div>
+                <div class="stat-value text-dark"><%= stats.active_gigs || 0 %></div>
+                <div class="stat-label">Active Gigs</div>
             </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Pending Bookings</p>
-              <p class="dash-stat__value"><%= stats.pending_bookings || 0 %></p>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-clock-history"></i></div>
+                <div class="stat-value text-dark"><%= stats.pending_bookings || 0 %></div>
+                <div class="stat-label">Pending Orders</div>
             </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Completed</p>
-              <p class="dash-stat__value"><%= stats.completed || 0 %></p>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-value text-dark"><%= stats.completed || 0 %></div>
+                <div class="stat-label">Completed</div>
             </div>
-            <div class="dash-stat">
-              <p class="dash-stat__label">Total Earned</p>
-              <p class="dash-stat__value">NPR <%= Number(stats.total_earned || 0).toLocaleString('en-IN') %></p>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-currency-dollar"></i></div>
+                <div class="stat-value text-dark">NPR <%= Number(stats.total_earned || 0).toLocaleString() %></div>
+                <div class="stat-label">Earnings</div>
             </div>
-          </div>
+        </div>
+    </div>
 
-          <div class="dash-section">
-            <h3 class="dash-section__title">Your Services</h3>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <h5 class="fw-bold mb-3">Your Published Services</h5>
             <% if (gigs && gigs.length > 0) { %>
-              <table class="dash-table">
-                <thead><tr><th>Title</th><th>Category</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                  <% gigs.forEach(function(g) { %>
-                    <tr>
-                      <td><a href="/gigs/<%= g.id %>"><%= g.title %></a></td>
-                      <td><%= g.category_name || '-' %></td>
-                      <td><span class="badge-status badge-<%= g.status %>"><%= g.status %></span></td>
-                      <td><a href="/gigs/<%= g.id %>/edit">Edit</a></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
+                <div class="row g-3">
+                    <% gigs.forEach(function(g) { %>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="badge bg-light text-dark mb-2"><%= g.category_name %></div>
+                                    <h6 class="fw-bold mb-2"><a href="/gigs/<%= g.id %>" class="text-dark text-decoration-none"><%= g.title %></a></h6>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="text-success fw-bold small">From NPR <%= Number(g.starting_price).toLocaleString() %></span>
+                                        <a href="/gigs/<%= g.id %>/edit" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
             <% } else { %>
-              <div class="empty-box">No services created yet. <a href="/gigs/create">Create your first service!</a></div>
+                <div class="empty-state">
+                    <i class="bi bi-plus-circle"></i>
+                    <p>You haven't listed any services yet.</p>
+                    <a href="/gigs/create" class="btn btn-ek-primary btn-sm">Create a Service</a>
+                </div>
             <% } %>
-          </div>
-
-        <% } else { %>
-          <!-- Admin -->
-          <div class="dash-stats">
-            <div class="dash-stat">
-              <p class="dash-stat__label">Welcome</p>
-              <p class="dash-stat__value">Admin</p>
+        </div>
+        <div class="col-lg-4">
+            <h5 class="fw-bold mb-3">Quick Actions</h5>
+            <div class="d-grid gap-2">
+                <a href="/gigs/create" class="quick-action">
+                    <div class="qa-icon bg-maroon text-white"><i class="bi bi-plus-lg"></i></div>
+                    <div><div class="fw-bold small">New Service</div><div class="text-muted" style="font-size:0.7rem">List a new gig</div></div>
+                </a>
+                <a href="/messages" class="quick-action">
+                    <div class="qa-icon bg-orange text-white"><i class="bi bi-chat-text"></i></div>
+                    <div><div class="fw-bold small">Check Messages</div><div class="text-muted" style="font-size:0.7rem">Reply to enquiries</div></div>
+                </a>
             </div>
-          </div>
-          <div class="empty-box"><a href="/admin">Go to Admin Panel</a></div>
-        <% } %>
+        </div>
+    </div>
+<% } %>
 
-      </div>
-    </main>
-  </div>
-
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/realtime-badges.js"></script>
-</body>
-</html>
+<%- include('../partials/dashboard-wrapper-end') %>

@@ -65,14 +65,6 @@ app.use(async (req, res, next) => {
     res.locals.currentUser = req.user || null;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
-    res.locals.unreadMessages = 0;
-
-    if (req.user) {
-        try {
-            const Message = require('./models/Message');
-            res.locals.unreadMessages = await Message.getTotalUnread(req.user.id);
-        } catch (e) { /* silently fail */ }
-    }
     next();
 });
 
@@ -118,24 +110,25 @@ app.use('/profile', require('./routes/profileRoutes'));
 app.use('/onboarding', require('./routes/onboardingRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
 
-// ─── Socket.io (Real-time Chat) ────────────────────────────
+// ─── Socket.io (Real-time Chat & Notifications) ────────────
 io.on('connection', (socket) => {
+    // Join a personal room for real-time badges/notifications
+    socket.on('join-user', (userId) => {
+        socket.join(`user_${userId}`);
+    });
+
     socket.on('join-conversation', (conversationId) => {
         socket.join(`conversation_${conversationId}`);
     });
 
     socket.on('send-message', (data) => {
-        socket.to(`conversation_${data.conversationId}`).emit('new-message', {
-            id: data.id,
-            content: data.content,
-            sender_id: data.sender_id,
-            sender_name: data.sender_name,
-            created_at: data.created_at,
-            file_url: data.file_url,
-            file_name: data.file_name,
-            file_type: data.file_type,
-            reply_to: data.reply_to
-        });
+        // Emit to conversation room for the chat window
+        socket.to(`conversation_${data.conversationId}`).emit('new-message', data);
+        
+        // Also emit to the specific receiver's personal room for the navbar badge
+        if (data.receiver_id) {
+            socket.to(`user_${data.receiver_id}`).emit('new-message-badge', data);
+        }
     });
 
     socket.on('message-unsent', (data) => {
