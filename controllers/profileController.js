@@ -344,6 +344,34 @@ exports.notificationsPage = async (req, res) => {
   }
 };
 
+// ─── API: GET /dashboard/notifications/api/recent ─────────────
+exports.getRecentNotificationsApi = async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 5',
+      [req.user.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Recent notifications API error:', err);
+    res.status(500).json({ error: 'Failed to fetch notifications' });
+  }
+};
+
+// ─── API: POST /dashboard/notifications/api/mark-all-read ─────
+exports.markAllAsReadApi = async (req, res) => {
+  try {
+    await pool.query(
+      'UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false',
+      [req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Mark all read API error:', err);
+    res.status(500).json({ error: 'Failed to mark notifications as read' });
+  }
+};
+
 // ─── POST /dashboard/settings/deactivate ────────────────────
 exports.deactivateAccount = async (req, res) => {
   try {

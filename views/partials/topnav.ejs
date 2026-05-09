@@ -18,25 +18,48 @@
         </a>
 
         <!-- Notification bell -->
-        <a href="/dashboard/notifications" class="topnav__icon-btn" id="notif-btn" title="Notifications">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span class="topnav__badge <%= (locals.unreadNotifs || 0) === 0 ? 'is-hidden' : '' %>"
-                id="notif-badge"><%= locals.unreadNotifs || 0 %></span>
-        </a>
+        <div class="topnav__icon-wrapper" id="notif-wrapper">
+          <a href="/dashboard/notifications" class="topnav__icon-btn" id="notif-btn" title="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="topnav__badge <%= (locals.unreadNotifs || 0) === 0 ? 'd-none' : '' %>"
+                  id="notif-badge"><%= locals.unreadNotifs || 0 %></span>
+          </a>
+          <div class="topnav__dropdown topnav__dropdown--notif" id="notif-dropdown">
+            <div class="topnav__dropdown-head">
+              <strong>Notifications</strong>
+              <button class="btn-clear-all" id="clear-all-notifs">Clear All</button>
+            </div>
+            <div class="topnav__dropdown-list" id="notif-list">
+              <div class="topnav__dropdown-empty">Loading notifications...</div>
+            </div>
+            <a href="/dashboard/notifications" class="topnav__dropdown-foot">View All Notifications</a>
+          </div>
+        </div>
 
         <!-- Messages -->
-        <a href="/messages" class="topnav__icon-btn" id="msg-btn" title="Messages">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <span class="topnav__badge <%= (locals.unreadMsgs || 0) === 0 ? 'is-hidden' : '' %>"
-                id="msg-badge"><%= locals.unreadMsgs || 0 %></span>
-        </a>
+        <div class="topnav__icon-wrapper" id="msg-wrapper">
+          <a href="/messages" class="topnav__icon-btn" id="msg-btn" title="Messages">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span class="topnav__badge <%= (locals.unreadMsgs || 0) === 0 ? 'd-none' : '' %>"
+                  id="msg-badge"><%= locals.unreadMsgs || 0 %></span>
+          </a>
+          <div class="topnav__dropdown topnav__dropdown--msg" id="msg-dropdown">
+            <div class="topnav__dropdown-head">
+              <strong>Recent Messages</strong>
+            </div>
+            <div class="topnav__dropdown-list" id="msg-pop-list">
+              <div class="topnav__dropdown-empty">Loading messages...</div>
+            </div>
+            <a href="/messages" class="topnav__dropdown-foot">Go to Messenger</a>
+          </div>
+        </div>
 
         <!-- Avatar dropdown -->
         <div class="topnav__user" id="user-menu">

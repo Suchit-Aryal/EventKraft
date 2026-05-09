@@ -18,7 +18,7 @@ module.exports = {
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load bookings');
-            res.redirect('/auth/dashboard');
+            res.redirect('/dashboard');
         }
     },
 

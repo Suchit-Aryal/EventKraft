@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/topnav.css">
   <link rel="stylesheet" href="/css/sidebar.css">
   <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/floating-chat.css">
   <%- locals.headExtra || '' %>
 </head>
 <body class="dashboard-body">
@@ -37,8 +38,13 @@
     </main>
   </div>
 
+  <script>
+    window.CURRENT_USER_ID = '<%= locals.currentUser ? currentUser.id : "" %>';
+  </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/realtime-badges.js"></script>
+  <script src="/js/notifications-popup.js"></script>
+  <script src="/js/floating-chat.js"></script>
   <%- locals.scripts || '' %>
 </body>
 </html>
