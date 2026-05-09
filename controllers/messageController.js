@@ -42,6 +42,18 @@ module.exports = {
         }
     },
 
+    // ─── API: GET /messages/api/recent ──────────────────────────
+    async getRecentConversationsApi(req, res) {
+        try {
+            const conversations = await Message.getConversations(req.user.id);
+            // Just return top 5
+            res.json(conversations.slice(0, 5));
+        } catch (err) {
+            console.error('Recent messages API error:', err);
+            res.status(500).json({ error: 'Failed to fetch messages' });
+        }
+    },
+
     // POST /messages/start/:userId — Create or open a conversation with a user
     async startConversation(req, res) {
         try {
@@ -88,23 +100,64 @@ module.exports = {
         }
     },
 
+    // ─── API: GET /messages/:conversationId/api/history ────────
+    async getHistoryApi(req, res) {
+        try {
+            const messages = await Message.getByConversation(req.params.conversationId);
+            await Message.markAsRead(req.params.conversationId, req.user.id);
+            res.json(messages);
+        } catch (err) {
+            console.error('History API error:', err);
+            res.status(500).json({ error: 'Failed to fetch history' });
+        }
+    },
+
     async send(req, res) {
         try {
+            const conversationId = req.params.conversationId;
+            let { receiver_id, content, attachments, reply_to } = req.body;
+
+            // If receiver_id is not provided (e.g. from floating chat), find it from the conversation
+            if (!receiver_id) {
+                const conversation = await Message.getConversationById(conversationId);
+                if (conversation) {
+                    receiver_id = (conversation.participant_1 === req.user.id) 
+                        ? conversation.participant_2 
+                        : conversation.participant_1;
+                }
+            }
+
             const msg = await Message.send({
-                conversationId: req.params.conversationId,
+                conversationId,
                 senderId: req.user.id,
-                receiverId: req.body.receiver_id,
-                content: req.body.content,
-                attachments: req.body.attachments,
-                replyTo: req.body.reply_to || null
+                receiverId,
+                content,
+                attachments,
+                replyTo: reply_to || null
             });
+
+            // Emit via socket for real-time
+            const io = req.app.get('io');
+            if (io) {
+                const socketData = {
+                    id: msg.id,
+                    conversation_id: conversationId,
+                    content: msg.content,
+                    sender_id: req.user.id,
+                    sender_name: req.user.first_name,
+                    receiver_id: receiver_id,
+                    created_at: msg.created_at
+                };
+                io.to(`conversation_${conversationId}`).emit('new-message', socketData);
+                io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
+            }
 
             if (req.is('application/json')) {
                 return res.json({ id: msg.id, created_at: msg.created_at });
             }
-            res.redirect(`/messages/${req.params.conversationId}`);
+            res.redirect(`/messages/${conversationId}`);
         } catch (err) {
-            console.error(err);
+            console.error('Send message error:', err);
             if (req.is('application/json')) {
                 return res.status(500).json({ error: 'Failed to send message' });
             }

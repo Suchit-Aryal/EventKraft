@@ -6,7 +6,10 @@
     const container = document.getElementById('chat-container');
     if (!container) return;
 
-    const socket = io();
+    if (typeof io === 'undefined') return;
+    const socket = window.socket || io();
+    if (!window.socket) window.socket = socket;
+
     const conversationId = container.dataset.conversationId;
     const currentUserId = container.dataset.userId;
     const currentUserName = container.dataset.userName || 'You';
@@ -158,20 +161,6 @@
                         }
                     }
                 }
-
-                // Emit to socket
-                socket.emit('send-message', {
-                    conversationId: conversationId,
-                    id: saved.id,
-                    content: content,
-                    sender_id: currentUserId,
-                    sender_name: currentUserName,
-                    created_at: saved.created_at || new Date().toISOString(),
-                    file_url: saved.file_url,
-                    file_name: saved.file_name,
-                    file_type: saved.file_type,
-                    reply_to: savedReplyTo
-                });
             } catch (err) {
                 console.error('Send failed:', err);
                 var tempEl = document.getElementById('msg-' + tempId);

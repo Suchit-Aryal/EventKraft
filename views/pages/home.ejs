@@ -1,18 +1,32 @@
 <%- include('../partials/header') %>
 
 <!-- HERO -->
-<section class="ek-hero" style="padding:6rem 0">
+<section class="ek-hero" style="padding: 8rem 0 6rem;">
     <div class="ek-hero-overlay"></div>
     <div class="container ek-hero-content">
-        <div style="max-width:640px">
-            <div class="ek-pill mb-3"><i class="bi bi-stars"></i> Nepal's premium event marketplace</div>
-            <h1>Where premium talent meets <span class="text-gradient-gold">grand events</span>.</h1>
-            <p class="lead mt-3" style="max-width:520px">Hire verified photographers, videographers, decorators and artists for your wedding — or post a job and let proposals come to you.</p>
-            <div class="d-flex flex-wrap gap-2 mt-4">
-                <a href="/gigs" class="btn btn-ek-gold btn-lg">Browse Services <i class="bi bi-arrow-right ms-1"></i></a>
-                <a href="<%= currentUser ? '/jobs/create' : '/auth/login' %>" class="btn btn-lg" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);border-radius:var(--ek-radius)">Post a Job</a>
+        <div class="text-center mx-auto" style="max-width: 800px">
+            <div class="ek-pill mb-3 mx-auto"><i class="bi bi-stars"></i> Nepal's premium event marketplace</div>
+            <h1 class="display-4 fw-bold mb-3">Where premium talent meets <span class="text-gradient-gold">grand events</span>.</h1>
+            <p class="lead mb-5 text-white-50">Hire verified photographers, decorators and artists for your wedding — or post a job and let proposals come to you.</p>
+            
+            <!-- SEARCH BAR -->
+            <div class="search-container mx-auto mb-5" style="max-width: 650px;">
+                <form action="/gigs" method="GET" class="hero-search-form p-2 bg-white rounded-pill shadow-lg d-flex align-items-center">
+                    <div class="input-group border-0 px-3 flex-grow-1">
+                        <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="keyword" class="form-control border-0 bg-transparent" placeholder="Search for 'Wedding Photography'..." aria-label="Search">
+                    </div>
+                    <button type="submit" class="btn btn-ek-gold btn-lg rounded-pill px-4 py-2">Search</button>
+                </form>
+                <div class="mt-3 text-start ps-4">
+                    <span class="text-white-50 small me-2">Popular:</span>
+                    <a href="/gigs?keyword=Photography" class="badge rounded-pill bg-white bg-opacity-10 text-white-50 text-decoration-none me-1 hover-gold">Photography</a>
+                    <a href="/gigs?keyword=Decoration" class="badge rounded-pill bg-white bg-opacity-10 text-white-50 text-decoration-none me-1 hover-gold">Decoration</a>
+                    <a href="/gigs?keyword=Makeup" class="badge rounded-pill bg-white bg-opacity-10 text-white-50 text-decoration-none me-1 hover-gold">Makeup</a>
+                </div>
             </div>
-            <div class="d-flex flex-wrap gap-4 mt-4" style="font-size:.88rem;opacity:.85">
+
+            <div class="d-flex flex-wrap gap-4 justify-content-center" style="font-size:.88rem;opacity:.85">
                 <span><i class="bi bi-shield-check me-1" style="color:var(--ek-gold-light)"></i> Verified providers</span>
                 <span><i class="bi bi-star-fill me-1" style="color:var(--ek-gold-light)"></i> 4.8 avg rating</span>
                 <span><i class="bi bi-heart-fill me-1" style="color:var(--ek-gold-light)"></i> 500+ happy events</span>
