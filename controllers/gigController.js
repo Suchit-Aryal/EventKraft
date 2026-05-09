@@ -195,7 +195,7 @@ module.exports = {
         try {
             await pool.query("UPDATE service_gigs SET status = 'deleted' WHERE id = $1", [req.params.id]);
             req.flash('success', 'Service deleted');
-            res.redirect('/auth/dashboard');
+            res.redirect('/dashboard');
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to delete service');

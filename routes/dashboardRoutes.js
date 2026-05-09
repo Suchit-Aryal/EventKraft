@@ -105,5 +105,7 @@ router.post('/settings/delete', profileController.deleteAccount);
 
 // ─── Notifications ────────────────────────────────────────────
 router.get('/notifications', profileController.notificationsPage);
+router.get('/notifications/api/recent', profileController.getRecentNotificationsApi);
+router.post('/notifications/api/mark-all-read', profileController.markAllAsReadApi);
 
 module.exports = router;

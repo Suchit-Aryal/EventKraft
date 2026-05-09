@@ -37,7 +37,7 @@ module.exports = {
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load jobs');
-            res.redirect('/app/jobs');
+            res.redirect('/jobs');
         }
     },
 
@@ -155,7 +155,7 @@ module.exports = {
         try {
             await Job.updateStatus(req.params.id, 'cancelled');
             req.flash('success', 'Job cancelled');
-            res.redirect('/auth/dashboard');
+            res.redirect('/jobs');
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to cancel job');
