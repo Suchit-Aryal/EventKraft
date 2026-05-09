@@ -13,7 +13,11 @@
   let notifLoading = false;
   let msgLoading   = false;
 
-  // ─── NOTIFICATIONS ──────────────────────────────────────────
+  /**
+   * Fetches recent notifications and updates the notifications dropdown.
+   *
+   * If a fetch is already in progress, the function returns immediately. While active it sets an internal loading flag; on success it replaces the dropdown contents with the fetched notifications, and on failure it logs an error and replaces the dropdown contents with a failure message.
+   */
 
   async function fetchNotifications() {
     if (notifLoading) return;
@@ -32,6 +36,17 @@
     }
   }
 
+  /**
+   * Render a list of recent notifications into the notifications dropdown.
+   *
+   * If the notifications container is not present, the function is a no-op.
+   * When `items` is empty or falsy, displays a "No new notifications" message.
+   * Each notification is rendered as a link (falls back to `#` if no `link`),
+   * includes title, message, and a formatted time, and receives the `is-unread`
+   * CSS class when `is_read` is falsy.
+   *
+   * @param {Array<Object>} items - Array of notification objects to render. Each object may include `title`, `message`, `link`, `is_read`, and `created_at`.
+   */
   function renderNotifications(items) {
     if (!notifList) return;
     
@@ -72,7 +87,11 @@
     });
   }
 
-  // ─── MESSAGES ───────────────────────────────────────────────
+  /**
+   * Fetches recent conversations and updates the messages dropdown.
+   *
+   * Initiates a network request to "/messages/api/recent" and, on success, parses the JSON response and calls `renderMessages` to populate the dropdown. Uses the `msgLoading` flag to prevent concurrent requests. On error, logs the failure to the console and, if the `msgPopList` element exists, replaces its contents with a failure message.
+   */
 
   async function fetchMessages() {
     if (msgLoading) return;
@@ -91,6 +110,20 @@
     }
   }
 
+  /**
+   * Render recent conversations into the messages dropdown.
+   *
+   * Updates the dropdown container's HTML to show each conversation as a link with the other participant's
+   * avatar, name, and a message snippet. If `items` is missing or empty, replaces the content with
+   * "No recent messages".
+   *
+   * @param {Array<Object>} items - Array of conversation objects. Each object is expected to include:
+   *   - id: conversation identifier used to build the message link
+   *   - participant_1: id of the first participant (compared to window.CURRENT_USER_ID to determine the other)
+   *   - p1_name, p1_avatar: name and avatar URL for participant 1
+   *   - p2_name, p2_avatar: name and avatar URL for participant 2
+   *   - last_message: latest message text (optional)
+   */
   function renderMessages(items) {
     if (!msgPopList) return;
 
@@ -124,7 +157,11 @@
     msgWrapper.addEventListener('click', fetchMessages);
   }
 
-  // ─── UTILS ──────────────────────────────────────────────────
+  /**
+   * Format a date into a compact, human-friendly relative timestamp.
+   * @param {string|Date|number|null|undefined} dateStr - Date input as an ISO string, Date object, or Unix timestamp; may be falsy.
+   * @returns {string} A relative time string: `'Just now'`, `'<m>m ago'`, `'<h>h ago'`, a locale date string for older dates, or an empty string if `dateStr` is falsy.
+   */
 
   function formatDate(dateStr) {
     if (!dateStr) return '';

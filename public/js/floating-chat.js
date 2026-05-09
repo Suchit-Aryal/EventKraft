@@ -50,6 +50,13 @@
     scrollToBottom(chatBox);
   };
 
+  /**
+   * Creates a floating chat box DOM element for a conversation and wires its UI controls.
+   * @param {string} id - Conversation identifier used as the chat box `data-id` and in action URLs.
+   * @param {string} name - Display name shown in the chat header.
+   * @param {string} avatar - Avatar image URL shown in the chat header; a default avatar is used if this is falsy.
+   * @returns {HTMLElement} The constructed chat box element ready to be inserted into the DOM.
+   */
   function createChatBox(id, name, avatar) {
     const div = document.createElement('div');
     div.className = 'chat-box';
@@ -100,6 +107,11 @@
     return div;
   }
 
+  /**
+   * Minimizes an active chat box and creates a minimized chat icon in the minimized container.
+   * @param {string} id - Conversation identifier of the chat to minimize.
+   * @description Removes the active chat DOM element, deletes it from `activeChats`, and adds a minimized icon (with avatar, close control, and unread badge) to `minimizedContainer`. The minimized entry is stored in `minimizedChats` and clicking the icon restores the chat; clicking its close control removes the minimized entry.
+   */
   function minimizeChat(id) {
     const chatBox = activeChats.get(id);
     if (!chatBox) return;
@@ -131,6 +143,13 @@
     minimizedChats.set(id, { name, avatar, element: icon, unread: 0 });
   }
 
+  /**
+   * Restore a minimized conversation into an active floating chat.
+   *
+   * Removes the minimized icon for the given conversation and opens a new chat box
+   * using the stored name and avatar. If the conversation is not minimized, no action is taken.
+   * @param {string} id - Conversation identifier to restore.
+   */
   function restoreChat(id) {
     const data = minimizedChats.get(id);
     if (!data) return;
@@ -140,6 +159,13 @@
     window.openFloatingChat(id, data.name, data.avatar);
   }
 
+  /**
+   * Closes and removes the active floating chat for the given conversation.
+   *
+   * If an active chat exists for the provided conversation id, its DOM element is removed and it is
+   * unregistered from the active-chats map; minimized chats are not affected.
+   * @param {string} id - Conversation identifier of the chat to close.
+   */
   function closeChat(id) {
     const chatBox = activeChats.get(id);
     if (chatBox) {
@@ -148,6 +174,10 @@
     }
   }
 
+  /**
+   * Bring the active chat for the given conversation to the front and focus its input.
+   * @param {string} id - Conversation identifier of the chat to focus.
+   */
   function focusChat(id) {
     const chatBox = activeChats.get(id);
     if (chatBox) {
@@ -156,6 +186,14 @@
     }
   }
 
+  /**
+   * Load and render the message history for a conversation into the given chat box.
+   *
+   * Replaces the chat body with a loading placeholder while fetching `/messages/{id}/api/history`. On success, renders the fetched messages into the chat body and scrolls the chat to the bottom. On failure, replaces the chat body with a "Could not load history" notice.
+   *
+   * @param {string|number} id - Conversation identifier used to request the history.
+   * @param {Element} chatBox - The chat box DOM element whose `.chat-box__body` will be updated.
+   */
   async function loadMessages(id, chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
     body.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-muted"></div></div>';
@@ -172,6 +210,18 @@
     }
   }
 
+  /**
+   * Render a message as a chat bubble inside the given chat body.
+   *
+   * Appends a `.chat-bubble` element to `body`, sets its text to `m.content`,
+   * adds `chat-bubble--sent` when `m.sender_id` equals `window.CURRENT_USER_ID` or
+   * `chat-bubble--received` otherwise, and sets `data-msg-id` when `m.id` is present.
+   * If `m.id` is present and an element with the same `data-msg-id` already exists
+   * in `body`, the function does nothing.
+   *
+   * @param {HTMLElement} body - The chat body element to append the bubble to.
+   * @param {{id?: string|number, sender_id: string|number, content: string}} m - Message object; `id` is optional.
+   */
   function appendMessage(body, m) {
     // Avoid duplicates from Socket.io if we already rendered optimistically
     if (m.id && body.querySelector(`[data-msg-id="${m.id}"]`)) return;
@@ -184,6 +234,14 @@
     body.appendChild(bubble);
   }
 
+  /**
+   * Send a chat message with optimistic UI and reconcile it with the server-assigned message ID.
+   *
+   * Appends a temporary message to the provided chat box, POSTs the content to /messages/{id}/send, replaces the temporary message's data-msg-id with the saved message id on success, and logs errors on failure.
+   * @param {string} id - Conversation identifier used to send the message.
+   * @param {string} content - The message text to send.
+   * @param {HTMLElement} chatBox - The chat box element containing a `.chat-box__body` where the message will be rendered.
+   */
   async function performSend(id, content, chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
     const tempId = 'temp-' + Date.now();
@@ -209,6 +267,10 @@
     }
   }
 
+  /**
+   * Scrolls the chat box message area to the bottom.
+   * @param {Element} chatBox - Chat box element containing a `.chat-box__body` element.
+   */
   function scrollToBottom(chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
     body.scrollTop = body.scrollHeight;
