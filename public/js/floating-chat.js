@@ -1,7 +1,9 @@
 /**
- * Facebook-style Floating Chat System
+ * Instagram/Facebook-style Floating Chat System
+ * Opens from the topnav messages dropdown — supports minimize, close, enlarge
  */
 (function() {
+  // ─── DOM Setup ──────────────────────────────────────────────
   const container = document.createElement('div');
   container.className = 'floating-chat-container';
   document.body.appendChild(container);
@@ -10,9 +12,11 @@
   minimizedContainer.className = 'minimized-chats';
   document.body.appendChild(minimizedContainer);
 
-  const activeChats = new Map(); // conversationId -> DOM Element
-  const minimizedChats = new Map(); // conversationId -> Data
-  
+  const activeChats = new Map();     // conversationId → DOM element
+  const minimizedChats = new Map();  // conversationId → { name, avatar, element, unread }
+  const MAX_CHATS = 3;
+
+  // ─── Socket Setup ──────────────────────────────────────────
   let socket = null;
   try {
     if (typeof io !== 'undefined') {
@@ -21,21 +25,36 @@
     }
   } catch(e) {}
 
-  // ─── CORE FUNCTIONS ────────────────────────────────────────
+  // ─── SVG Icon Helpers ──────────────────────────────────────
+  const ICONS = {
+    minimize: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    expand: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+    close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    send: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>',
+    x: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
 
+  // ─── PUBLIC API ────────────────────────────────────────────
+
+  /**
+   * Open a floating chat for a conversation. Called from navbar dropdown clicks.
+   * @param {string} conversationId 
+   * @param {string} otherName 
+   * @param {string} otherAvatar 
+   */
   window.openFloatingChat = async function(conversationId, otherName, otherAvatar) {
     if (activeChats.has(conversationId)) {
       focusChat(conversationId);
       return;
     }
-    
+
     if (minimizedChats.has(conversationId)) {
       restoreChat(conversationId);
       return;
     }
 
-    // Limit to 3 active chats
-    if (activeChats.size >= 3) {
+    // Enforce max active chats
+    if (activeChats.size >= MAX_CHATS) {
       const firstId = activeChats.keys().next().value;
       minimizeChat(firstId);
     }
@@ -43,75 +62,76 @@
     const chatBox = createChatBox(conversationId, otherName, otherAvatar);
     container.appendChild(chatBox);
     activeChats.set(conversationId, chatBox);
-    
+
     if (socket) socket.emit('join-conversation', conversationId);
-    
+
     await loadMessages(conversationId, chatBox);
     scrollToBottom(chatBox);
+    chatBox.querySelector('.chat-box__input').focus();
   };
 
-  /**
-   * Creates a floating chat box DOM element for a conversation and wires its UI controls.
-   * @param {string} id - Conversation identifier used as the chat box `data-id` and in action URLs.
-   * @param {string} name - Display name shown in the chat header.
-   * @param {string} avatar - Avatar image URL shown in the chat header; a default avatar is used if this is falsy.
-   * @returns {HTMLElement} The constructed chat box element ready to be inserted into the DOM.
-   */
+  // ─── CREATE CHAT BOX ──────────────────────────────────────
+
   function createChatBox(id, name, avatar) {
     const div = document.createElement('div');
     div.className = 'chat-box';
     div.dataset.id = id;
-    
+
     div.innerHTML = `
       <div class="chat-box__header">
         <div class="chat-box__header-info">
-          <img src="${avatar || '/images/default-avatar.png'}" class="chat-box__avatar">
-          <span class="chat-box__name">${name}</span>
+          <img src="${avatar || '/images/default-avatar.png'}" class="chat-box__avatar" alt="${name}">
+          <span class="chat-box__online-dot"></span>
+          <span class="chat-box__name">${escapeHtml(name)}</span>
         </div>
         <div class="chat-box__actions">
-          <button class="chat-action-btn btn-minimize"><i class="bi bi-dash-lg"></i></button>
-          <button class="chat-action-btn btn-expand"><i class="bi bi-arrows-angle-expand"></i></button>
-          <button class="chat-action-btn btn-close"><i class="bi bi-x-lg"></i></button>
+          <button class="chat-action-btn btn-minimize" title="Minimize">${ICONS.minimize}</button>
+          <button class="chat-action-btn btn-expand" title="Open full chat">${ICONS.expand}</button>
+          <button class="chat-action-btn btn-close-chat" title="Close">${ICONS.close}</button>
         </div>
       </div>
       <div class="chat-box__body"></div>
       <div class="chat-box__footer">
-        <input type="text" class="chat-box__input" placeholder="Type a message...">
-        <button class="chat-box__send"><i class="bi bi-send-fill"></i></button>
+        <input type="text" class="chat-box__input" placeholder="Type a message..." autocomplete="off">
+        <button class="chat-box__send" title="Send">${ICONS.send}</button>
       </div>
     `;
 
-    // Event Listeners
-    div.querySelector('.chat-box__header').onclick = (e) => {
+    // Wire event listeners
+    const header = div.querySelector('.chat-box__header');
+    header.onclick = (e) => {
       if (e.target.closest('.chat-box__actions')) return;
       minimizeChat(id);
     };
-    div.querySelector('.btn-minimize').onclick = () => minimizeChat(id);
-    div.querySelector('.btn-expand').onclick = () => window.location.href = `/messages/${id}`;
-    div.querySelector('.btn-close').onclick = () => closeChat(id);
-    
+
+    div.querySelector('.btn-minimize').onclick = (e) => { e.stopPropagation(); minimizeChat(id); };
+    div.querySelector('.btn-expand').onclick = (e) => { e.stopPropagation(); window.location.href = `/messages/${id}`; };
+    div.querySelector('.btn-close-chat').onclick = (e) => { e.stopPropagation(); closeChat(id); };
+
     const input = div.querySelector('.chat-box__input');
     const sendBtn = div.querySelector('.chat-box__send');
-    
-    const sendMessage = () => {
+
+    const doSend = () => {
       const content = input.value.trim();
-      if (content) {
-        performSend(id, content, div);
-        input.value = '';
-      }
+      if (!content) return;
+      performSend(id, content, div);
+      input.value = '';
+      input.focus();
     };
 
-    input.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
-    sendBtn.onclick = sendMessage;
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        doSend();
+      }
+    });
+    sendBtn.onclick = doSend;
 
     return div;
   }
 
-  /**
-   * Minimizes an active chat box and creates a minimized chat icon in the minimized container.
-   * @param {string} id - Conversation identifier of the chat to minimize.
-   * @description Removes the active chat DOM element, deletes it from `activeChats`, and adds a minimized icon (with avatar, close control, and unread badge) to `minimizedContainer`. The minimized entry is stored in `minimizedChats` and clicking the icon restores the chat; clicking its close control removes the minimized entry.
-   */
+  // ─── MINIMIZE / RESTORE / CLOSE ───────────────────────────
+
   function minimizeChat(id) {
     const chatBox = activeChats.get(id);
     if (!chatBox) return;
@@ -119,17 +139,22 @@
     const name = chatBox.querySelector('.chat-box__name').textContent;
     const avatar = chatBox.querySelector('.chat-box__avatar').src;
 
-    chatBox.remove();
-    activeChats.delete(id);
-    
+    chatBox.classList.add('chat-box--closing');
+    setTimeout(() => {
+      chatBox.remove();
+      activeChats.delete(id);
+    }, 200);
+
+    // Create minimized icon
     const icon = document.createElement('div');
     icon.className = 'minimized-chat-icon';
+    icon.title = name;
     icon.innerHTML = `
-      <img src="${avatar}">
-      <div class="minimized-chat-close"><i class="bi bi-x"></i></div>
+      <img src="${avatar}" alt="${escapeHtml(name)}">
+      <div class="minimized-chat-close" title="Remove">${ICONS.x}</div>
       <div class="chat-box__badge is-hidden">0</div>
     `;
-    
+
     icon.onclick = (e) => {
       if (e.target.closest('.minimized-chat-close')) {
         icon.remove();
@@ -143,110 +168,75 @@
     minimizedChats.set(id, { name, avatar, element: icon, unread: 0 });
   }
 
-  /**
-   * Restore a minimized conversation into an active floating chat.
-   *
-   * Removes the minimized icon for the given conversation and opens a new chat box
-   * using the stored name and avatar. If the conversation is not minimized, no action is taken.
-   * @param {string} id - Conversation identifier to restore.
-   */
   function restoreChat(id) {
     const data = minimizedChats.get(id);
     if (!data) return;
-    
     data.element.remove();
     minimizedChats.delete(id);
     window.openFloatingChat(id, data.name, data.avatar);
   }
 
-  /**
-   * Closes and removes the active floating chat for the given conversation.
-   *
-   * If an active chat exists for the provided conversation id, its DOM element is removed and it is
-   * unregistered from the active-chats map; minimized chats are not affected.
-   * @param {string} id - Conversation identifier of the chat to close.
-   */
   function closeChat(id) {
     const chatBox = activeChats.get(id);
-    if (chatBox) {
+    if (!chatBox) return;
+    chatBox.classList.add('chat-box--closing');
+    setTimeout(() => {
       chatBox.remove();
       activeChats.delete(id);
-    }
+    }, 200);
   }
 
-  /**
-   * Bring the active chat for the given conversation to the front and focus its input.
-   * @param {string} id - Conversation identifier of the chat to focus.
-   */
   function focusChat(id) {
     const chatBox = activeChats.get(id);
     if (chatBox) {
-      container.appendChild(chatBox); // move to end of flex
+      container.appendChild(chatBox);
       chatBox.querySelector('.chat-box__input').focus();
     }
   }
 
-  /**
-   * Load and render the message history for a conversation into the given chat box.
-   *
-   * Replaces the chat body with a loading placeholder while fetching `/messages/{id}/api/history`. On success, renders the fetched messages into the chat body and scrolls the chat to the bottom. On failure, replaces the chat body with a "Could not load history" notice.
-   *
-   * @param {string|number} id - Conversation identifier used to request the history.
-   * @param {Element} chatBox - The chat box DOM element whose `.chat-box__body` will be updated.
-   */
+  // ─── LOAD MESSAGES ────────────────────────────────────────
+
   async function loadMessages(id, chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
-    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-muted"></div></div>';
-    
+    body.innerHTML = '<div style="display:flex;justify-content:center;padding:40px 0"><div class="chat-typing"><span class="chat-typing__dot"></span><span class="chat-typing__dot"></span><span class="chat-typing__dot"></span></div></div>';
+
     try {
       const res = await fetch(`/messages/${id}/api/history`);
+      if (!res.ok) throw new Error('Failed');
       const messages = await res.json();
-      
+
       body.innerHTML = '';
-      messages.forEach(m => appendMessage(body, m));
+      if (messages.length === 0) {
+        body.innerHTML = '<div style="text-align:center;padding:30px 10px;color:#b5aead;font-size:13px">No messages yet. Say hi! 👋</div>';
+      } else {
+        messages.forEach(m => appendMessage(body, m));
+      }
       scrollToBottom(chatBox);
     } catch (err) {
-      body.innerHTML = '<div class="text-center text-muted small py-4">Could not load history</div>';
+      body.innerHTML = '<div style="text-align:center;color:#ef4444;font-size:12px;padding:30px">Could not load messages</div>';
     }
   }
 
-  /**
-   * Render a message as a chat bubble inside the given chat body.
-   *
-   * Appends a `.chat-bubble` element to `body`, sets its text to `m.content`,
-   * adds `chat-bubble--sent` when `m.sender_id` equals `window.CURRENT_USER_ID` or
-   * `chat-bubble--received` otherwise, and sets `data-msg-id` when `m.id` is present.
-   * If `m.id` is present and an element with the same `data-msg-id` already exists
-   * in `body`, the function does nothing.
-   *
-   * @param {HTMLElement} body - The chat body element to append the bubble to.
-   * @param {{id?: string|number, sender_id: string|number, content: string}} m - Message object; `id` is optional.
-   */
+  // ─── APPEND MESSAGE BUBBLE ────────────────────────────────
+
   function appendMessage(body, m) {
-    // Avoid duplicates from Socket.io if we already rendered optimistically
     if (m.id && body.querySelector(`[data-msg-id="${m.id}"]`)) return;
-    
+
     const bubble = document.createElement('div');
-    const isSent = m.sender_id == window.CURRENT_USER_ID;
+    const isSent = String(m.sender_id) === String(window.CURRENT_USER_ID);
     bubble.className = `chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}`;
     if (m.id) bubble.dataset.msgId = m.id;
     bubble.textContent = m.content;
     body.appendChild(bubble);
   }
 
-  /**
-   * Send a chat message with optimistic UI and reconcile it with the server-assigned message ID.
-   *
-   * Appends a temporary message to the provided chat box, POSTs the content to /messages/{id}/send, replaces the temporary message's data-msg-id with the saved message id on success, and logs errors on failure.
-   * @param {string} id - Conversation identifier used to send the message.
-   * @param {string} content - The message text to send.
-   * @param {HTMLElement} chatBox - The chat box element containing a `.chat-box__body` where the message will be rendered.
-   */
+  // ─── SEND MESSAGE (Optimistic UI) ─────────────────────────
+
   async function performSend(id, content, chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
     const tempId = 'temp-' + Date.now();
-    
-    // Optimistic UI
+
+    // Optimistic: show immediately
     appendMessage(body, { id: tempId, sender_id: window.CURRENT_USER_ID, content });
     scrollToBottom(chatBox);
 
@@ -257,59 +247,85 @@
         body: JSON.stringify({ content })
       });
       const saved = await res.json();
-      
-      // Update the temp message with real ID
+
+      // Swap temp ID with real DB ID
       const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
-      if (tempEl) tempEl.dataset.msgId = saved.id;
-      
+      if (tempEl && saved.id) tempEl.dataset.msgId = saved.id;
     } catch (err) {
-      console.error('Send error:', err);
+      // Mark as failed
+      const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
+      if (tempEl) {
+        tempEl.style.opacity = '0.5';
+        tempEl.title = 'Failed to send — click to retry';
+        tempEl.style.cursor = 'pointer';
+        tempEl.onclick = () => {
+          tempEl.remove();
+          performSend(id, content, chatBox);
+        };
+      }
     }
   }
 
-  /**
-   * Scrolls the chat box message area to the bottom.
-   * @param {Element} chatBox - Chat box element containing a `.chat-box__body` element.
-   */
   function scrollToBottom(chatBox) {
     const body = chatBox.querySelector('.chat-box__body');
-    body.scrollTop = body.scrollHeight;
+    requestAnimationFrame(() => {
+      body.scrollTop = body.scrollHeight;
+    });
   }
 
-  // ─── INTERCEPT NAVBAR CLICKS ───────────────────────────────
+  // ─── HTML ESCAPE ──────────────────────────────────────────
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ─── INTERCEPT NAVBAR MESSAGE CLICKS ──────────────────────
 
   document.addEventListener('click', (e) => {
     const msgLink = e.target.closest('#msg-pop-list .topnav__dropdown-item-link');
     if (msgLink) {
       e.preventDefault();
+      e.stopPropagation();
+
       const href = msgLink.getAttribute('href');
       const id = href.split('/').pop();
-      const name = msgLink.querySelector('.msg-item__name').textContent;
-      const avatar = msgLink.querySelector('.msg-item__avatar').src;
-      
+      const nameEl = msgLink.querySelector('.msg-item__name');
+      const avatarEl = msgLink.querySelector('.msg-item__avatar');
+
+      const name = nameEl ? nameEl.textContent : 'User';
+      const avatar = avatarEl ? avatarEl.src : '/images/default-avatar.png';
+
       window.openFloatingChat(id, name, avatar);
-      
+
       // Close the dropdown
-      const dropdown = msgLink.closest('.topnav__dropdown');
-      if (dropdown) dropdown.style.display = 'none';
-      setTimeout(() => dropdown.style.display = '', 200);
+      const wrapper = msgLink.closest('.topnav__icon-wrapper');
+      if (wrapper) wrapper.classList.remove('is-active');
     }
   });
 
-  // ─── SOCKET.IO INTEGRATION ──────────────────────────────────
+  // ─── SOCKET.IO: RECEIVE MESSAGES ──────────────────────────
 
   if (socket) {
     socket.on('new-message', (data) => {
       const id = data.conversation_id;
+      
+      // If sender is current user, skip (we already rendered optimistically)
+      if (String(data.sender_id) === String(window.CURRENT_USER_ID)) return;
+
       if (activeChats.has(id)) {
-        appendMessage(activeChats.get(id).querySelector('.chat-box__body'), data);
-        scrollToBottom(activeChats.get(id));
+        const chatBox = activeChats.get(id);
+        appendMessage(chatBox.querySelector('.chat-box__body'), data);
+        scrollToBottom(chatBox);
       } else if (minimizedChats.has(id)) {
         const m = minimizedChats.get(id);
         m.unread++;
         const badge = m.element.querySelector('.chat-box__badge');
-        badge.textContent = m.unread;
-        badge.classList.remove('is-hidden');
+        if (badge) {
+          badge.textContent = m.unread;
+          badge.classList.remove('is-hidden');
+        }
       }
     });
   }

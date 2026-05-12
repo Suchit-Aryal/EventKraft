@@ -285,3 +285,18 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - **Light/Dark mode toggle** with sun/moon icon in topnav
 - CSS custom properties for consistent theming
 - Persistent theme preference via `localStorage`
+
+---
+
+## Changelog
+
+### 2026-05-12 — Bug Fix: Chat Message Sending ([EVE-5](https://linear.app/eventkraft/issue/EVE-5))
+
+**Branch:** `bug_fixes/chat`
+
+| Issue | Fix |
+| ----- | --- |
+| `ReferenceError: receiverId is not defined` in `messageController.js:133` — completely blocked all chat message sending | Changed `receiverId` (undefined camelCase) to `receiverId: receiver_id` to properly map the snake_case variable destructured from `req.body` to the camelCase parameter expected by `Message.send()` |
+
+**Files changed:**
+- `controllers/messageController.js` — line 133, variable name mismatch fix

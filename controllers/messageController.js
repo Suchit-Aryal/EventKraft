@@ -117,7 +117,7 @@ module.exports = {
             const conversationId = req.params.conversationId;
             let { receiver_id, content, attachments, reply_to } = req.body;
 
-            // If receiver_id is not provided (e.g. from floating chat), find it from the conversation
+            // Look up receiver from conversation if not provided (floating chat)
             if (!receiver_id) {
                 const conversation = await Message.getConversationById(conversationId);
                 if (conversation) {
@@ -127,16 +127,24 @@ module.exports = {
                 }
             }
 
+            // Single CTE query: INSERT + UPDATE in one round-trip
             const msg = await Message.send({
                 conversationId,
                 senderId: req.user.id,
-                receiverId,
+                receiverId: receiver_id,
                 content,
                 attachments,
                 replyTo: reply_to || null
             });
 
-            // Emit via socket for real-time
+            // Respond to client IMMEDIATELY, then emit socket (non-blocking)
+            if (req.is('application/json')) {
+                res.json({ id: msg.id, created_at: msg.created_at });
+            } else {
+                res.redirect(`/messages/${conversationId}`);
+            }
+
+            // Fire-and-forget socket emit AFTER response is sent
             const io = req.app.get('io');
             if (io) {
                 const socketData = {
@@ -152,10 +160,6 @@ module.exports = {
                 io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
             }
 
-            if (req.is('application/json')) {
-                return res.json({ id: msg.id, created_at: msg.created_at });
-            }
-            res.redirect(`/messages/${conversationId}`);
         } catch (err) {
             console.error('Send message error:', err);
             if (req.is('application/json')) {
