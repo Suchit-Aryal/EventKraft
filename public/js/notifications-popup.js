@@ -141,15 +141,33 @@
     clearAllBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      
+      // Disable during request
+      clearAllBtn.disabled = true;
+      const originalHTML = clearAllBtn.innerHTML;
+      clearAllBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Clearing...</span>';
+      
       try {
-        await fetch('/dashboard/notifications/api/mark-all-read', { method: 'POST' });
-        if (notifList) notifList.innerHTML = '<div class="topnav__dropdown-empty">Notifications cleared.</div>';
+        const res = await fetch('/dashboard/notifications/api/mark-all-read', { method: 'POST' });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+
+        if (notifList) notifList.innerHTML = '<div class="topnav__dropdown-empty">All caught up! 🎉</div>';
         if (notifBadge) {
           notifBadge.textContent = '0';
           notifBadge.classList.add('d-none');
         }
+        // Success feedback
+        clearAllBtn.classList.add('btn-clear-all--done');
+        clearAllBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Cleared';
+        setTimeout(() => {
+          clearAllBtn.classList.remove('btn-clear-all--done');
+          clearAllBtn.innerHTML = originalHTML;
+          clearAllBtn.disabled = false;
+        }, 2000);
       } catch (err) {
         console.error('Clear all error:', err);
+        clearAllBtn.innerHTML = originalHTML;
+        clearAllBtn.disabled = false;
       }
     });
   }
