@@ -77,12 +77,15 @@
     div.className = 'chat-box';
     div.dataset.id = id;
 
+    // Build header via DOM APIs to prevent XSS through avatar/name
+    const safeAvatar = avatar || '/images/default-avatar.png';
+
     div.innerHTML = `
       <div class="chat-box__header">
         <div class="chat-box__header-info">
-          <img src="${avatar || '/images/default-avatar.png'}" class="chat-box__avatar" alt="${name}">
+          <img class="chat-box__avatar">
           <span class="chat-box__online-dot"></span>
-          <span class="chat-box__name">${escapeHtml(name)}</span>
+          <span class="chat-box__name"></span>
         </div>
         <div class="chat-box__actions">
           <button class="chat-action-btn btn-minimize" title="Minimize">${ICONS.minimize}</button>
@@ -96,6 +99,12 @@
         <button class="chat-box__send" title="Send">${ICONS.send}</button>
       </div>
     `;
+
+    // Set user-controlled values via safe DOM APIs
+    const avatarEl = div.querySelector('.chat-box__avatar');
+    avatarEl.setAttribute('src', safeAvatar);
+    avatarEl.setAttribute('alt', name || 'User');
+    div.querySelector('.chat-box__name').textContent = name || 'User';
 
     // Wire event listeners
     const header = div.querySelector('.chat-box__header');
@@ -145,15 +154,18 @@
       activeChats.delete(id);
     }, 200);
 
-    // Create minimized icon
+    // Create minimized icon — set user values via DOM APIs
     const icon = document.createElement('div');
     icon.className = 'minimized-chat-icon';
     icon.title = name;
     icon.innerHTML = `
-      <img src="${avatar}" alt="${escapeHtml(name)}">
+      <img>
       <div class="minimized-chat-close" title="Remove">${ICONS.x}</div>
       <div class="chat-box__badge is-hidden">0</div>
     `;
+    const iconImg = icon.querySelector('img');
+    iconImg.setAttribute('src', avatar);
+    iconImg.setAttribute('alt', name || 'User');
 
     icon.onclick = (e) => {
       if (e.target.closest('.minimized-chat-close')) {
@@ -246,11 +258,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content })
       });
-      const saved = await res.json();
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
 
       // Swap temp ID with real DB ID
       const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
-      if (tempEl && saved.id) tempEl.dataset.msgId = saved.id;
+      if (tempEl && data.id) tempEl.dataset.msgId = data.id;
     } catch (err) {
       // Mark as failed
       const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);

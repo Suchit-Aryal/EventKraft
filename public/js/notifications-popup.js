@@ -148,7 +148,9 @@
       clearAllBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Clearing...</span>';
       
       try {
-        await fetch('/dashboard/notifications/api/mark-all-read', { method: 'POST' });
+        const res = await fetch('/dashboard/notifications/api/mark-all-read', { method: 'POST' });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
+
         if (notifList) notifList.innerHTML = '<div class="topnav__dropdown-empty">All caught up! 🎉</div>';
         if (notifBadge) {
           notifBadge.textContent = '0';

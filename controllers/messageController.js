@@ -115,17 +115,26 @@ module.exports = {
     async send(req, res) {
         try {
             const conversationId = req.params.conversationId;
-            let { receiver_id, content, attachments, reply_to } = req.body;
+            const { content, attachments, reply_to } = req.body;
 
-            // Look up receiver from conversation if not provided (floating chat)
-            if (!receiver_id) {
-                const conversation = await Message.getConversationById(conversationId);
-                if (conversation) {
-                    receiver_id = (conversation.participant_1 === req.user.id) 
-                        ? conversation.participant_2 
-                        : conversation.participant_1;
-                }
+            // Always verify membership and compute receiver server-side
+            const conversation = await Message.getConversationById(conversationId);
+            if (!conversation) {
+                return req.is('application/json')
+                    ? res.status(404).json({ error: 'Conversation not found' })
+                    : res.redirect('/messages');
             }
+
+            const isP1 = conversation.participant_1 === req.user.id;
+            const isP2 = conversation.participant_2 === req.user.id;
+            if (!isP1 && !isP2) {
+                return req.is('application/json')
+                    ? res.status(403).json({ error: 'Not a member of this conversation' })
+                    : res.redirect('/messages');
+            }
+
+            // Compute receiver from the conversation — never trust client input
+            const receiver_id = isP1 ? conversation.participant_2 : conversation.participant_1;
 
             // Single CTE query: INSERT + UPDATE in one round-trip
             const msg = await Message.send({
@@ -145,23 +154,28 @@ module.exports = {
             }
 
             // Fire-and-forget socket emit AFTER response is sent
-            const io = req.app.get('io');
-            if (io) {
-                const socketData = {
-                    id: msg.id,
-                    conversation_id: conversationId,
-                    content: msg.content,
-                    sender_id: req.user.id,
-                    sender_name: req.user.first_name,
-                    receiver_id: receiver_id,
-                    created_at: msg.created_at
-                };
-                io.to(`conversation_${conversationId}`).emit('new-message', socketData);
-                io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const socketData = {
+                        id: msg.id,
+                        conversation_id: conversationId,
+                        content: msg.content,
+                        sender_id: req.user.id,
+                        sender_name: req.user.first_name,
+                        receiver_id: receiver_id,
+                        created_at: msg.created_at
+                    };
+                    io.to(`conversation_${conversationId}`).emit('new-message', socketData);
+                    io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
+                }
+            } catch (emitErr) {
+                console.error('Socket emit error:', emitErr);
             }
 
         } catch (err) {
             console.error('Send message error:', err);
+            if (res.headersSent) return;
             if (req.is('application/json')) {
                 return res.status(500).json({ error: 'Failed to send message' });
             }
