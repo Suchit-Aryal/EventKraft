@@ -29,7 +29,7 @@ module.exports = {
             res.render('pages/jobs', {
                 title: 'Browse Jobs',
                 layout: req.user ? 'dashboard' : 'public',
-                activePage: 'jobs',
+                activePage: 'browse-jobs',
                 jobs,
                 categories: categories.rows,
                 filters: { keyword: keyword || '', category_id: category_id || '', minBudget: minBudget || '', maxBudget: maxBudget || '', location: location || '' }
@@ -38,6 +38,22 @@ module.exports = {
             console.error(err);
             req.flash('error', 'Failed to load jobs');
             res.redirect('/jobs');
+        }
+    },
+
+    async myProposals(req, res) {
+        try {
+            const proposals = await Proposal.findByWorker(req.user.id);
+            res.render('pages/my-proposals', {
+                title: 'My Proposals',
+                layout: 'dashboard',
+                activePage: 'proposals',
+                proposals
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load your proposals');
+            res.redirect('/dashboard');
         }
     },
 

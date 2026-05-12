@@ -69,13 +69,13 @@
     <span class="sidebar__group-label">Discover</span>
 
     <a href="/gigs"
-       class="sidebar__item <%= (locals.activePage === 'browse-services' || (locals.activePage === 'gigs' && !locals.currentUser.role === 'worker')) ? 'sidebar__item--active' : '' %>">
+       class="sidebar__item <%= (locals.activePage === 'browse-services' || (locals.activePage === 'gigs' && locals.currentUser.role !== 'worker')) ? 'sidebar__item--active' : '' %>">
       <%- icons.search %>
       <span>Browse Services</span>
     </a>
 
     <a href="/jobs"
-       class="sidebar__item <%= (locals.activePage === 'browse-jobs' || (locals.activePage === 'jobs' && !locals.currentUser.role === 'customer')) ? 'sidebar__item--active' : '' %>">
+       class="sidebar__item <%= (locals.activePage === 'browse-jobs' || (locals.activePage === 'jobs' && locals.currentUser.role !== 'customer')) ? 'sidebar__item--active' : '' %>">
       <%- icons.briefcase %>
       <span>Browse Jobs</span>
     </a>
@@ -93,13 +93,13 @@
 
       <span class="sidebar__group-label">My Work</span>
 
-      <a href="/gigs"
-         class="sidebar__item <%= (locals.activePage === 'gigs' || locals.activePage === 'my-services') ? 'sidebar__item--active' : '' %>">
+      <a href="/gigs/mine"
+         class="sidebar__item <%= locals.activePage === 'my-services' ? 'sidebar__item--active' : '' %>">
         <%- icons.star %>
         <span>My Services</span>
       </a>
 
-      <a href="/jobs"
+      <a href="/jobs/my-proposals"
          class="sidebar__item <%= locals.activePage === 'proposals' ? 'sidebar__item--active' : '' %>">
         <%- icons.send %>
         <span>My Proposals</span>

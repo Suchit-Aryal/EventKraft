@@ -40,13 +40,14 @@
 .topnav__dashboard-btn--active { background: #6b1d2a; color: #fff; }
 
 /* Icon buttons */
+.topnav__icon-wrapper { position: relative; }
 .topnav__icon-btn {
   position: relative; width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 10px; color: #8c8085; text-decoration: none;
   transition: all .2s;
 }
-.topnav__icon-btn:hover { background: #fdf8f0; color: #6b1d2a; }
+.topnav__icon-btn:hover, .topnav__icon-wrapper.is-active .topnav__icon-btn { background: #fdf8f0; color: #6b1d2a; }
 
 /* Badge */
 .topnav__badge {
@@ -66,7 +67,7 @@
   transition: all .2s; margin-left: 6px;
   background: #fdf8f0; border: 1px solid #e8e0d8;
 }
-.topnav__user:hover { border-color: #c8943e; background: #fff; }
+.topnav__user:hover, .topnav__user.is-active { border-color: #c8943e; background: #fff; }
 
 .topnav__avatar {
   width: 32px; height: 32px; border-radius: 50%;
@@ -74,25 +75,61 @@
 }
 .topnav__chevron { color: #a39391; font-size: 12px; }
 
-/* Redundant dropdown rules removed to avoid clipping. Handled by global style.css */
-
-.topnav__dropdown-avatar {
-  width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+/* Dropdown styling */
+.topnav__dropdown {
+  display: none !important; 
+  position: absolute; top: 100%; right: 0;
+  background: #fff; border: 1px solid #e8e0d8;
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(107,29,42,0.18);
+  min-width: 320px; z-index: 1000;
+  margin-top: 10px;
+  overflow: hidden;
 }
-.topnav__dropdown-head strong { display: block !important; font-size: 14px !important; color: #1a1018 !important; }
-.topnav__dropdown-head span { font-size: 12px !important; color: #a39391 !important; }
+
+/* Show on active class */
+.is-active > .topnav__dropdown { display: block !important; }
+
+.topnav__dropdown-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #f5ece0;
+}
+.topnav__dropdown-head strong { font-size: 14px; font-weight: 700; color: #1a1018; }
+.topnav__dropdown-head span { font-size: 12px; color: #a39391; }
+
+.topnav__dropdown-list { max-height: 380px; overflow-y: auto; }
+.topnav__dropdown-empty { padding: 40px 20px; text-align: center; color: #a39391; font-size: 13px; }
+
+.topnav__dropdown-item-link {
+  display: block; padding: 12px 18px; text-decoration: none;
+  border-bottom: 1px solid #fdf8f0; transition: background .2s;
+}
+.topnav__dropdown-item-link:hover { background: #fdf8f0; }
+.topnav__dropdown-item-link.is-unread { background: rgba(107,29,42, 0.03); }
+
+.notif-item__title { display: block; font-size: 13px; font-weight: 700; color: #1a1018; }
+.notif-item__msg { display: block; font-size: 12px; color: #5c5055; margin-top: 2px; }
+.notif-item__time { display: block; font-size: 10px; color: #a39391; margin-top: 4px; }
+
+.topnav__dropdown-foot {
+  display: block; text-align: center; padding: 12px;
+  font-size: 12px; font-weight: 700; color: #6b1d2a;
+  background: #fdf8f0; text-decoration: none; border-top: 1px solid #e8e0d8;
+}
+.topnav__dropdown-foot:hover { background: #6b1d2a; color: #fff; }
 
 .topnav__dropdown-sep { height: 1px; background: #f5ece0; margin: 6px 0; }
-
 .topnav__dropdown-item {
-  display: flex !important; align-items: center !important; gap: 10px !important; padding: 10px 14px !important; border-radius: 10px !important;
-  font-size: 14px !important; color: #5c5055 !important; text-decoration: none !important;
-  border: none !important; background: none !important; width: 100% !important; text-align: left !important;
-  cursor: pointer !important; transition: all .2s !important; font-weight: 500 !important;
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px;
+  font-size: 14px; color: #5c5055; text-decoration: none;
+  border: none; background: none; width: 100%; text-align: left;
+  cursor: pointer; transition: all .2s;
 }
-.topnav__dropdown-item:hover { background: #fdf8f0 !important; color: #6b1d2a !important; }
-.topnav__dropdown-item--danger { color: #ef4444 !important; }
-.topnav__dropdown-item--danger:hover { background: #fef2f2 !important; }
+.topnav__dropdown-item:hover { background: #fdf8f0; color: #6b1d2a; }
+.topnav__dropdown-item--danger { color: #ef4444; }
+
+.topnav__avatar-dropdown-head { padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+.topnav__dropdown-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
 
 /* Logged-out CTA buttons */
 .topnav__btn-outline {

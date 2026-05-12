@@ -543,21 +543,9 @@ a:hover { color: var(--ek-maroon-light); }
   /* CRITICAL: No overflow hidden here */
 }
 
-/* THE ULTIMATE HOVER BRIDGE */
-.topnav__dropdown::before {
-  content: "" !important;
-  position: absolute !important;
-  top: -40px !important; 
-  left: -20px !important; 
-  right: -20px !important; 
-  height: 45px !important;
-  background: transparent !important;
-  display: block !important;
-}
+/* THE ULTIMATE HOVER BRIDGE REMOVED */
 
-.topnav__icon-wrapper:hover .topnav__dropdown,
-.topnav__icon-btn:hover .topnav__dropdown,
-.topnav__user:hover .topnav__dropdown { 
+.is-active > .topnav__dropdown { 
   display: block !important; 
 }
 
