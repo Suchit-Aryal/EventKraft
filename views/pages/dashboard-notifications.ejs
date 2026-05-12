@@ -1,78 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= locals.pageTitle || 'Notifications' %> — EventKraft</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/topnav.css">
-  <link rel="stylesheet" href="/css/sidebar.css">
-  <link rel="stylesheet" href="/css/forms.css">
-  <style>
-    .notif-list { display: flex; flex-direction: column; gap: 10px; }
-    .notif-item {
-      display: flex; align-items: flex-start; gap: 14px;
-      padding: 14px 16px; background: #fff; border: 1px solid #E4E7EC;
-      border-radius: 12px; text-decoration: none; color: #344054;
-      transition: background .12s, border-color .12s;
-    }
-    .notif-item:hover { background: #F9FAFB; border-color: #D0D5DD; }
-    .notif-item--unread { border-left: 3px solid #4338CA; }
-    .notif-icon {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: #EEF4FF; color: #3538CD;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
-    }
-    .notif-body { flex: 1; min-width: 0; }
-    .notif-title { font-size: 14px; font-weight: 600; color: #101828; margin: 0 0 2px; }
-    .notif-msg { font-size: 13px; color: #667085; margin: 0 0 4px; }
-    .notif-time { font-size: 12px; color: #98A2B3; }
-    .notif-empty { text-align: center; padding: 48px 20px; color: #667085; font-size: 14px; }
-  </style>
-</head>
-<body class="dashboard-body">
-  <%- include('../partials/topnav') %>
-  <div class="dashboard-shell">
-    <%- include('../partials/sidebar') %>
-    <main class="dashboard-main">
-      <div class="dashboard-main__inner">
+<%- include('../partials/dashboard-wrapper-start', { title: 'Notifications', activePage: 'notifications' }) %>
 
-        <% if (locals.success && success.length > 0) { %>
-          <% success.forEach(function(msg) { %><div class="flash flash--success"><%= msg %></div><% }) %>
-        <% } %>
-        <% if (locals.error && error.length > 0) { %>
-          <% error.forEach(function(msg) { %><div class="flash flash--error"><%= msg %></div><% }) %>
-        <% } %>
+<div class="page-header mb-4">
+  <h1 class="font-display fs-2 fw-bold mb-1">Notifications</h1>
+  <p class="text-muted">All your updates in one place.</p>
+</div>
 
-        <div class="page-header">
-          <h1 class="page-title">Notifications</h1>
-          <p class="page-desc">All your updates in one place.</p>
+<% if (notifications && notifications.length > 0) { %>
+  <div class="notif-list d-flex flex-column gap-2">
+    <% notifications.forEach(function(n) { %>
+      <a href="<%= n.link || '#' %>" class="card border-0 shadow-sm text-decoration-none p-3 hover-lift <%= n.is_read ? '' : 'border-start border-4 border-primary' %>">
+        <div class="d-flex align-items-start gap-3">
+          <div class="bg-light rounded-circle p-2 text-primary">
+            <i class="bi bi-bell"></i>
+          </div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1 text-dark"><%= n.title %></h6>
+            <% if (n.message) { %>
+              <p class="text-muted small mb-1"><%= n.message %></p>
+            <% } %>
+            <span class="text-muted" style="font-size: 0.75rem;">
+              <i class="bi bi-clock me-1"></i><%= n.created_at ? new Date(n.created_at).toLocaleString() : '' %>
+            </span>
+          </div>
         </div>
-
-        <% if (notifications && notifications.length > 0) { %>
-          <div class="notif-list">
-            <% notifications.forEach(function(n) { %>
-              <a href="<%= n.link || '#' %>" class="notif-item <%= n.is_read ? '' : 'notif-item--unread' %>">
-                <div class="notif-icon">🔔</div>
-                <div class="notif-body">
-                  <p class="notif-title"><%= n.title %></p>
-                  <% if (n.message) { %>
-                    <p class="notif-msg"><%= n.message %></p>
-                  <% } %>
-                  <span class="notif-time"><%= n.created_at ? new Date(n.created_at).toLocaleString() : '' %></span>
-                </div>
-              </a>
-            <% }) %>
-          </div>
-        <% } else { %>
-          <div class="notif-empty">
-            <p>No notifications yet.</p>
-          </div>
-        <% } %>
-
-      </div>
-    </main>
+      </a>
+    <% }) %>
   </div>
-</body>
-</html>
+<% } else { %>
+  <div class="empty-state py-5 bg-white border rounded-4">
+    <i class="bi bi-bell-slash text-muted mb-3 d-block fs-1"></i>
+    <p class="text-muted fw-medium">No notifications yet.</p>
+  </div>
+<% } %>
+
+<%- include('../partials/dashboard-wrapper-end') %>

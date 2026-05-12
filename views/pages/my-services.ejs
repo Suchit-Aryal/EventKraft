@@ -1,0 +1,83 @@
+<%- include('../partials/dashboard-wrapper-start', { title: 'My Services', activePage: 'my-services' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="font-display fs-2 fw-bold mb-1">My Services</h1>
+        <p class="text-muted">Manage the services you offer on EventKraft.</p>
+    </div>
+    <a href="/gigs/create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Create New Service
+    </a>
+</div>
+
+<% if (gigs && gigs.length > 0) { %>
+    <div class="row g-4">
+        <% gigs.forEach(gig => { %>
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift">
+                    <div class="position-relative">
+                        <% 
+                            let cardImages = [];
+                            try {
+                                if (Array.isArray(gig.portfolio_images)) {
+                                    cardImages = gig.portfolio_images;
+                                } else if (typeof gig.portfolio_images === 'string') {
+                                    cardImages = JSON.parse(gig.portfolio_images || '[]');
+                                }
+                            } catch(e) {}
+                        %>
+                        <a href="/gigs/<%= gig.id %>" class="text-decoration-none">
+                            <% if (cardImages.length > 0) { %>
+                                <img src="<%= cardImages[0] %>" class="card-img-top" alt="<%= gig.title %>" style="height: 180px; object-fit: cover; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                            <% } else { %>
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px; border-top-left-radius: 12px; border-top-right-radius: 12px;">
+                                    <i class="bi bi-image text-muted fs-1"></i>
+                                </div>
+                            <% } %>
+                        </a>
+                        <div class="position-absolute top-0 end-0 p-2">
+                            <span class="badge <%= gig.status === 'active' ? 'bg-success' : 'bg-secondary' %> shadow-sm">
+                                <%= gig.status.toUpperCase() %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="badge bg-light text-dark align-self-start mb-2"><%= gig.category_name %></div>
+                        <h6 class="card-title fw-bold mb-2">
+                            <a href="/gigs/<%= gig.id %>" class="text-dark text-decoration-none">
+                                <%= gig.title %>
+                            </a>
+                        </h6>
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted small d-block">Starting at</span>
+                                <span class="fw-bold text-primary">NPR <%= Number(gig.starting_price).toLocaleString() %></span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="/gigs/<%= gig.id %>/edit" class="btn btn-outline-secondary btn-sm" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="/gigs/<%= gig.id %>?_method=DELETE" method="POST" onsubmit="return confirm('Are you sure you want to delete this service?')">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
+<% } else { %>
+    <div class="empty-state py-5 bg-white border rounded-4 text-center">
+        <div class="mb-3" style="font-size: 3rem; opacity: 0.3;">
+            <i class="bi bi-shop"></i>
+        </div>
+        <h4 class="fw-bold">No services listed yet</h4>
+        <p class="text-muted">Start reaching customers by listing your first service.</p>
+        <a href="/gigs/create" class="btn btn-primary mt-2">Create Your First Service</a>
+    </div>
+<% } %>
+
+<%- include('../partials/dashboard-wrapper-end') %>
