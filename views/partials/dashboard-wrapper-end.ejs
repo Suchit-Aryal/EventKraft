@@ -4,8 +4,12 @@
   
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    window.CURRENT_USER_ID = '<%= locals.currentUser ? currentUser.id : "" %>';
+  </script>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/realtime-badges.js"></script>
+  <script src="/js/notifications-popup.js"></script>
   <%- locals.scripts || '' %>
 </body>
 </html>

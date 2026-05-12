@@ -1,0 +1,59 @@
+<%- include('../partials/dashboard-wrapper-start', { title: 'My Proposals', activePage: 'proposals' }) %>
+
+<div class="mb-4">
+    <h1 class="font-display fs-2 fw-bold mb-1">My Proposals</h1>
+    <p class="text-muted">Track the proposals you've submitted to job postings.</p>
+</div>
+
+<% if (proposals && proposals.length > 0) { %>
+    <div class="crm-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Your Bid</th>
+                    <th>Status</th>
+                    <th>Submitted On</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% proposals.forEach(function(p) { %>
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark"><%= p.job_title %></div>
+                            <div class="text-muted small">
+                                Budget: NPR <%= Number(p.budget_min).toLocaleString() %> - <%= Number(p.budget_max).toLocaleString() %>
+                            </div>
+                        </td>
+                        <td class="fw-bold text-primary">
+                            NPR <%= Number(p.proposed_price).toLocaleString() %>
+                        </td>
+                        <td>
+                            <span class="badge-status badge-<%= p.status %>">
+                                <%= p.status.replace('_', ' ') %>
+                            </span>
+                        </td>
+                        <td class="text-muted small">
+                            <%= new Date(p.created_at).toLocaleDateString() %>
+                        </td>
+                        <td>
+                            <a href="/jobs/<%= p.job_id %>" class="btn btn-sm btn-ek-outline">View Job</a>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+<% } else { %>
+    <div class="empty-state py-5 bg-white border rounded-4 text-center">
+        <div class="mb-3" style="font-size: 3rem; opacity: 0.3;">
+            <i class="bi bi-send"></i>
+        </div>
+        <h4 class="fw-bold">No proposals sent yet</h4>
+        <p class="text-muted">Browse open jobs and start sending proposals to win work.</p>
+        <a href="/jobs" class="btn btn-primary mt-2">Browse Available Jobs</a>
+    </div>
+<% } %>
+
+<%- include('../partials/dashboard-wrapper-end') %>

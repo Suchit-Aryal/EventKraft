@@ -13,6 +13,9 @@ const upload = require('../middleware/upload');
 // GET  /gigs/api/search  – JSON autocomplete results
 router.get('/api/search', gigCtrl.apiSearch);
 
+// GET  /gigs/mine      – My own listed services
+router.get('/mine', ensureAuthenticated, ensureRole('worker'), gigCtrl.myServices);
+
 // GET  /gigs          – Browse all active gigs
 router.get('/', gigCtrl.index);
 
