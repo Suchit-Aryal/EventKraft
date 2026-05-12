@@ -97,6 +97,32 @@
 .topnav__dropdown-head strong { font-size: 14px; font-weight: 700; color: #1a1018; }
 .topnav__dropdown-head span { font-size: 12px; color: #a39391; }
 
+/* ── Clear All Button (Premium Pill) ── */
+.btn-clear-all {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 14px; border-radius: 100px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+  color: #6b1d2a; background: rgba(107,29,42,0.06);
+  border: 1px solid rgba(107,29,42,0.12);
+  cursor: pointer; transition: all .25s ease;
+  text-transform: uppercase;
+}
+.btn-clear-all:hover {
+  background: linear-gradient(135deg, #6b1d2a, #8c3a4a);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 4px 12px rgba(107,29,42,0.25);
+  transform: translateY(-1px);
+}
+.btn-clear-all:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 2px 6px rgba(107,29,42,0.15);
+}
+.btn-clear-all--done {
+  background: #10b981; color: #fff;
+  border-color: transparent;
+  pointer-events: none;
+}
+
 .topnav__dropdown-list { max-height: 380px; overflow-y: auto; }
 .topnav__dropdown-empty { padding: 40px 20px; text-align: center; color: #a39391; font-size: 13px; }
 
@@ -110,6 +136,32 @@
 .notif-item__title { display: block; font-size: 13px; font-weight: 700; color: #1a1018; }
 .notif-item__msg { display: block; font-size: 12px; color: #5c5055; margin-top: 2px; }
 .notif-item__time { display: block; font-size: 10px; color: #a39391; margin-top: 4px; }
+
+/* ── Message Item Styles (msg dropdown) ── */
+.msg-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 2px 0;
+}
+.msg-item__avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  object-fit: cover; border: 2px solid #f5ece0;
+  flex-shrink: 0;
+}
+.msg-item__info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.msg-item__name {
+  font-size: 13px; font-weight: 700; color: #1a1018;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.msg-item__snippet {
+  font-size: 12px; color: #8c8085;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.msg-item__time {
+  font-size: 10px; color: #a39391;
+}
 
 .topnav__dropdown-foot {
   display: block; text-align: center; padding: 12px;
