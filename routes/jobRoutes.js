@@ -11,6 +11,9 @@ const { ensureRole } = require('../middleware/roleCheck');
 // GET  /jobs/api/search  – JSON autocomplete results
 router.get('/api/search', jobCtrl.apiSearch);
 
+// GET  /jobs/my-proposals – Proposals submitted by worker
+router.get('/my-proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.myProposals);
+
 // GET  /jobs          – Browse all published jobs
 router.get('/', jobCtrl.index);
 
