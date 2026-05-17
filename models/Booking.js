@@ -13,8 +13,8 @@ const Booking = {
             `INSERT INTO bookings
              (customer_id, worker_id, gig_id, job_id, package_id,
               total_amount, commission_rate, commission_amount, worker_earning,
-              event_date, event_location, requirements, status)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+              event_date, event_location, requirements, customer_note, status)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
              RETURNING *`,
             [
                 data.customer_id, data.worker_id, data.gig_id || null,
@@ -22,7 +22,8 @@ const Booking = {
                 data.total_amount, data.commission_rate,
                 data.commission_amount, data.worker_earning,
                 data.event_date, data.event_location,
-                data.requirements, data.status || 'pending'
+                data.requirements, data.customer_note || null,
+                data.status || 'pending'
             ]
         );
         return result.rows[0];
@@ -121,6 +122,18 @@ const Booking = {
 
     async cancel(id) {
         return this.updateStatus(id, 'cancelled');
+    },
+
+    async updateFields(id, fields) {
+        const keys = Object.keys(fields);
+        if (keys.length === 0) return;
+        const setClauses = keys.map((key, i) => `${key} = $${i + 2}`).join(', ');
+        const values = [id, ...keys.map(k => fields[k])];
+        const result = await pool.query(
+            `UPDATE bookings SET ${setClauses} WHERE id = $1 RETURNING *`,
+            values
+        );
+        return result.rows[0];
     },
 
     // ─── DELETE ─────────────────────────────────────────────

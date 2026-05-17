@@ -3,6 +3,9 @@
 // ============================================================
 
 const Booking = require('../models/Booking');
+const pool = require('../config/db');
+const Message = require('../models/Message');
+const { createNotification } = require('../utils/notify');
 
 module.exports = {
 
@@ -24,7 +27,63 @@ module.exports = {
 
     async store(req, res) {
         try {
-            const booking = await Booking.create({ ...req.body, customer_id: req.user.id });
+            const { customer_note, ...rest } = req.body;
+            const booking = await Booking.create({ ...rest, customer_id: req.user.id, customer_note: customer_note || null });
+
+            // Emit booking card to worker via chat (non-fatal)
+            try {
+                const gigResult = await pool.query(
+                    `SELECT sg.title AS gig_title, gp.title AS package_name
+                     FROM service_gigs sg
+                     LEFT JOIN gig_packages gp ON gp.id = $1
+                     WHERE sg.id = $2`,
+                    [booking.package_id, booking.gig_id]
+                );
+                const gigInfo = gigResult.rows[0] || {};
+
+                const customerResult = await pool.query(
+                    'SELECT first_name, last_name FROM profiles WHERE user_id = $1',
+                    [req.user.id]
+                );
+                const cp = customerResult.rows[0] || {};
+                const customerName = `${cp.first_name || ''} ${cp.last_name || ''}`.trim();
+
+                const conversation = await Message.getOrCreateConversation(req.user.id, booking.worker_id, booking.id, null);
+
+                await Message.send({
+                    conversationId: conversation.id,
+                    senderId: req.user.id,
+                    receiverId: booking.worker_id,
+                    content: JSON.stringify({
+                        type: 'booking_request',
+                        booking_id: booking.id,
+                        gig_title: gigInfo.gig_title || 'Service Booking',
+                        package_name: gigInfo.package_name || 'Package',
+                        total_price: booking.total_amount,
+                        event_date: booking.event_date,
+                        event_venue: booking.event_location,
+                        customer_note: booking.customer_note || null,
+                    }),
+                });
+
+                const io = req.app.get('io');
+                if (io) {
+                    io.to(`user_${booking.worker_id}`).emit('booking_request_card', {
+                        conversation_id: conversation.id,
+                        booking_id: booking.id,
+                        gig_title: gigInfo.gig_title || 'Service Booking',
+                        package_name: gigInfo.package_name || 'Package',
+                        total_price: booking.total_amount,
+                        event_date: booking.event_date,
+                        event_venue: booking.event_location,
+                        customer_note: booking.customer_note || null,
+                        customer_name: customerName,
+                    });
+                }
+            } catch (chatErr) {
+                console.error('Chat card emit error (non-fatal):', chatErr.message);
+            }
+
             req.flash('success', 'Booking created! The worker will be notified.');
             res.redirect(`/bookings/${booking.id}`);
         } catch (err) {
@@ -91,5 +150,430 @@ module.exports = {
             req.flash('error', 'Failed to cancel booking');
             res.redirect(`/bookings/${req.params.id}`);
         }
-    }
+    },
+
+    async showAgreement(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.customer_id !== req.user.id) return res.redirect('/dashboard');
+            if (!['accepted', 'awaiting_agreement'].includes(booking.status)) {
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+            const { AGREEMENT_VERSIONS } = require('../config/agreements');
+            res.render('pages/booking-agreement', {
+                title: 'Booking Agreement — EventKraft',
+                layout: 'dashboard',
+                activePage: 'bookings',
+                booking,
+                agreement: AGREEMENT_VERSIONS['v1.0'],
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load agreement page');
+            res.redirect('/bookings');
+        }
+    },
+
+    async acceptAgreement(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.customer_id !== req.user.id) return res.status(403).send('Forbidden');
+            if (!['accepted', 'awaiting_agreement'].includes(booking.status)) {
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
+            const { getAgreementHash } = require('../config/agreements');
+            const version = 'v1.0';
+            const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress;
+            const userAgent = req.headers['user-agent'];
+
+            await pool.query(
+                `INSERT INTO booking_agreements
+                 (booking_id, user_id, agreement_version, agreement_text_hash, ip_address, user_agent, advance_amount, final_amount, total_amount)
+                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+                 ON CONFLICT (booking_id, user_id) DO NOTHING`,
+                [
+                    booking.id, req.user.id, version, getAgreementHash(version),
+                    ip, userAgent,
+                    booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2)),
+                    booking.final_amount || parseFloat((booking.total_amount * 0.70).toFixed(2)),
+                    booking.total_amount,
+                ]
+            );
+
+            await Booking.updateFields(booking.id, {
+                legal_agreed_at: new Date(),
+                legal_agreed_ip: ip,
+                legal_agreed_user_agent: userAgent,
+                status: 'awaiting_agreement',
+            });
+
+            res.redirect(`/bookings/${booking.id}/pay-advance`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to record agreement');
+            res.redirect(`/bookings/${req.params.id}/agreement`);
+        }
+    },
+
+    async showAdvancePayment(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.customer_id !== req.user.id) return res.redirect('/dashboard');
+
+            if (!booking.legal_agreed_at) {
+                return res.redirect(`/bookings/${booking.id}/agreement`);
+            }
+
+            if (!['accepted', 'awaiting_agreement'].includes(booking.status)) {
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
+            if (booking.advance_deadline && new Date(booking.advance_deadline) < new Date()) {
+                await Booking.cancel(booking.id);
+                req.flash('error', 'Your advance payment deadline has expired. The booking has been cancelled.');
+                return res.redirect('/bookings');
+            }
+
+            const { generateTransactionUUID, signEsewaPayload, getEsewaEndpoint } = require('../utils/esewa');
+
+            const uuid = generateTransactionUUID();
+            const advanceAmount = booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2));
+
+            await Booking.updateFields(booking.id, { advance_transaction_uuid: uuid });
+
+            const productCode = process.env.ESEWA_MERCHANT_CODE;
+
+            const esewaPayload = {
+                amount: advanceAmount.toFixed(2),
+                tax_amount: '0',
+                total_amount: advanceAmount.toFixed(2),
+                transaction_uuid: uuid,
+                product_code: productCode,
+                product_service_charge: '0',
+                product_delivery_charge: '0',
+                success_url: `${req.protocol}://${req.get('host')}/bookings/${booking.id}/payment/advance/success`,
+                failure_url: `${req.protocol}://${req.get('host')}/bookings/${booking.id}/payment/advance/failure`,
+                signed_field_names: 'total_amount,transaction_uuid,product_code',
+                signature: signEsewaPayload(advanceAmount.toFixed(2), uuid, productCode),
+            };
+
+            const esewaEndpoint = getEsewaEndpoint();
+
+            res.render('pages/booking-pay-advance', {
+                title: 'Pay Advance — EventKraft',
+                layout: 'dashboard',
+                activePage: 'bookings',
+                booking,
+                esewaEndpoint,
+                esewaPayload,
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load payment page');
+            res.redirect('/bookings');
+        }
+    },
+
+    async handleAdvanceSuccess(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) {
+                req.flash('error', 'Booking not found');
+                return res.redirect('/dashboard');
+            }
+
+            const { verifyEsewaPayment } = require('../utils/esewa');
+            const encodedData = req.query.data;
+            if (!encodedData) {
+                req.flash('error', 'No payment data received from eSewa');
+                return res.redirect(`/bookings/${booking.id}/pay-advance`);
+            }
+
+            const decoded = JSON.parse(Buffer.from(encodedData, 'base64').toString('utf-8'));
+
+            const verified = await verifyEsewaPayment(
+                booking.advance_transaction_uuid,
+                booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2))
+            );
+
+            if (!verified) {
+                req.flash('error', 'Payment verification failed. Please try again.');
+                return res.redirect(`/bookings/${booking.id}/pay-advance`);
+            }
+
+            await Booking.updateFields(booking.id, {
+                status: 'paid_advance',
+                advance_esewa_ref_id: decoded.ref_id || verified.ref_id || null,
+                advance_paid_at: new Date(),
+            });
+
+            const Transaction = require('../models/Transaction');
+            const advanceAmount = booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2));
+            await Transaction.create({
+                booking_id: booking.id,
+                payer_id: req.user.id,
+                payee_id: booking.worker_id,
+                amount: advanceAmount,
+                commission: 0,
+                net_amount: advanceAmount,
+                type: 'advance_payment',
+                status: 'completed',
+                payment_method: 'esewa',
+            });
+
+            const io = req.app.get('io');
+            await createNotification(pool, io, {
+                userId: booking.worker_id,
+                type: 'advance_received',
+                title: '💰 Advance Payment Received',
+                message: `Advance payment of NPR ${Number(advanceAmount).toLocaleString('en-IN')} has been received for booking #${booking.id}.`,
+                link: `/bookings/${booking.id}`,
+            });
+
+            req.flash('success', 'Advance payment successful!');
+            res.redirect(`/bookings/${booking.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to process advance payment');
+            res.redirect(`/bookings/${req.params.id}/pay-advance`);
+        }
+    },
+
+    async handleAdvanceFailure(req, res) {
+        req.flash('error', 'Payment failed or was cancelled');
+        res.redirect(`/bookings/${req.params.id}/pay-advance`);
+    },
+
+    // ─── PHASE 7: Worker Completion ─────────────────────────
+
+    async submitCompletion(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.worker_id !== req.user.id) return res.status(403).send('Forbidden');
+            if (booking.status !== 'paid_advance') {
+                req.flash('error', 'Cannot submit completion at this stage.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
+            const cloudinary = require('../config/cloudinary');
+            const proofUrls = [];
+            for (const file of (req.files || [])) {
+                const result = await new Promise((resolve, reject) => {
+                    const stream = cloudinary.uploader.upload_stream(
+                        { folder: `eventkraft/proof/${booking.id}` },
+                        (err, result) => err ? reject(err) : resolve(result)
+                    );
+                    stream.end(file.buffer);
+                });
+                proofUrls.push({ url: result.secure_url, public_id: result.public_id });
+            }
+
+            const completedAt = new Date();
+            const disputeWindowExpires = new Date(completedAt.getTime() + 24 * 60 * 60 * 1000);
+            const finalDeadline = new Date(completedAt.getTime() + 48 * 60 * 60 * 1000);
+
+            await Booking.updateFields(booking.id, {
+                status: 'work_done',
+                completion_proof: JSON.stringify(proofUrls),
+                completion_note: req.body.completion_note || '',
+                completed_at: completedAt,
+                dispute_window_expires_at: disputeWindowExpires,
+                final_deadline: finalDeadline,
+            });
+
+            const io = req.app.get('io');
+            await createNotification(pool, io, {
+                userId: booking.customer_id,
+                type: 'work_completed',
+                title: '✅ Work Completed — Payment Due',
+                message: `Your service "${booking.gig_title || 'booking'}" has been completed. Pay the remaining amount within 48 hours. You have 24 hours to raise a dispute.`,
+                link: `/bookings/${booking.id}/pay-final`,
+            });
+
+            req.flash('success', 'Completion submitted. The customer has been notified.');
+            res.redirect(`/bookings/${booking.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to submit completion');
+            res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
+
+    // ─── PHASE 8: Final Payment + Dispute ───────────────────
+
+    async showFinalPayment(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.customer_id !== req.user.id) return res.redirect('/dashboard');
+            if (booking.status !== 'work_done') return res.redirect(`/bookings/${booking.id}`);
+
+            // Check if final deadline expired
+            if (booking.final_deadline && new Date() > new Date(booking.final_deadline) && !booking.final_paid_at) {
+                await Booking.updateFields(booking.id, { status: 'overdue_final', overdue_flagged_at: new Date() });
+                req.flash('error', 'Final payment deadline has passed.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
+            const disputeWindowOpen = booking.dispute_window_expires_at && new Date() < new Date(booking.dispute_window_expires_at);
+
+            const { generateTransactionUUID, signEsewaPayload, getEsewaEndpoint } = require('../utils/esewa');
+            const transactionUuid = generateTransactionUUID();
+            const finalAmount = parseFloat(booking.final_amount || (booking.total_amount * 0.70)).toFixed(2);
+            const productCode = process.env.ESEWA_MERCHANT_CODE;
+            const signature = signEsewaPayload(finalAmount, transactionUuid, productCode);
+
+            await Booking.updateFields(booking.id, { final_transaction_uuid: transactionUuid });
+
+            const proof = typeof booking.completion_proof === 'string'
+                ? JSON.parse(booking.completion_proof || '[]')
+                : (booking.completion_proof || []);
+
+            res.render('pages/booking-pay-final', {
+                title: 'Pay Final Balance — EventKraft',
+                layout: 'dashboard',
+                activePage: 'bookings',
+                booking,
+                proof,
+                disputeWindowOpen,
+                esewaEndpoint: getEsewaEndpoint(),
+                esewaPayload: {
+                    amount: finalAmount,
+                    tax_amount: '0',
+                    total_amount: finalAmount,
+                    transaction_uuid: transactionUuid,
+                    product_code: productCode,
+                    product_service_charge: '0',
+                    product_delivery_charge: '0',
+                    success_url: `${process.env.APP_URL}/bookings/${booking.id}/payment/final/success`,
+                    failure_url: `${process.env.APP_URL}/bookings/${booking.id}/payment/final/failure`,
+                    signed_field_names: 'total_amount,transaction_uuid,product_code',
+                    signature,
+                },
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load payment page');
+            res.redirect('/bookings');
+        }
+    },
+
+    async handleFinalSuccess(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.redirect('/dashboard');
+
+            const rawData = req.query.data;
+            let esewaData = {};
+            if (rawData) {
+                try { esewaData = JSON.parse(Buffer.from(rawData, 'base64').toString('utf8')); } catch (e) {}
+            }
+
+            const { verifyEsewaPayment } = require('../utils/esewa');
+            const finalAmount = booking.final_amount || parseFloat((booking.total_amount * 0.70).toFixed(2));
+            const verified = await verifyEsewaPayment(booking.final_transaction_uuid, finalAmount);
+
+            if (!verified) {
+                req.flash('error', 'Payment could not be verified. Please contact support.');
+                return res.redirect(`/bookings/${booking.id}/pay-final`);
+            }
+
+            await Booking.updateFields(booking.id, {
+                status: 'paid_final',
+                final_esewa_ref_id: esewaData.transaction_code || esewaData.ref_id || 'verified',
+                final_paid_at: new Date(),
+            });
+
+            await processCommissionAndPayout(booking, pool, req.app.get('io'));
+
+            req.flash('success', 'Final payment successful! The booking is now complete.');
+            res.redirect(`/bookings/${booking.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Payment processing failed. Please contact support.');
+            res.redirect('/bookings');
+        }
+    },
+
+    async handleFinalFailure(req, res) {
+        req.flash('error', 'Payment failed or was cancelled. Please try again.');
+        res.redirect(`/bookings/${req.params.id}/pay-final`);
+    },
+
+    async raiseDispute(req, res) {
+        try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking || booking.customer_id !== req.user.id) return res.status(403).send('Forbidden');
+
+            if (!booking.dispute_window_expires_at || new Date() > new Date(booking.dispute_window_expires_at)) {
+                req.flash('error', 'Dispute window has closed. Final payment is now due.');
+                return res.redirect(`/bookings/${booking.id}/pay-final`);
+            }
+
+            await Booking.updateFields(booking.id, {
+                status: 'dispute_raised',
+                dispute_raised_at: new Date(),
+            });
+
+            const Dispute = require('../models/Dispute');
+            await Dispute.create({
+                booking_id: booking.id,
+                raised_by: req.user.id,
+                reason: req.body.reason || 'No reason provided',
+                evidence: [],
+            });
+
+            const io = req.app.get('io');
+            await createNotification(pool, io, {
+                userId: booking.worker_id,
+                type: 'dispute_raised',
+                title: '⚠️ Dispute Raised',
+                message: `A dispute has been raised for booking "${booking.gig_title || 'your booking'}". An admin will review.`,
+                link: `/bookings/${booking.id}`,
+            });
+
+            req.flash('info', 'Dispute raised. An admin will review within 48 hours.');
+            res.redirect(`/bookings/${booking.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to raise dispute');
+            res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
 };
+
+// ─── Commission & Payout Helper ─────────────────────────────
+async function processCommissionAndPayout(booking, pool, io) {
+    try {
+        const CommissionSetting = require('../models/CommissionSetting');
+        const Transaction = require('../models/Transaction');
+        const { createNotification } = require('../utils/notify');
+
+        const commissionRate = await CommissionSetting.getRateForAmount(booking.total_amount);
+        const commissionAmount = parseFloat((booking.total_amount * commissionRate / 100).toFixed(2));
+        const finalAmount = parseFloat(booking.final_amount || (booking.total_amount * 0.70).toFixed(2));
+        const finalNetToWorker = parseFloat((finalAmount - commissionAmount).toFixed(2));
+
+        await Transaction.create({
+            booking_id: booking.id,
+            payer_id: booking.customer_id,
+            payee_id: booking.worker_id,
+            amount: finalAmount,
+            commission: commissionAmount,
+            net_amount: finalNetToWorker,
+            type: 'final_payment',
+            status: 'completed',
+            payment_method: 'esewa',
+        });
+
+        await createNotification(pool, io, {
+            userId: booking.worker_id,
+            type: 'payout_pending',
+            title: '💰 Final Payment Received',
+            message: `Final payment for "${booking.gig_title || 'booking'}" received. NPR ${Math.round(finalNetToWorker).toLocaleString()} (after ${commissionRate}% commission) will be transferred.`,
+            link: '/earnings',
+        });
+    } catch (err) {
+        console.error('processCommissionAndPayout error:', err.message);
+    }
+}

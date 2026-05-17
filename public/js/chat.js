@@ -296,3 +296,97 @@
 
     scrollToBottom();
 })();
+
+// ============================================================
+// Booking Card — Real-time booking request cards in chat
+// ============================================================
+
+(function () {
+    if (typeof io === 'undefined') return;
+    const socket = window.socket || io();
+    if (!window.socket) window.socket = socket;
+
+    socket.on('booking_request_card', (data) => {
+        const container = document.getElementById('chat-container');
+        if (!container) return;
+        const convId = container.dataset.conversationId;
+        if (convId && convId !== data.conversation_id) return;
+        renderBookingCard(data, false, null);
+        const messageArea = document.getElementById('messageArea');
+        if (messageArea) messageArea.scrollTop = messageArea.scrollHeight;
+    });
+
+    socket.on('booking_status_update', (data) => {
+        if (data.redirect) {
+            if (confirm(data.message + '\n\nClick OK to proceed.')) {
+                window.location.href = data.redirect;
+            }
+        }
+    });
+})();
+
+function renderBookingCard(data, decided, decision) {
+    const messageArea = document.getElementById('messageArea');
+    if (!messageArea) return;
+
+    const card = document.createElement('div');
+    card.className = 'booking-card-message';
+    card.setAttribute('data-booking-id', data.booking_id);
+
+    const eventDate = data.event_date
+        ? new Date(data.event_date).toLocaleDateString('en-NP')
+        : 'Not specified';
+    const totalPrice = data.total_price
+        ? Number(data.total_price).toLocaleString('en-NP')
+        : '0';
+
+    card.innerHTML = `
+        <div class="booking-card">
+            <div class="booking-card-header" onclick="toggleBookingCard(this)">
+                <div class="booking-card-title">
+                    <span class="booking-icon">📋</span>
+                    <strong>Booking Request</strong>
+                    <span class="booking-gig-name">${data.gig_title || ''}</span>
+                </div>
+                <span class="booking-card-chevron">▾</span>
+            </div>
+            <div class="booking-card-body" style="display:none;">
+                <div class="booking-detail-row"><span>Package</span><strong>${data.package_name || 'N/A'}</strong></div>
+                <div class="booking-detail-row"><span>Event Date</span><strong>${eventDate}</strong></div>
+                <div class="booking-detail-row"><span>Venue</span><strong>${data.event_venue || 'Not specified'}</strong></div>
+                <div class="booking-detail-row"><span>Total Price</span><strong>NPR ${totalPrice}</strong></div>
+                ${data.customer_note ? `<div class="booking-note"><em>"${data.customer_note}"</em></div>` : ''}
+                ${decided
+                    ? `<div class="booking-decision booking-decision--${decision}">${decision === 'accepted' ? '✅ Accepted' : '❌ Declined'}</div>`
+                    : `<div class="booking-actions">
+                           <button class="btn btn-success btn-sm" onclick="respondToBooking('${data.booking_id}', 'accepted')">Accept</button>
+                           <button class="btn btn-danger btn-sm" onclick="respondToBooking('${data.booking_id}', 'declined')">Decline</button>
+                       </div>`
+                }
+            </div>
+        </div>
+    `;
+
+    messageArea.appendChild(card);
+}
+
+function toggleBookingCard(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chevron = headerEl.querySelector('.booking-card-chevron');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    chevron.textContent = isOpen ? '▾' : '▴';
+}
+
+function respondToBooking(bookingId, decision) {
+    const socket = window.socket;
+    if (!socket) return;
+    socket.emit('booking_decision', { booking_id: bookingId, decision });
+    const card = document.querySelector(`[data-booking-id="${bookingId}"]`);
+    if (card) {
+        const actions = card.querySelector('.booking-actions');
+        if (actions) {
+            actions.innerHTML = `<div class="booking-decision booking-decision--${decision}">${decision === 'accepted' ? '✅ Accepted' : '❌ Declined'}</div>`;
+        }
+    }
+}

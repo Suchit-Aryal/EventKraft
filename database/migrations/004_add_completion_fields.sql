@@ -1,0 +1,7 @@
+ALTER TABLE bookings
+  ADD COLUMN IF NOT EXISTS completion_proof JSONB DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS completion_note TEXT,
+  ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS dispute_window_expires_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS dispute_raised_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS overdue_flagged_at TIMESTAMP;

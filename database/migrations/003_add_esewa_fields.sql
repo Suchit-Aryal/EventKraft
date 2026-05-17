@@ -1,0 +1,10 @@
+ALTER TABLE bookings
+  ADD COLUMN IF NOT EXISTS advance_amount DECIMAL(12,2),
+  ADD COLUMN IF NOT EXISTS advance_transaction_uuid VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS advance_esewa_ref_id VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS advance_paid_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS final_amount DECIMAL(12,2),
+  ADD COLUMN IF NOT EXISTS final_transaction_uuid VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS final_esewa_ref_id VARCHAR(100),
+  ADD COLUMN IF NOT EXISTS final_paid_at TIMESTAMP,
+  ADD COLUMN IF NOT EXISTS final_deadline TIMESTAMP;

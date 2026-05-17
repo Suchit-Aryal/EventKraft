@@ -1,0 +1,96 @@
+<%- include('../partials/dashboard-wrapper-start') %>
+
+<div class="container py-4" style="max-width:760px">
+    <a href="/bookings/<%= booking.id %>" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
+        <i class="bi bi-arrow-left"></i> Back to booking
+    </a>
+
+    <h1 class="font-display fs-3 fw-semibold mb-4">Pay Final Balance — eSewa</h1>
+
+    <!-- Proof Photos -->
+    <% if (proof && proof.length) { %>
+    <div class="ek-card mb-4" style="padding:1.5rem 2rem">
+        <h5 class="fw-semibold mb-3">Work Completion Proof</h5>
+        <% if (booking.completion_note) { %>
+            <p class="text-muted mb-3"><%= booking.completion_note %></p>
+        <% } %>
+        <div class="d-flex flex-wrap gap-2">
+            <% proof.forEach(function(p) { %>
+                <a href="<%= p.url %>" target="_blank">
+                    <img src="<%= p.url %>" style="width:120px;height:90px;object-fit:cover;border-radius:6px;" alt="proof">
+                </a>
+            <% }); %>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Amount Breakdown -->
+    <div class="ek-card mb-4" style="padding:1.5rem 2rem">
+        <h5 class="fw-semibold mb-3">Payment Breakdown</h5>
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span class="text-muted">Total Amount</span>
+            <span class="fw-semibold">NPR <%= Number(booking.total_amount || 0).toLocaleString('en-IN') %></span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <span class="text-muted">Advance Paid <span class="badge bg-success">30%</span></span>
+            <span class="fw-semibold text-success">NPR <%= Number(booking.advance_amount || (booking.total_amount * 0.30)).toLocaleString('en-IN') %></span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <span class="text-muted">Final Balance Due <span class="badge bg-warning text-dark">70%</span></span>
+            <span class="fw-semibold fs-5 text-warning">NPR <%= Number(booking.final_amount || (booking.total_amount * 0.70)).toLocaleString('en-IN') %></span>
+        </div>
+    </div>
+
+    <!-- Deadline Warning -->
+    <% if (booking.final_deadline) { %>
+    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+        <div>
+            <strong>Payment deadline:</strong>
+            Pay before <strong><%= new Date(booking.final_deadline).toLocaleString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></strong>
+            or this booking may be flagged for legal action.
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Dispute Option (only within 24h window) -->
+    <% if (disputeWindowOpen) { %>
+    <div class="ek-card mb-4" style="padding:1.5rem 2rem;border-left:4px solid #dc3545">
+        <h5 class="fw-semibold mb-2 text-danger">Not satisfied with the work?</h5>
+        <p class="text-muted small mb-3">You have until <strong><%= new Date(booking.dispute_window_expires_at).toLocaleString('en-GB', {hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}) %></strong> to raise a dispute.</p>
+        <form action="/bookings/<%= booking.id %>/dispute" method="POST">
+            <div class="mb-2">
+                <textarea name="reason" class="form-control" rows="2" placeholder="Describe the issue..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to raise a dispute? This will pause the payment process.')">
+                Raise a Dispute
+            </button>
+        </form>
+    </div>
+    <% } %>
+
+    <!-- Hidden eSewa Form -->
+    <form id="esewa-final-form" action="<%= esewaEndpoint %>" method="POST">
+        <input type="hidden" name="amount" value="<%= esewaPayload.amount %>">
+        <input type="hidden" name="tax_amount" value="<%= esewaPayload.tax_amount %>">
+        <input type="hidden" name="total_amount" value="<%= esewaPayload.total_amount %>">
+        <input type="hidden" name="transaction_uuid" value="<%= esewaPayload.transaction_uuid %>">
+        <input type="hidden" name="product_code" value="<%= esewaPayload.product_code %>">
+        <input type="hidden" name="product_service_charge" value="<%= esewaPayload.product_service_charge %>">
+        <input type="hidden" name="product_delivery_charge" value="<%= esewaPayload.product_delivery_charge %>">
+        <input type="hidden" name="success_url" value="<%= esewaPayload.success_url %>">
+        <input type="hidden" name="failure_url" value="<%= esewaPayload.failure_url %>">
+        <input type="hidden" name="signed_field_names" value="<%= esewaPayload.signed_field_names %>">
+        <input type="hidden" name="signature" value="<%= esewaPayload.signature %>">
+    </form>
+
+    <button type="button" class="btn btn-ek-primary w-100 mb-2" onclick="document.getElementById('esewa-final-form').submit()">
+        Pay NPR <%= Number(esewaPayload.total_amount).toLocaleString('en-IN') %> Final Balance via eSewa
+    </button>
+
+    <p class="text-center text-muted" style="font-size:.78rem">
+        You will be redirected to eSewa's secure payment page.
+    </p>
+</div>
+
+<%- include('../partials/dashboard-wrapper-end') %>
