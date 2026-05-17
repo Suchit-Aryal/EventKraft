@@ -278,12 +278,12 @@
 
     function buildFileHtml(url, name, type) {
         if (type && type.startsWith('image/')) {
-            return '<a href="' + url + '" target="_blank"><img src="' + url + '" alt="' + escapeHtml(name || 'Image') + '" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>';
+            return '<a href="' + url + '" target="_blank" rel="noopener noreferrer"><img src="' + url + '" alt="' + escapeHtml(name || 'Image') + '" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>';
         }
         var icon = 'bi-file-earmark';
         if (type === 'application/pdf') icon = 'bi-file-earmark-pdf-fill';
         else if (type && (type.includes('zip') || type.includes('rar'))) icon = 'bi-file-earmark-zip-fill';
-        return '<a href="' + url + '" target="_blank" class="msg-file-preview"><i class="bi ' + icon + '"></i><span style="font-size:.8rem">' + escapeHtml(name || 'File') + '</span></a>';
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="msg-file-preview"><i class="bi ' + icon + '"></i><span style="font-size:.8rem">' + escapeHtml(name || 'File') + '</span></a>';
     }
 
     function bookingCardInnerHtml(data) {
@@ -296,14 +296,14 @@
 
         return `
             <div class="booking-card">
-                <div class="booking-card-header" onclick="toggleBookingCard(this)">
+                <button type="button" class="booking-card-header" aria-expanded="false" onclick="toggleBookingCard(this)">
                     <div class="booking-card-title">
                         <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
                         <strong>Booking Request</strong>
                         <span class="booking-gig-name">${escapeHtml(data.gig_title || '')}</span>
                     </div>
                     <span class="booking-card-chevron">▾</span>
-                </div>
+                </button>
                 <div class="booking-card-body" style="display:none;">
                     <div class="booking-detail-row"><span>Package</span><strong>${escapeHtml(data.package_name || 'N/A')}</strong></div>
                     <div class="booking-detail-row"><span>Event Date</span><strong>${escapeHtml(eventDate)}</strong></div>
@@ -355,8 +355,8 @@
     socket.on('booking_request_card', (data) => {
         const container = document.getElementById('chat-container');
         if (!container) return;
-        const convId = container.dataset.conversationId;
-        if (convId && convId !== data.conversation_id) return;
+        const convId = String(container.dataset.conversationId || '');
+        if (convId && convId !== String(data.conversation_id || '')) return;
         renderBookingCard(data, false, null);
         const messageArea = document.getElementById('messageArea');
         if (messageArea) messageArea.scrollTop = messageArea.scrollHeight;
@@ -396,14 +396,14 @@ function renderBookingCard(data, decided, decision) {
 
     card.innerHTML = `
         <div class="booking-card">
-            <div class="booking-card-header" onclick="toggleBookingCard(this)">
+            <button type="button" class="booking-card-header" aria-expanded="false" onclick="toggleBookingCard(this)">
                 <div class="booking-card-title">
                     <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
                     <strong>Booking Request</strong>
                     <span class="booking-gig-name">${escapeBookingHtml(data.gig_title || '')}</span>
                 </div>
                 <span class="booking-card-chevron">▾</span>
-            </div>
+            </button>
             <div class="booking-card-body" style="display:none;">
                 <div class="booking-detail-row"><span>Package</span><strong>${escapeBookingHtml(data.package_name || 'N/A')}</strong></div>
                 <div class="booking-detail-row"><span>Event Date</span><strong>${escapeBookingHtml(eventDate)}</strong></div>
@@ -431,6 +431,7 @@ function toggleBookingCard(headerEl) {
     const chevron = headerEl.querySelector('.booking-card-chevron');
     const isOpen = body.style.display !== 'none';
     body.style.display = isOpen ? 'none' : 'block';
+    headerEl.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
     chevron.textContent = isOpen ? '▾' : '▴';
 }
 

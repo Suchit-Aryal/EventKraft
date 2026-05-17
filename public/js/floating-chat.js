@@ -376,52 +376,57 @@
   function updateBookingCards(bookingId, status, decision) {
     const finalDecision = decision || (status === 'cancelled' ? 'declined' : 'accepted');
     document.querySelectorAll(`[data-booking-id="${bookingId}"]`).forEach((card) => {
-      const replacement = document.createElement('div');
-      replacement.className = `floating-booking-card__decision floating-booking-card__decision--${finalDecision}`;
-      replacement.textContent = finalDecision === 'accepted' ? 'Accepted' : 'Declined';
+      const label = finalDecision === 'accepted' ? 'Accepted' : 'Declined';
+      const icon = finalDecision === 'accepted' ? 'bi-check-circle' : 'bi-x-circle';
+      const floatingHtml = `<div class="floating-booking-card__decision floating-booking-card__decision--${finalDecision}">${label}</div>`;
+      const chatHtml = `<div class="booking-decision booking-decision--${finalDecision}"><i class="bi ${icon} me-1"></i>${label}</div>`;
 
-      const actions = card.querySelector('.floating-booking-card__actions');
-      const progress = card.querySelector('.floating-booking-card__progress');
-      const existingDecision = card.querySelector('.floating-booking-card__decision');
-      if (actions) actions.replaceWith(replacement);
-      else if (progress) progress.replaceWith(replacement);
-      else if (existingDecision) existingDecision.replaceWith(replacement);
+      const floatingTarget = card.querySelector('.floating-booking-card__actions, .floating-booking-card__progress, .floating-booking-card__decision');
+      const chatTarget = card.querySelector('.booking-actions, .booking-progress, .booking-decision');
+      if (floatingTarget) floatingTarget.outerHTML = floatingHtml;
+      if (chatTarget) chatTarget.outerHTML = chatHtml;
     });
   }
 
-  if (!window.respondToBooking) {
-    window.respondToBooking = async function(bookingId, decision) {
-      const cards = document.querySelectorAll(`[data-booking-id="${bookingId}"]`);
-      cards.forEach((card) => {
-        card.querySelectorAll('.floating-booking-card__actions button, .booking-actions button').forEach((btn) => {
-          btn.disabled = true;
-          btn.textContent = 'Saving...';
-        });
+  window.respondToBooking = async function(bookingId, decision) {
+    const cards = document.querySelectorAll(`[data-booking-id="${bookingId}"]`);
+    cards.forEach((card) => {
+      card.querySelectorAll('.floating-booking-card__actions button, .booking-actions button').forEach((btn) => {
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
       });
+    });
 
-      try {
-        const res = await fetch(`/bookings/${bookingId}/decision`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ decision })
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || 'Failed to update booking');
-        updateBookingCards(bookingId, data.status, data.decision || decision);
-      } catch (err) {
-        alert(err.message);
-        cards.forEach((card) => {
-          const actions = card.querySelector('.floating-booking-card__actions');
-          if (actions) {
-            actions.innerHTML = `
-              <button type="button" class="floating-booking-card__accept" onclick="respondToBooking('${bookingId}', 'accepted')">Accept</button>
-              <button type="button" class="floating-booking-card__decline" onclick="respondToBooking('${bookingId}', 'declined')">Decline</button>
-            `;
-          }
-        });
-      }
-    };
-  }
+    try {
+      const res = await fetch(`/bookings/${bookingId}/decision`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to update booking');
+      updateBookingCards(bookingId, data.status, data.decision || decision);
+    } catch (err) {
+      alert(err.message);
+      cards.forEach((card) => {
+        const floatingActions = card.querySelector('.floating-booking-card__actions');
+        if (floatingActions) {
+          floatingActions.innerHTML = `
+            <button type="button" class="floating-booking-card__accept" onclick="respondToBooking('${bookingId}', 'accepted')">Accept</button>
+            <button type="button" class="floating-booking-card__decline" onclick="respondToBooking('${bookingId}', 'declined')">Decline</button>
+          `;
+        }
+
+        const chatActions = card.querySelector('.booking-actions');
+        if (chatActions) {
+          chatActions.innerHTML = `
+            <button class="btn btn-success btn-sm" onclick="respondToBooking('${bookingId}', 'accepted')">Accept</button>
+            <button class="btn btn-danger btn-sm" onclick="respondToBooking('${bookingId}', 'declined')">Decline</button>
+          `;
+        }
+      });
+    }
+  };
 
   // ─── INTERCEPT NAVBAR MESSAGE CLICKS ──────────────────────
 
@@ -452,15 +457,16 @@
   if (socket) {
     socket.on('booking_request_card', async (data) => {
       if (!data || !data.conversation_id) return;
-      if (window.location.pathname === `/messages/${data.conversation_id}`) return;
+      const convoId = String(data.conversation_id);
+      if (window.location.pathname === `/messages/${convoId}`) return;
 
       await window.openFloatingChat(
-        data.conversation_id,
+        convoId,
         data.customer_name || 'Customer',
         data.customer_avatar || '/images/default-avatar.png'
       );
 
-      const chatBox = activeChats.get(data.conversation_id);
+      const chatBox = activeChats.get(convoId);
       if (chatBox) {
         appendBookingCard(chatBox.querySelector('.chat-box__body'), data);
         scrollToBottom(chatBox);
