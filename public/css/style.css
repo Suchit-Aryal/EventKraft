@@ -653,3 +653,69 @@ a:hover { color: var(--ek-maroon-light); }
 .reply-bar { display:flex; align-items:center; gap:8px; padding:8px 16px; background:var(--chat-surface,#fff); border-top:1px solid var(--chat-border,#eee); font-size:.8rem; }
 .reply-bar .reply-preview { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--chat-muted); }
 .file-preview-bar { display:flex; align-items:center; gap:8px; padding:8px 16px; background:var(--chat-surface,#fff); border-top:1px solid var(--chat-border,#eee); font-size:.8rem; }
+
+/* ============================================================
+   Booking Card — Chat booking request cards
+   ============================================================ */
+.booking-card-message {
+    margin: 12px 0;
+    max-width: 420px;
+}
+.booking-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fafafa;
+}
+.booking-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: #f0f4ff;
+}
+.booking-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+.booking-gig-name {
+    color: #666;
+    font-size: 13px;
+}
+.booking-card-body {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.booking-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 6px;
+}
+.booking-note {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    padding: 6px;
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+.booking-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+.booking-decision {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 0;
+}
+.booking-decision--accepted { color: #28a745; }
+.booking-decision--declined { color: #dc3545; }
