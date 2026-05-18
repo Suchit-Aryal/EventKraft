@@ -33,6 +33,9 @@ By clicking "I Agree and Proceed to Payment", you confirm you have read, underst
 };
 
 function getAgreementHash(version) {
+  if (!AGREEMENT_VERSIONS[version]) {
+    throw new Error(`Unsupported agreement version: ${version}`);
+  }
   const text = AGREEMENT_VERSIONS[version].text;
   return crypto.createHash('sha256').update(text).digest('hex');
 }

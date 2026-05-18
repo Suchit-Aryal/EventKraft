@@ -30,7 +30,9 @@ CREATE TYPE package_tier AS ENUM (
 );
 
 CREATE TYPE booking_status AS ENUM (
-    'pending', 'accepted', 'in_progress', 'completed', 'cancelled', 'disputed'
+    'pending', 'accepted', 'in_progress', 'completed', 'cancelled', 'disputed',
+    'awaiting_agreement', 'paid_advance', 'work_done', 'dispute_raised',
+    'paid_final', 'overdue_final', 'legal_action', 'payment_settlement_failed'
 );
 
 CREATE TYPE transaction_type AS ENUM (

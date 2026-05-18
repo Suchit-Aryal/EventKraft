@@ -14,8 +14,37 @@ CREATE TABLE IF NOT EXISTS booking_agreements (
   agreed_at TIMESTAMP NOT NULL DEFAULT NOW(),
   ip_address VARCHAR(45) NOT NULL,
   user_agent TEXT,
-  advance_amount DECIMAL(12,2) NOT NULL,
-  final_amount DECIMAL(12,2) NOT NULL,
-  total_amount DECIMAL(12,2) NOT NULL,
+  advance_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_advance_amount_nonnegative_chk CHECK (advance_amount >= 0),
+  final_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_final_amount_nonnegative_chk CHECK (final_amount >= 0),
+  total_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_total_amount_nonnegative_chk CHECK (total_amount >= 0),
+  CONSTRAINT booking_agreements_amounts_sum_chk CHECK (advance_amount + final_amount = total_amount),
   UNIQUE(booking_id, user_id)
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'booking_agreements_advance_amount_nonnegative_chk'
+  ) THEN
+    ALTER TABLE booking_agreements ADD CONSTRAINT booking_agreements_advance_amount_nonnegative_chk
+      CHECK (advance_amount >= 0);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'booking_agreements_final_amount_nonnegative_chk'
+  ) THEN
+    ALTER TABLE booking_agreements ADD CONSTRAINT booking_agreements_final_amount_nonnegative_chk
+      CHECK (final_amount >= 0);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'booking_agreements_total_amount_nonnegative_chk'
+  ) THEN
+    ALTER TABLE booking_agreements ADD CONSTRAINT booking_agreements_total_amount_nonnegative_chk
+      CHECK (total_amount >= 0);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'booking_agreements_amounts_sum_chk'
+  ) THEN
+    ALTER TABLE booking_agreements ADD CONSTRAINT booking_agreements_amounts_sum_chk
+      CHECK (advance_amount + final_amount = total_amount);
+  END IF;
+END $$;

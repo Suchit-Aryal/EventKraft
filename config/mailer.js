@@ -4,6 +4,15 @@
 
 const nodemailer = require('nodemailer');
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT) || 587,
@@ -45,7 +54,7 @@ async function sendBookingAcceptedEmail(toEmail, booking, deadline) {
           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#fff;border-radius:12px;border:1px solid #eee">
             <h1 style="color:#6b1d2a;text-align:center">EventKraft</h1>
             <h2>Your booking has been accepted!</h2>
-            <p>Great news — <strong>${workerName}</strong> has accepted your booking for <strong>${gigTitle}</strong>.</p>
+            <p>Great news — <strong>${escapeHtml(workerName)}</strong> has accepted your booking for <strong>${escapeHtml(gigTitle)}</strong>.</p>
             <div style="background:#fff3cd;padding:16px;border-radius:8px;margin:16px 0;border-left:4px solid #ffc107">
               <strong>⏰ Action required by: ${formattedDeadline} (Nepal Time)</strong><br/>
               Pay the advance of <strong>NPR ${advanceAmount}</strong> to confirm your booking.
@@ -64,3 +73,4 @@ async function sendBookingAcceptedEmail(toEmail, booking, deadline) {
 }
 
 module.exports.sendBookingAcceptedEmail = sendBookingAcceptedEmail;
+module.exports.escapeHtml = escapeHtml;

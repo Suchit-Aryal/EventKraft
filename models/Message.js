@@ -34,6 +34,7 @@ const Message = {
                     p1.first_name AS p1_name, p1.avatar_url AS p1_avatar,
                     p2.first_name AS p2_name, p2.avatar_url AS p2_avatar,
                     (SELECT CASE
+                        WHEN is_unsent THEN 'This message was unsent'
                         WHEN message_type = 'booking_request'
                             OR content ~ '"type"[[:space:]]*:[[:space:]]*"booking_request"'
                         THEN 'Booking request'
@@ -109,15 +110,15 @@ const Message = {
              LEFT JOIN profiles rp ON rm.sender_id = rp.user_id
              LEFT JOIN conversations c ON m.conversation_id = c.id
              LEFT JOIN bookings b ON b.id = COALESCE(
-                    NULLIF(
+                    substring(
                         CASE
                             WHEN (
                                 m.message_type = 'booking_request'
                                 OR m.content ~ '"type"[[:space:]]*:[[:space:]]*"booking_request"'
                             ) AND m.content ~ '^[[:space:]]*\\{'
-                            THEN m.content::jsonb->>'booking_id'
-                        END,
-                        ''
+                            THEN m.content
+                        END
+                        FROM '"booking_id"[[:space:]]*:[[:space:]]*"([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"'
                     )::uuid,
                     c.booking_id
                 )
