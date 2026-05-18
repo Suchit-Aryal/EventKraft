@@ -114,6 +114,7 @@ app.use('/dashboard', require('./routes/dashboardRoutes'));
 io.on('connection', (socket) => {
     // Join a personal room for real-time badges/notifications
     socket.on('join-user', (userId) => {
+        socket.data.userId = userId;
         socket.join(`user_${userId}`);
     });
 
@@ -137,77 +138,14 @@ io.on('connection', (socket) => {
         });
     });
 
-    // ─── Booking Decision (worker accepts/declines via chat card) ──
+    // Booking decisions must go through the authenticated HTTP route.
+    // Socket user ids are client-provided in this app, so they are not trusted for writes.
     socket.on('booking_decision', async ({ booking_id, decision }) => {
-        try {
-            const userId = socket.request.session?.passport?.user;
-            if (!userId) return;
-
-            const Booking = require('./models/Booking');
-            const { createNotification } = require('./utils/notify');
-            const { sendBookingAcceptedEmail } = require('./config/mailer');
-
-            const booking = await Booking.findById(booking_id);
-            if (!booking || booking.worker_id !== userId) return;
-            if (booking.status !== 'pending') return;
-
-            if (decision === 'declined') {
-                await Booking.updateStatus(booking_id, 'cancelled');
-                await createNotification(pool, io, {
-                    userId: booking.customer_id,
-                    type: 'booking_declined',
-                    title: 'Booking Declined',
-                    message: `Your booking for "${booking.gig_title || 'the service'}" was declined by the worker.`,
-                    link: `/bookings/${booking_id}`,
-                });
-                io.to(`user_${booking.customer_id}`).emit('booking_status_update', {
-                    booking_id,
-                    status: 'cancelled',
-                    message: 'Your booking was declined.',
-                });
-
-            } else if (decision === 'accepted') {
-                const acceptedAt = new Date();
-                const advanceDeadline = new Date(acceptedAt.getTime() + 24 * 60 * 60 * 1000);
-
-                await Booking.updateStatus(booking_id, 'accepted');
-                await Booking.updateFields(booking_id, {
-                    accepted_at: acceptedAt,
-                    advance_deadline: advanceDeadline,
-                    advance_amount: parseFloat((booking.total_amount * 0.30).toFixed(2)),
-                    final_amount: parseFloat((booking.total_amount * 0.70).toFixed(2)),
-                });
-
-                await createNotification(pool, io, {
-                    userId: booking.customer_id,
-                    type: 'booking_accepted',
-                    title: '🎉 Booking Accepted — Action Required',
-                    message: `Your booking for "${booking.gig_title || 'the service'}" was accepted. Pay the advance of NPR ${Math.round(booking.total_amount * 0.30).toLocaleString()} within 24 hours to confirm.`,
-                    link: `/bookings/${booking_id}/agreement`,
-                });
-
-                try {
-                    const customerResult = await pool.query('SELECT email FROM users WHERE id = $1', [booking.customer_id]);
-                    if (customerResult.rows[0]) {
-                        await sendBookingAcceptedEmail(customerResult.rows[0].email, booking, advanceDeadline);
-                    }
-                } catch (emailErr) {
-                    console.error('Booking accepted email error:', emailErr.message);
-                }
-
-                io.to(`user_${booking.customer_id}`).emit('booking_status_update', {
-                    booking_id,
-                    status: 'accepted',
-                    redirect: `/bookings/${booking_id}/agreement`,
-                    message: 'Your booking was accepted! Pay the advance to confirm.',
-                });
-            }
-
-            socket.emit('booking_decision_confirmed', { booking_id, decision });
-
-        } catch (err) {
-            console.error('booking_decision socket error:', err);
-        }
+        socket.emit('booking_decision_error', {
+            booking_id,
+            decision,
+            message: 'Please refresh and try again.',
+        });
     });
 
     socket.on('disconnect', () => {});

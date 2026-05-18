@@ -24,13 +24,13 @@
                     <% if (b.status === 'overdue_final') { %>
                     <form action="/admin/bookings/<%= b.id %>/legal-action" method="POST" style="display:inline">
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Mark this booking for legal action?')">
-                            ⚖️ Mark Legal Action
+                            <i class="bi bi-file-earmark-lock me-1"></i> Mark Legal Action
                         </button>
                     </form>
                     <% } %>
                     <form action="/admin/bookings/<%= b.id %>/resolve" method="POST" style="display:inline">
                         <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Mark this booking as resolved?')">
-                            ✅ Mark Resolved
+                            <i class="bi bi-check-circle me-1"></i> Mark Resolved
                         </button>
                     </form>
                 </div>

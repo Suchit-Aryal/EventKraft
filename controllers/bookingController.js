@@ -64,6 +64,7 @@ module.exports = {
                         event_venue: booking.event_location,
                         customer_note: booking.customer_note || null,
                     }),
+                    messageType: 'booking_request',
                 });
 
                 const io = req.app.get('io');
@@ -71,11 +72,18 @@ module.exports = {
                     io.to(`user_${booking.worker_id}`).emit('booking_request_card', {
                         conversation_id: conversation.id,
                         booking_id: booking.id,
+                        customer_id: booking.customer_id,
+                        worker_id: booking.worker_id,
+                        receiver_id: booking.worker_id,
+                        booking_status: booking.status,
+                        can_decide: true,
                         gig_title: gigInfo.gig_title || 'Service Booking',
                         package_name: gigInfo.package_name || 'Package',
                         total_price: booking.total_amount,
+                        total_amount: booking.total_amount,
                         event_date: booking.event_date,
                         event_venue: booking.event_location,
+                        event_location: booking.event_location,
                         customer_note: booking.customer_note || null,
                         customer_name: customerName,
                     });
@@ -149,6 +157,103 @@ module.exports = {
             console.error(err);
             req.flash('error', 'Failed to cancel booking');
             res.redirect(`/bookings/${req.params.id}`);
+        }
+    },
+
+    async decide(req, res) {
+        try {
+            const { decision } = req.body;
+            if (!['accepted', 'declined'].includes(decision)) {
+                return res.status(400).json({ error: 'Invalid booking decision' });
+            }
+
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.status(404).json({ error: 'Booking not found' });
+            if (booking.worker_id !== req.user.id) {
+                return res.status(403).json({ error: 'Only the assigned worker can decide this booking' });
+            }
+            if (booking.status !== 'pending') {
+                return res.status(409).json({
+                    error: 'This booking has already been decided',
+                    status: booking.status,
+                });
+            }
+
+            const io = req.app.get('io');
+            const conversation = await Message.getOrCreateConversation(booking.customer_id, booking.worker_id, booking.id, null);
+            let status;
+            let redirect = null;
+            let message;
+
+            if (decision === 'declined') {
+                status = 'cancelled';
+                await Booking.updateStatus(booking.id, status);
+                message = 'Your booking was declined.';
+
+                await createNotification(pool, io, {
+                    userId: booking.customer_id,
+                    type: 'booking_declined',
+                    title: 'Booking Declined',
+                    message: `Your booking for "${booking.gig_title || 'the service'}" was declined by the worker.`,
+                    link: `/bookings/${booking.id}`,
+                });
+            } else {
+                status = 'accepted';
+                const acceptedAt = new Date();
+                const advanceDeadline = new Date(acceptedAt.getTime() + 24 * 60 * 60 * 1000);
+                const advanceAmount = parseFloat((Number(booking.total_amount) * 0.30).toFixed(2));
+                const finalAmount = parseFloat((Number(booking.total_amount) * 0.70).toFixed(2));
+
+                await Booking.updateFields(booking.id, {
+                    status,
+                    accepted_at: acceptedAt,
+                    advance_deadline: advanceDeadline,
+                    advance_amount: advanceAmount,
+                    final_amount: finalAmount,
+                });
+
+                redirect = `/bookings/${booking.id}/agreement`;
+                message = 'Your booking was accepted. Please review the agreement and pay the advance to confirm.';
+
+                await createNotification(pool, io, {
+                    userId: booking.customer_id,
+                    type: 'booking_accepted',
+                    title: 'Booking Accepted — Action Required',
+                    message: `Your booking for "${booking.gig_title || 'the service'}" was accepted. Pay the advance of NPR ${Math.round(advanceAmount).toLocaleString()} within 24 hours to confirm.`,
+                    link: redirect,
+                });
+
+                try {
+                    const { sendBookingAcceptedEmail } = require('../config/mailer');
+                    const customerResult = await pool.query('SELECT email FROM users WHERE id = $1', [booking.customer_id]);
+                    if (customerResult.rows[0]) {
+                        await sendBookingAcceptedEmail(customerResult.rows[0].email, booking, advanceDeadline);
+                    }
+                } catch (emailErr) {
+                    console.error('Booking accepted email error:', emailErr.message);
+                }
+            }
+
+            const updatePayload = {
+                booking_id: booking.id,
+                conversation_id: conversation.id,
+                decision,
+                status,
+                redirect,
+                message,
+            };
+
+            if (io) {
+                io.to(`conversation_${conversation.id}`).emit('booking_card_decided', updatePayload);
+                io.to(`user_${booking.worker_id}`).emit('booking_card_decided', updatePayload);
+                io.to(`user_${booking.customer_id}`).emit('booking_card_decided', updatePayload);
+                io.to(`user_${booking.customer_id}`).emit('booking_status_update', updatePayload);
+            }
+
+            res.json(updatePayload);
+        } catch (err) {
+            console.error('Booking decision error:', err);
+            res.status(500).json({ error: 'Failed to update booking decision' });
         }
     },
 
@@ -238,16 +343,24 @@ module.exports = {
             const { generateTransactionUUID, signEsewaPayload, getEsewaEndpoint } = require('../utils/esewa');
 
             const uuid = generateTransactionUUID();
-            const advanceAmount = booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2));
+            const advanceAmount = moneyAmount(booking.advance_amount, Number(booking.total_amount) * 0.30);
 
             await Booking.updateFields(booking.id, { advance_transaction_uuid: uuid });
 
             const productCode = process.env.ESEWA_MERCHANT_CODE;
+            if (!productCode) {
+                req.flash('error', 'eSewa merchant code is not configured.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+            if (!process.env.ESEWA_SECRET_KEY) {
+                req.flash('error', 'eSewa secret key is not configured.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
 
             const esewaPayload = {
-                amount: advanceAmount.toFixed(2),
+                amount: formatMoney(advanceAmount),
                 tax_amount: '0',
-                total_amount: advanceAmount.toFixed(2),
+                total_amount: formatMoney(advanceAmount),
                 transaction_uuid: uuid,
                 product_code: productCode,
                 product_service_charge: '0',
@@ -255,7 +368,7 @@ module.exports = {
                 success_url: `${req.protocol}://${req.get('host')}/bookings/${booking.id}/payment/advance/success`,
                 failure_url: `${req.protocol}://${req.get('host')}/bookings/${booking.id}/payment/advance/failure`,
                 signed_field_names: 'total_amount,transaction_uuid,product_code',
-                signature: signEsewaPayload(advanceAmount.toFixed(2), uuid, productCode),
+                signature: signEsewaPayload(formatMoney(advanceAmount), uuid, productCode),
             };
 
             const esewaEndpoint = getEsewaEndpoint();
@@ -294,7 +407,7 @@ module.exports = {
 
             const verified = await verifyEsewaPayment(
                 booking.advance_transaction_uuid,
-                booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2))
+                formatMoney(moneyAmount(booking.advance_amount, Number(booking.total_amount) * 0.30))
             );
 
             if (!verified) {
@@ -309,7 +422,7 @@ module.exports = {
             });
 
             const Transaction = require('../models/Transaction');
-            const advanceAmount = booking.advance_amount || parseFloat((booking.total_amount * 0.30).toFixed(2));
+            const advanceAmount = moneyAmount(booking.advance_amount, Number(booking.total_amount) * 0.30);
             await Transaction.create({
                 booking_id: booking.id,
                 payer_id: req.user.id,
@@ -326,7 +439,7 @@ module.exports = {
             await createNotification(pool, io, {
                 userId: booking.worker_id,
                 type: 'advance_received',
-                title: '💰 Advance Payment Received',
+                title: 'Advance Payment Received',
                 message: `Advance payment of NPR ${Number(advanceAmount).toLocaleString('en-IN')} has been received for booking #${booking.id}.`,
                 link: `/bookings/${booking.id}`,
             });
@@ -386,7 +499,7 @@ module.exports = {
             await createNotification(pool, io, {
                 userId: booking.customer_id,
                 type: 'work_completed',
-                title: '✅ Work Completed — Payment Due',
+                title: 'Work Completed — Payment Due',
                 message: `Your service "${booking.gig_title || 'booking'}" has been completed. Pay the remaining amount within 48 hours. You have 24 hours to raise a dispute.`,
                 link: `/bookings/${booking.id}/pay-final`,
             });
@@ -527,7 +640,7 @@ module.exports = {
             await createNotification(pool, io, {
                 userId: booking.worker_id,
                 type: 'dispute_raised',
-                title: '⚠️ Dispute Raised',
+                title: 'Dispute Raised',
                 message: `A dispute has been raised for booking "${booking.gig_title || 'your booking'}". An admin will review.`,
                 link: `/bookings/${booking.id}`,
             });
@@ -569,11 +682,20 @@ async function processCommissionAndPayout(booking, pool, io) {
         await createNotification(pool, io, {
             userId: booking.worker_id,
             type: 'payout_pending',
-            title: '💰 Final Payment Received',
+            title: 'Final Payment Received',
             message: `Final payment for "${booking.gig_title || 'booking'}" received. NPR ${Math.round(finalNetToWorker).toLocaleString()} (after ${commissionRate}% commission) will be transferred.`,
             link: '/earnings',
         });
     } catch (err) {
         console.error('processCommissionAndPayout error:', err.message);
     }
+}
+
+function moneyAmount(value, fallback) {
+    const numberValue = Number(value ?? fallback);
+    return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function formatMoney(value) {
+    return moneyAmount(value, 0).toFixed(2);
 }

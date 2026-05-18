@@ -9,6 +9,7 @@
          id="chat-container"
          data-conversation-id="<%= conversation.id %>"
          data-user-id="<%= currentUser.id %>"
+         data-user-role="<%= currentUser.role %>"
          data-user-name="<%= currentUser.email.split('@')[0] %>"
          data-receiver-id="<%= conversation.participant_1 === currentUser.id ? conversation.participant_2 : conversation.participant_1 %>">
 
@@ -33,6 +34,46 @@
         <div id="messageArea" class="ek-chat-area" style="height:460px;overflow-y:auto;padding:16px">
             <% if (messages && messages.length > 0) { %>
                 <% messages.forEach(function(m) { %>
+                    <% if (m.message_type === 'booking_request') { %>
+                    <% const canDecideBooking = m.booking_status === 'pending' && m.receiver_id === currentUser.id; %>
+                    <div id="msg-<%= m.id %>" class="mb-3 msg-wrap booking-card-message" style="position:relative" data-msg-id="<%= m.id %>" data-sender="<%= m.sender_id %>" data-content="<%= m.content || '' %>" data-booking-id="<%= m.booking_id || '' %>">
+                        <div class="booking-card">
+                            <div class="booking-card-header" onclick="toggleBookingCard(this)">
+                                <div class="booking-card-title">
+                                    <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
+                                    <strong>Booking Request</strong>
+                                    <span class="booking-gig-name"><%= m.gig_title || '' %></span>
+                                </div>
+                                <span class="booking-card-chevron">▾</span>
+                            </div>
+                            <div class="booking-card-body" style="display:none;">
+                                <div class="booking-detail-row"><span>Package</span><strong><%= m.package_name || 'N/A' %></strong></div>
+                                <div class="booking-detail-row"><span>Event Date</span><strong><%= m.event_date ? new Date(m.event_date).toLocaleDateString('en-NP') : 'Not specified' %></strong></div>
+                                <div class="booking-detail-row"><span>Venue</span><strong><%= m.event_location || 'Not specified' %></strong></div>
+                                <div class="booking-detail-row"><span>Total Price</span><strong>NPR <%= Number(m.total_amount || 0).toLocaleString('en-NP') %></strong></div>
+                                <% if (m.customer_note) { %>
+                                    <div class="booking-note"><em>"<%= m.customer_note %>"</em></div>
+                                <% } %>
+                                <% if (m.booking_status === 'cancelled') { %>
+                                    <div class="booking-decision booking-decision--declined"><i class="bi bi-x-circle me-1"></i>Declined</div>
+                                <% } else if (m.booking_status && m.booking_status !== 'pending') { %>
+                                    <div class="booking-decision booking-decision--accepted"><i class="bi bi-check-circle me-1"></i>Accepted</div>
+                                <% } else { %>
+                                    <% if (canDecideBooking) { %>
+                                        <div class="booking-actions">
+                                            <button class="btn btn-success btn-sm" onclick="respondToBooking('<%= m.booking_id %>', 'accepted')">Accept</button>
+                                            <button class="btn btn-danger btn-sm" onclick="respondToBooking('<%= m.booking_id %>', 'declined')">Decline</button>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="booking-decision" style="color:var(--chat-muted); font-size:0.85rem;">
+                                            <i class="bi bi-clock-history me-1"></i> Waiting for worker...
+                                        </div>
+                                    <% } %>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <% } else { %>
                     <div id="msg-<%= m.id %>" class="d-flex mb-3 msg-wrap <%= m.sender_id === currentUser.id ? 'justify-content-end' : 'justify-content-start' %> <%= m.is_unsent ? 'msg-unsent' : '' %>" style="position:relative" data-msg-id="<%= m.id %>" data-sender="<%= m.sender_id %>" data-content="<%= m.is_unsent ? '' : m.content %>">
                         <div class="<%= m.sender_id === currentUser.id ? 'chat-sent' : 'chat-received' %>" style="max-width:70%;padding:.6rem 1rem;border-radius:16px;position:relative">
                             <% if (m.reply_content) { %>
@@ -64,6 +105,7 @@
                         </div>
                         <% } %>
                     </div>
+                    <% } %>
                 <% }); %>
             <% } else { %>
                 <div class="text-center py-5" style="color:var(--chat-muted)" id="emptyChat">

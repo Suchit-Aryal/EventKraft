@@ -25,7 +25,7 @@ async function send2FAEnabledEmail(to) {
         from: process.env.SMTP_FROM || '"EventKraft" <noreply@eventkraft.com>',
         to,
         subject: 'Two-factor authentication enabled — EventKraft',
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;border-radius:12px;border:1px solid #eee"><h1 style="color:#6b1d2a;text-align:center">EventKraft</h1><h2 style="text-align:center">2FA enabled ✅</h2><p style="text-align:center">Your account now requires an authenticator app code when logging in.</p></div>`
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;border-radius:12px;border:1px solid #eee"><h1 style="color:#6b1d2a;text-align:center">EventKraft</h1><h2 style="text-align:center">2FA enabled</h2><p style="text-align:center">Your account now requires an authenticator app code when logging in.</p></div>`
     });
 }
 

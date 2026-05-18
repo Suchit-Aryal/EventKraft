@@ -230,6 +230,14 @@
         div.dataset.sender = msg.sender_id;
         div.dataset.content = msg.content || '';
 
+        if (msg.message_type === 'booking_request') {
+            div.className = 'mb-3 msg-wrap booking-card-message';
+            div.dataset.bookingId = msg.booking_id || '';
+            div.innerHTML = bookingCardInnerHtml(msg);
+            messageArea.appendChild(div);
+            return;
+        }
+
         var bubbleClass = isOwn ? 'chat-sent' : 'chat-received';
         var html = '<div class="' + bubbleClass + '" style="max-width:70%;padding:.6rem 1rem;border-radius:16px;position:relative">';
 
@@ -278,6 +286,44 @@
         return '<a href="' + url + '" target="_blank" class="msg-file-preview"><i class="bi ' + icon + '"></i><span style="font-size:.8rem">' + escapeHtml(name || 'File') + '</span></a>';
     }
 
+    function bookingCardInnerHtml(data) {
+        var eventDate = data.event_date ? new Date(data.event_date).toLocaleDateString('en-NP') : 'Not specified';
+        var totalPrice = data.total_amount ? Number(data.total_amount).toLocaleString('en-NP') : '0';
+        var bookingStatus = data.booking_status || 'pending';
+        var isPending = bookingStatus === 'pending';
+        var isDeclined = bookingStatus === 'cancelled';
+        var canDecide = isPending && String(data.receiver_id || data.worker_id || '') === String(currentUserId);
+
+        return `
+            <div class="booking-card">
+                <div class="booking-card-header" onclick="toggleBookingCard(this)">
+                    <div class="booking-card-title">
+                        <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
+                        <strong>Booking Request</strong>
+                        <span class="booking-gig-name">${escapeHtml(data.gig_title || '')}</span>
+                    </div>
+                    <span class="booking-card-chevron">▾</span>
+                </div>
+                <div class="booking-card-body" style="display:none;">
+                    <div class="booking-detail-row"><span>Package</span><strong>${escapeHtml(data.package_name || 'N/A')}</strong></div>
+                    <div class="booking-detail-row"><span>Event Date</span><strong>${escapeHtml(eventDate)}</strong></div>
+                    <div class="booking-detail-row"><span>Venue</span><strong>${escapeHtml(data.event_location || 'Not specified')}</strong></div>
+                    <div class="booking-detail-row"><span>Total Price</span><strong>NPR ${escapeHtml(totalPrice)}</strong></div>
+                    ${data.customer_note ? `<div class="booking-note"><em>"${escapeHtml(data.customer_note)}"</em></div>` : ''}
+                    ${canDecide
+                        ? `<div class="booking-actions">
+                               <button class="btn btn-success btn-sm" onclick="respondToBooking('${data.booking_id}', 'accepted')">Accept</button>
+                               <button class="btn btn-danger btn-sm" onclick="respondToBooking('${data.booking_id}', 'declined')">Decline</button>
+                           </div>`
+                        : isPending
+                            ? `<div class="booking-progress"><i class="bi bi-clock-history me-1"></i>Waiting for worker response</div>`
+                            : `<div class="booking-decision booking-decision--${isDeclined ? 'declined' : 'accepted'}"><i class="bi ${isDeclined ? 'bi-x-circle' : 'bi-check-circle'} me-1"></i>${isDeclined ? 'Declined' : 'Accepted'}</div>`
+                    }
+                </div>
+            </div>
+        `;
+    }
+
     function scrollToBottom() {
         if (messageArea) messageArea.scrollTop = messageArea.scrollHeight;
     }
@@ -323,11 +369,16 @@
             }
         }
     });
+
+    socket.on('booking_card_decided', (data) => {
+        updateBookingCards(data.booking_id, data.status, data.decision);
+    });
 })();
 
 function renderBookingCard(data, decided, decision) {
     const messageArea = document.getElementById('messageArea');
     if (!messageArea) return;
+    if (data.booking_id && messageArea.querySelector(`[data-booking-id="${data.booking_id}"]`)) return;
 
     const card = document.createElement('div');
     card.className = 'booking-card-message';
@@ -336,32 +387,37 @@ function renderBookingCard(data, decided, decision) {
     const eventDate = data.event_date
         ? new Date(data.event_date).toLocaleDateString('en-NP')
         : 'Not specified';
-    const totalPrice = data.total_price
-        ? Number(data.total_price).toLocaleString('en-NP')
+    const totalPrice = data.total_price || data.total_amount
+        ? Number(data.total_price || data.total_amount).toLocaleString('en-NP')
         : '0';
+    const status = data.booking_status || (decided ? (decision === 'declined' ? 'cancelled' : 'accepted') : 'pending');
+    const canDecide = status === 'pending' &&
+        String(data.receiver_id || data.worker_id || '') === String(window.CURRENT_USER_ID || '');
 
     card.innerHTML = `
         <div class="booking-card">
             <div class="booking-card-header" onclick="toggleBookingCard(this)">
                 <div class="booking-card-title">
-                    <span class="booking-icon">📋</span>
+                    <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
                     <strong>Booking Request</strong>
-                    <span class="booking-gig-name">${data.gig_title || ''}</span>
+                    <span class="booking-gig-name">${escapeBookingHtml(data.gig_title || '')}</span>
                 </div>
                 <span class="booking-card-chevron">▾</span>
             </div>
             <div class="booking-card-body" style="display:none;">
-                <div class="booking-detail-row"><span>Package</span><strong>${data.package_name || 'N/A'}</strong></div>
-                <div class="booking-detail-row"><span>Event Date</span><strong>${eventDate}</strong></div>
-                <div class="booking-detail-row"><span>Venue</span><strong>${data.event_venue || 'Not specified'}</strong></div>
-                <div class="booking-detail-row"><span>Total Price</span><strong>NPR ${totalPrice}</strong></div>
-                ${data.customer_note ? `<div class="booking-note"><em>"${data.customer_note}"</em></div>` : ''}
-                ${decided
-                    ? `<div class="booking-decision booking-decision--${decision}">${decision === 'accepted' ? '✅ Accepted' : '❌ Declined'}</div>`
-                    : `<div class="booking-actions">
+                <div class="booking-detail-row"><span>Package</span><strong>${escapeBookingHtml(data.package_name || 'N/A')}</strong></div>
+                <div class="booking-detail-row"><span>Event Date</span><strong>${escapeBookingHtml(eventDate)}</strong></div>
+                <div class="booking-detail-row"><span>Venue</span><strong>${escapeBookingHtml(data.event_venue || data.event_location || 'Not specified')}</strong></div>
+                <div class="booking-detail-row"><span>Total Price</span><strong>NPR ${escapeBookingHtml(totalPrice)}</strong></div>
+                ${data.customer_note ? `<div class="booking-note"><em>"${escapeBookingHtml(data.customer_note)}"</em></div>` : ''}
+                ${canDecide
+                    ? `<div class="booking-actions">
                            <button class="btn btn-success btn-sm" onclick="respondToBooking('${data.booking_id}', 'accepted')">Accept</button>
                            <button class="btn btn-danger btn-sm" onclick="respondToBooking('${data.booking_id}', 'declined')">Decline</button>
                        </div>`
+                    : status === 'pending'
+                        ? `<div class="booking-progress"><i class="bi bi-clock-history me-1"></i>Waiting for worker response</div>`
+                        : `<div class="booking-decision booking-decision--${status === 'cancelled' ? 'declined' : 'accepted'}"><i class="bi ${status === 'cancelled' ? 'bi-x-circle' : 'bi-check-circle'} me-1"></i>${status === 'cancelled' ? 'Declined' : 'Accepted'}</div>`
                 }
             </div>
         </div>
@@ -378,15 +434,54 @@ function toggleBookingCard(headerEl) {
     chevron.textContent = isOpen ? '▾' : '▴';
 }
 
-function respondToBooking(bookingId, decision) {
-    const socket = window.socket;
-    if (!socket) return;
-    socket.emit('booking_decision', { booking_id: bookingId, decision });
-    const card = document.querySelector(`[data-booking-id="${bookingId}"]`);
-    if (card) {
-        const actions = card.querySelector('.booking-actions');
-        if (actions) {
-            actions.innerHTML = `<div class="booking-decision booking-decision--${decision}">${decision === 'accepted' ? '✅ Accepted' : '❌ Declined'}</div>`;
-        }
+async function respondToBooking(bookingId, decision) {
+    const cards = document.querySelectorAll(`[data-booking-id="${bookingId}"]`);
+    cards.forEach((card) => {
+        card.querySelectorAll('.booking-actions button').forEach((btn) => {
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+        });
+    });
+
+    try {
+        const res = await fetch(`/bookings/${bookingId}/decision`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ decision })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed to update booking');
+        updateBookingCards(bookingId, data.status, data.decision || decision);
+    } catch (err) {
+        alert(err.message);
+        cards.forEach((card) => {
+            const actions = card.querySelector('.booking-actions');
+            if (actions) {
+                actions.innerHTML = `
+                    <button class="btn btn-success btn-sm" onclick="respondToBooking('${bookingId}', 'accepted')">Accept</button>
+                    <button class="btn btn-danger btn-sm" onclick="respondToBooking('${bookingId}', 'declined')">Decline</button>
+                `;
+            }
+        });
     }
+}
+
+function updateBookingCards(bookingId, status, decision) {
+    if (!bookingId) return;
+    const finalDecision = decision || (status === 'cancelled' ? 'declined' : 'accepted');
+    document.querySelectorAll(`[data-booking-id="${bookingId}"]`).forEach((card) => {
+        const actions = card.querySelector('.booking-actions');
+        const progress = card.querySelector('.booking-progress');
+        const existingDecision = card.querySelector('.booking-decision');
+        const decisionHtml = `<div class="booking-decision booking-decision--${finalDecision}"><i class="bi ${finalDecision === 'accepted' ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>${finalDecision === 'accepted' ? 'Accepted' : 'Declined'}</div>`;
+        if (actions) actions.outerHTML = decisionHtml;
+        else if (progress) progress.outerHTML = decisionHtml;
+        else if (existingDecision) existingDecision.outerHTML = decisionHtml;
+    });
+}
+
+function escapeBookingHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
 }
