@@ -28,9 +28,26 @@ async function verifyEsewaPayment(transactionUuid, totalAmount) {
 
   const url = `${baseUrl}?product_code=${productCode}&total_amount=${totalAmount}&transaction_uuid=${transactionUuid}`;
 
-  const response = await fetch(url);
-  const data = await response.json();
-  return data.status === 'COMPLETE' ? data : null;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      return null;
+    }
+
+    return data.status === 'COMPLETE' ? data : null;
+  } catch (err) {
+    return null;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 module.exports = { generateTransactionUUID, signEsewaPayload, getEsewaEndpoint, verifyEsewaPayment };

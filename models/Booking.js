@@ -108,6 +108,30 @@ const Booking = {
         return result.rows[0];
     },
 
+    async updateFieldsIfStatus(id, expectedStatus, fields) {
+        if (!fields || typeof fields !== 'object') return null;
+
+        const ALLOWED_COLUMNS = new Set([
+            'status', 'customer_note', 'accepted_at', 'advance_deadline',
+            'advance_amount', 'final_amount', 'legal_agreed_at', 'legal_agreed_ip',
+            'legal_agreed_user_agent', 'advance_transaction_uuid', 'advance_esewa_ref_id',
+            'advance_paid_at', 'final_transaction_uuid', 'final_esewa_ref_id',
+            'final_paid_at', 'final_deadline', 'completion_proof', 'completion_note',
+            'completed_at', 'dispute_window_expires_at', 'dispute_raised_at',
+            'overdue_flagged_at',
+        ]);
+
+        const keys = Object.keys(fields).filter(k => ALLOWED_COLUMNS.has(k));
+        if (keys.length === 0) return null;
+        const setClauses = keys.map((key, i) => `${key} = $${i + 3}`).join(', ');
+        const values = [id, expectedStatus, ...keys.map(k => fields[k])];
+        const result = await pool.query(
+            `UPDATE bookings SET ${setClauses} WHERE id = $1 AND status = $2 RETURNING *`,
+            values
+        );
+        return result.rows[0] || null;
+    },
+
     async complete(id) {
         const result = await pool.query(
             "UPDATE bookings SET status = 'completed', completed_at = NOW() WHERE id = $1 RETURNING *",
@@ -136,8 +160,9 @@ const Booking = {
             'overdue_flagged_at',
         ]);
 
+        if (!fields || typeof fields !== 'object') return [];
         const keys = Object.keys(fields).filter(k => ALLOWED_COLUMNS.has(k));
-        if (keys.length === 0) return;
+        if (keys.length === 0) return [];
         const setClauses = keys.map((key, i) => `${key} = $${i + 2}`).join(', ');
         const values = [id, ...keys.map(k => fields[k])];
         const result = await pool.query(

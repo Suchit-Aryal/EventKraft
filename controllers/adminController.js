@@ -3,6 +3,7 @@
 // ============================================================
 
 const User = require('../models/User');
+const Booking = require('../models/Booking');
 const pool = require('../config/db');
 
 module.exports = {
@@ -346,7 +347,16 @@ module.exports.legalAction = async function(req, res) {
 
 module.exports.markLegalAction = async function(req, res) {
     try {
-        await pool.query("UPDATE bookings SET status = 'legal_action' WHERE id = $1", [req.params.id]);
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            req.flash('error', 'Booking not found.');
+            return res.redirect('/admin/legal-action');
+        }
+        if (booking.status !== 'overdue_final') {
+            req.flash('error', 'Only overdue bookings can be moved to legal action.');
+            return res.redirect('/admin/legal-action');
+        }
+        await pool.query("UPDATE bookings SET status = 'legal_action' WHERE id = $1 AND status = 'overdue_final'", [req.params.id]);
         req.flash('success', 'Booking marked as legal action.');
         res.redirect('/admin/legal-action');
     } catch (err) {
@@ -358,7 +368,16 @@ module.exports.markLegalAction = async function(req, res) {
 
 module.exports.resolveOverdue = async function(req, res) {
     try {
-        await pool.query("UPDATE bookings SET status = 'completed' WHERE id = $1", [req.params.id]);
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            req.flash('error', 'Booking not found.');
+            return res.redirect('/admin/legal-action');
+        }
+        if (!['overdue_final', 'legal_action'].includes(booking.status)) {
+            req.flash('error', 'Only overdue or legal-action bookings can be resolved here.');
+            return res.redirect('/admin/legal-action');
+        }
+        await pool.query("UPDATE bookings SET status = 'completed' WHERE id = $1 AND status IN ('overdue_final', 'legal_action')", [req.params.id]);
         req.flash('success', 'Booking marked as resolved.');
         res.redirect('/admin/legal-action');
     } catch (err) {
