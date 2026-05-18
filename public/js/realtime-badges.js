@@ -29,7 +29,8 @@
       if (msgBadge) {
         // Only increment if not already on the conversation page for THIS message
         const path = window.location.pathname;
-        if (path.includes('/messages/' + data.conversationId)) return;
+        const conversationId = data.conversation_id || data.conversationId;
+        if (conversationId && path.includes('/messages/' + conversationId)) return;
 
         const current = parseInt(msgBadge.textContent) || 0;
         const next = current + 1;

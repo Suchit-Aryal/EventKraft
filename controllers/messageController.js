@@ -76,8 +76,12 @@ module.exports = {
         try {
             const conversation = await Message.getConversationById(req.params.conversationId);
             if (!conversation) return res.redirect('/messages');
+            if (conversation.participant_1 !== req.user.id && conversation.participant_2 !== req.user.id) {
+                req.flash('error', 'You do not have access to that conversation');
+                return res.redirect('/messages');
+            }
 
-            const messages = await Message.getByConversation(req.params.conversationId);
+            const messages = normalizeBookingRequestMessages(await Message.getByConversation(req.params.conversationId));
             await Message.markAsRead(req.params.conversationId, req.user.id);
 
             // Determine the other participant's info
@@ -103,7 +107,13 @@ module.exports = {
     // ─── API: GET /messages/:conversationId/api/history ────────
     async getHistoryApi(req, res) {
         try {
-            const messages = await Message.getByConversation(req.params.conversationId);
+            const conversation = await Message.getConversationById(req.params.conversationId);
+            if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+            if (conversation.participant_1 !== req.user.id && conversation.participant_2 !== req.user.id) {
+                return res.status(403).json({ error: 'Not a member of this conversation' });
+            }
+
+            const messages = normalizeBookingRequestMessages(await Message.getByConversation(req.params.conversationId));
             await Message.markAsRead(req.params.conversationId, req.user.id);
             res.json(messages);
         } catch (err) {
@@ -189,6 +199,17 @@ module.exports = {
         try {
             if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
+            const conversation = await Message.getConversationById(req.params.conversationId);
+            if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+
+            const isP1 = conversation.participant_1 === req.user.id;
+            const isP2 = conversation.participant_2 === req.user.id;
+            if (!isP1 && !isP2) {
+                return res.status(403).json({ error: 'Not a member of this conversation' });
+            }
+
+            const receiverId = isP1 ? conversation.participant_2 : conversation.participant_1;
+
             const cloudinary = require('../config/cloudinary');
             const result = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
@@ -201,7 +222,7 @@ module.exports = {
             const msg = await Message.send({
                 conversationId: req.params.conversationId,
                 senderId: req.user.id,
-                receiverId: req.body.receiver_id,
+                receiverId,
                 content: req.body.content || '',
                 replyTo: req.body.reply_to || null,
                 fileUrl: result.secure_url,
@@ -210,6 +231,28 @@ module.exports = {
             });
 
             res.json({ id: msg.id, created_at: msg.created_at, file_url: result.secure_url, file_name: req.file.originalname, file_type: req.file.mimetype });
+
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const socketData = {
+                        id: msg.id,
+                        conversation_id: req.params.conversationId,
+                        content: msg.content,
+                        sender_id: req.user.id,
+                        sender_name: req.user.first_name,
+                        receiver_id: receiverId,
+                        file_url: result.secure_url,
+                        file_name: req.file.originalname,
+                        file_type: req.file.mimetype,
+                        created_at: msg.created_at
+                    };
+                    io.to(`conversation_${req.params.conversationId}`).emit('new-message', socketData);
+                    io.to(`user_${receiverId}`).emit('new-message-badge', socketData);
+                }
+            } catch (emitErr) {
+                console.error('File socket emit error:', emitErr);
+            }
         } catch (err) {
             console.error('File upload error:', err);
             res.status(500).json({ error: 'Failed to upload file' });
@@ -228,3 +271,26 @@ module.exports = {
         }
     }
 };
+
+function normalizeBookingRequestMessages(messages) {
+    return messages.map((message) => {
+        if (message.message_type === 'booking_request') return message;
+        if (!message.content) return message;
+
+        try {
+            const payload = JSON.parse(message.content);
+            if (payload && payload.type === 'booking_request') {
+                message.message_type = 'booking_request';
+                message.booking_id = message.booking_id || payload.booking_id;
+                message.gig_title = message.gig_title || payload.gig_title;
+                message.package_name = message.package_name || payload.package_name;
+                message.total_amount = message.total_amount || payload.total_amount || payload.total_price;
+                message.event_date = message.event_date || payload.event_date;
+                message.event_location = message.event_location || payload.event_location || payload.event_venue;
+                message.customer_note = message.customer_note || payload.customer_note;
+            }
+        } catch (err) {}
+
+        return message;
+    });
+}

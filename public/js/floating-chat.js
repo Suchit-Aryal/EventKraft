@@ -219,7 +219,7 @@
 
       body.innerHTML = '';
       if (messages.length === 0) {
-        body.innerHTML = '<div style="text-align:center;padding:30px 10px;color:#b5aead;font-size:13px">No messages yet. Say hi! 👋</div>';
+        body.innerHTML = '<div style="text-align:center;padding:30px 10px;color:#b5aead;font-size:13px">No messages yet. Start the conversation.</div>';
       } else {
         messages.forEach(m => appendMessage(body, m));
       }
@@ -234,12 +234,90 @@
   function appendMessage(body, m) {
     if (m.id && body.querySelector(`[data-msg-id="${m.id}"]`)) return;
 
+    if (m.message_type === 'booking_request') {
+      appendBookingCard(body, normalizeBookingMessage(m));
+      return;
+    }
+
     const bubble = document.createElement('div');
     const isSent = String(m.sender_id) === String(window.CURRENT_USER_ID);
     bubble.className = `chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}`;
     if (m.id) bubble.dataset.msgId = m.id;
     bubble.textContent = m.content;
     body.appendChild(bubble);
+  }
+
+  function normalizeBookingMessage(m) {
+    let payload = {};
+    if (m.content) {
+      try { payload = JSON.parse(m.content); } catch (e) {}
+    }
+
+    return {
+      id: m.id,
+      booking_id: m.booking_id || payload.booking_id,
+      booking_status: m.booking_status || payload.booking_status || 'pending',
+      receiver_id: m.receiver_id || payload.receiver_id,
+      worker_id: m.worker_id || payload.worker_id,
+      can_decide: m.can_decide,
+      gig_title: m.gig_title || payload.gig_title || 'Service Booking',
+      package_name: m.package_name || payload.package_name || 'Package',
+      event_date: m.event_date || payload.event_date,
+      event_location: m.event_location || payload.event_location || payload.event_venue,
+      total_amount: m.total_amount || payload.total_amount || payload.total_price,
+      customer_note: m.customer_note || payload.customer_note,
+    };
+  }
+
+  function appendBookingCard(body, data) {
+    if (!data.booking_id) return;
+    if (body.querySelector(`[data-booking-id="${data.booking_id}"]`)) return;
+
+    const status = data.booking_status || 'pending';
+    const canDecide = status === 'pending' &&
+      String(data.receiver_id || data.worker_id || '') === String(window.CURRENT_USER_ID || '');
+    const eventDate = data.event_date ? new Date(data.event_date).toLocaleDateString('en-NP') : 'Not specified';
+    const totalPrice = data.total_amount ? Number(data.total_amount).toLocaleString('en-NP') : '0';
+
+    const card = document.createElement('div');
+    card.className = 'floating-booking-card';
+    card.dataset.bookingId = data.booking_id;
+    if (data.id) card.dataset.msgId = data.id;
+    card.innerHTML = `
+      <button type="button" class="floating-booking-card__head">
+        <span>
+          <strong>Booking Request</strong>
+          <small>${escapeHtml(data.gig_title || '')}</small>
+        </span>
+        <span class="floating-booking-card__chevron">▾</span>
+      </button>
+      <div class="floating-booking-card__body">
+        <div><span>Package</span><strong>${escapeHtml(data.package_name || 'N/A')}</strong></div>
+        <div><span>Date</span><strong>${escapeHtml(eventDate)}</strong></div>
+        <div><span>Venue</span><strong>${escapeHtml(data.event_location || 'Not specified')}</strong></div>
+        <div><span>Total</span><strong>NPR ${escapeHtml(totalPrice)}</strong></div>
+        ${data.customer_note ? `<p>${escapeHtml(data.customer_note)}</p>` : ''}
+        ${canDecide
+          ? `<div class="floating-booking-card__actions">
+               <button type="button" class="floating-booking-card__accept" onclick="respondToBooking('${data.booking_id}', 'accepted')">Accept</button>
+               <button type="button" class="floating-booking-card__decline" onclick="respondToBooking('${data.booking_id}', 'declined')">Decline</button>
+             </div>`
+          : status === 'pending'
+            ? `<div class="floating-booking-card__progress">Waiting for worker response</div>`
+            : `<div class="floating-booking-card__decision floating-booking-card__decision--${status === 'cancelled' ? 'declined' : 'accepted'}">${status === 'cancelled' ? 'Declined' : 'Accepted'}</div>`
+        }
+      </div>
+    `;
+
+    const head = card.querySelector('.floating-booking-card__head');
+    const bodyEl = card.querySelector('.floating-booking-card__body');
+    const chevron = card.querySelector('.floating-booking-card__chevron');
+    head.addEventListener('click', () => {
+      const open = bodyEl.classList.toggle('is-open');
+      chevron.textContent = open ? '▴' : '▾';
+    });
+
+    body.appendChild(card);
   }
 
   // ─── SEND MESSAGE (Optimistic UI) ─────────────────────────
@@ -295,6 +373,56 @@
     return div.innerHTML;
   }
 
+  function updateBookingCards(bookingId, status, decision) {
+    const finalDecision = decision || (status === 'cancelled' ? 'declined' : 'accepted');
+    document.querySelectorAll(`[data-booking-id="${bookingId}"]`).forEach((card) => {
+      const replacement = document.createElement('div');
+      replacement.className = `floating-booking-card__decision floating-booking-card__decision--${finalDecision}`;
+      replacement.textContent = finalDecision === 'accepted' ? 'Accepted' : 'Declined';
+
+      const actions = card.querySelector('.floating-booking-card__actions');
+      const progress = card.querySelector('.floating-booking-card__progress');
+      const existingDecision = card.querySelector('.floating-booking-card__decision');
+      if (actions) actions.replaceWith(replacement);
+      else if (progress) progress.replaceWith(replacement);
+      else if (existingDecision) existingDecision.replaceWith(replacement);
+    });
+  }
+
+  if (!window.respondToBooking) {
+    window.respondToBooking = async function(bookingId, decision) {
+      const cards = document.querySelectorAll(`[data-booking-id="${bookingId}"]`);
+      cards.forEach((card) => {
+        card.querySelectorAll('.floating-booking-card__actions button, .booking-actions button').forEach((btn) => {
+          btn.disabled = true;
+          btn.textContent = 'Saving...';
+        });
+      });
+
+      try {
+        const res = await fetch(`/bookings/${bookingId}/decision`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decision })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Failed to update booking');
+        updateBookingCards(bookingId, data.status, data.decision || decision);
+      } catch (err) {
+        alert(err.message);
+        cards.forEach((card) => {
+          const actions = card.querySelector('.floating-booking-card__actions');
+          if (actions) {
+            actions.innerHTML = `
+              <button type="button" class="floating-booking-card__accept" onclick="respondToBooking('${bookingId}', 'accepted')">Accept</button>
+              <button type="button" class="floating-booking-card__decline" onclick="respondToBooking('${bookingId}', 'declined')">Decline</button>
+            `;
+          }
+        });
+      }
+    };
+  }
+
   // ─── INTERCEPT NAVBAR MESSAGE CLICKS ──────────────────────
 
   document.addEventListener('click', (e) => {
@@ -322,6 +450,27 @@
   // ─── SOCKET.IO: RECEIVE MESSAGES ──────────────────────────
 
   if (socket) {
+    socket.on('booking_request_card', async (data) => {
+      if (!data || !data.conversation_id) return;
+      if (window.location.pathname === `/messages/${data.conversation_id}`) return;
+
+      await window.openFloatingChat(
+        data.conversation_id,
+        data.customer_name || 'Customer',
+        data.customer_avatar || '/images/default-avatar.png'
+      );
+
+      const chatBox = activeChats.get(data.conversation_id);
+      if (chatBox) {
+        appendBookingCard(chatBox.querySelector('.chat-box__body'), data);
+        scrollToBottom(chatBox);
+      }
+    });
+
+    socket.on('booking_card_decided', (data) => {
+      updateBookingCards(data.booking_id, data.status, data.decision);
+    });
+
     socket.on('new-message', (data) => {
       const id = data.conversation_id;
       

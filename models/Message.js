@@ -33,7 +33,13 @@ const Message = {
             `SELECT c.*,
                     p1.first_name AS p1_name, p1.avatar_url AS p1_avatar,
                     p2.first_name AS p2_name, p2.avatar_url AS p2_avatar,
-                    (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
+                    (SELECT CASE
+                        WHEN message_type = 'booking_request'
+                            OR content ~ '"type"[[:space:]]*:[[:space:]]*"booking_request"'
+                        THEN 'Booking request'
+                        ELSE content
+                     END
+                     FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
                     (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND receiver_id = $1 AND is_read = false) AS unread_count
              FROM conversations c
              LEFT JOIN profiles p1 ON c.participant_1 = p1.user_id
@@ -92,11 +98,31 @@ const Message = {
         const result = await pool.query(
             `SELECT m.*,
                     p.first_name AS sender_name, p.avatar_url AS sender_avatar,
-                    rm.content AS reply_content, rp.first_name AS reply_sender_name
+                    rm.content AS reply_content, rp.first_name AS reply_sender_name,
+                    b.id AS booking_id, b.status AS booking_status,
+                    b.gig_id, b.package_id, b.total_amount, b.advance_amount,
+                    b.final_amount, b.event_date, b.event_location, b.customer_note,
+                    sg.title AS gig_title, gp.title AS package_name
              FROM messages m
              LEFT JOIN profiles p ON m.sender_id = p.user_id
              LEFT JOIN messages rm ON m.reply_to = rm.id
              LEFT JOIN profiles rp ON rm.sender_id = rp.user_id
+             LEFT JOIN conversations c ON m.conversation_id = c.id
+             LEFT JOIN bookings b ON b.id = COALESCE(
+                    NULLIF(
+                        CASE
+                            WHEN (
+                                m.message_type = 'booking_request'
+                                OR m.content ~ '"type"[[:space:]]*:[[:space:]]*"booking_request"'
+                            ) AND m.content ~ '^[[:space:]]*\\{'
+                            THEN m.content::jsonb->>'booking_id'
+                        END,
+                        ''
+                    )::uuid,
+                    c.booking_id
+                )
+             LEFT JOIN service_gigs sg ON b.gig_id = sg.id
+             LEFT JOIN gig_packages gp ON b.package_id = gp.id
              WHERE m.conversation_id = $1
              ORDER BY m.created_at ASC
              LIMIT $2 OFFSET $3`,

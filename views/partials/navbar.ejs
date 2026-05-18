@@ -65,7 +65,13 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/bookings"><i class="bi bi-calendar-check"></i> Bookings</a>
+                        <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="ek-theme-toggle" data-theme-toggle aria-label="Switch color theme">
+                            <i class="bi bi-moon-stars" data-theme-icon></i>
+                            <span data-theme-label>Dark</span>
+                        </button>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -90,6 +96,12 @@
                     <% } else { %>
                         <li class="nav-item">
                             <a class="btn btn-ek-ghost" href="/auth/login">Log in</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <button type="button" class="ek-theme-toggle" data-theme-toggle aria-label="Switch color theme">
+                                <i class="bi bi-moon-stars" data-theme-icon></i>
+                                <span data-theme-label>Dark</span>
+                            </button>
                         </li>
                         <li class="nav-item ms-lg-2">
                             <a class="btn btn-ek-primary" href="/auth/register">Get started</a>

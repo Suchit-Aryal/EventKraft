@@ -29,6 +29,9 @@ router.post('/:id/complete', ensureAuthenticated, bookingCtrl.complete);
 // POST /bookings/:id/cancel   – Cancel booking
 router.post('/:id/cancel', ensureAuthenticated, bookingCtrl.cancel);
 
+// POST /bookings/:id/decision – Worker accepts/declines from booking card
+router.post('/:id/decision', ensureAuthenticated, bookingCtrl.decide);
+
 // GET: Show legal agreement page
 router.get('/:id/agreement', ensureAuthenticated, ensureRole('customer'), bookingCtrl.showAgreement);
 
