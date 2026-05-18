@@ -47,9 +47,9 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1">
-                                <a href="<%= s.doc_front_url %>" target="_blank" class="btn btn-sm btn-ek-outline">Front</a>
+                                <a href="<%= s.doc_front_url %>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-ek-outline">Front</a>
                                 <% if (s.doc_back_url) { %>
-                                    <a href="<%= s.doc_back_url %>" target="_blank" class="btn btn-sm btn-ek-outline">Back</a>
+                                    <a href="<%= s.doc_back_url %>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-ek-outline">Back</a>
                                 <% } %>
                                 <% if (s.status === 'pending') { %>
                                     <form action="/admin/kyc/<%= s.user_id %>/approve" method="POST" class="d-inline">
