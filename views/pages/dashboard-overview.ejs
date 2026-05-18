@@ -6,7 +6,8 @@
 </div>
 
 <% const pc = locals.profileCompletion || { percentage: 100, steps: [] }; %>
-<% if (pc.percentage < 100) { %>
+<% const pcPercentage = Math.max(0, Math.min(100, Math.round(Number(pc.percentage) || 0))); %>
+<% if (pcPercentage < 100) { %>
     <% const incompleteSteps = (pc.steps || []).filter(step => !step.done); %>
     <div class="profile-completion-card mb-4">
         <div class="profile-completion-card__summary">
@@ -15,13 +16,13 @@
                 <h2>Complete your profile to unlock more trust signals</h2>
                 <p>Each task below adds a specific score. Finish the high-value items first to look more credible in search, proposals, and booking conversations.</p>
             </div>
-            <div class="profile-completion-ring" style="--completion:<%= pc.percentage %>">
-                <span><%= pc.percentage %>%</span>
+            <div class="profile-completion-ring" style="--completion:<%= pcPercentage %>">
+                <span><%= pcPercentage %>%</span>
             </div>
         </div>
 
         <div class="profile-completion-card__track">
-            <div style="width:<%= pc.percentage %>%"></div>
+            <div style="width:<%= pcPercentage %>%"></div>
         </div>
 
         <div class="profile-completion-grid">
@@ -38,7 +39,7 @@
                         <strong><%= step.label %></strong>
                         <% if (step.detail) { %><small><%= step.detail %></small><% } %>
                     </div>
-                    <em>+<%= step.impact || step.points %>%</em>
+                    <em>+<%= step.impact ?? step.points ?? 0 %>%</em>
                 </a>
             <% }); %>
         </div>
