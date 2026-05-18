@@ -16,7 +16,7 @@
         <% } %>
         <div class="d-flex flex-wrap gap-2">
             <% proof.forEach(function(p) { %>
-                <a href="<%= p.url %>" target="_blank">
+                <a href="<%= p.url %>" target="_blank" rel="noopener noreferrer">
                     <img src="<%= p.url %>" style="width:120px;height:90px;object-fit:cover;border-radius:6px;" alt="proof">
                 </a>
             <% }); %>
