@@ -6,6 +6,7 @@
     "scripts": {
         "start": "node app.js",
         "dev": "nodemon app.js",
+        "test": "jest",
         "db:setup": "node database/setup.js",
         "db:seed": "node database/seed.js",
         "db:reset": "node database/reset.js",
@@ -39,9 +40,11 @@
         "pg": "^8.12.0",
         "qrcode": "^1.5.4",
         "socket.io": "^4.7.5",
-        "speakeasy": "^2.0.0"
+        "speakeasy": "^2.0.0",
+        "uuid": "^9.0.1"
     },
     "devDependencies": {
+        "jest": "^30.4.2",
         "nodemon": "^3.1.4"
     }
 }
