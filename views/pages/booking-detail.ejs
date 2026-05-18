@@ -170,7 +170,21 @@
 
 <!-- Proof Gallery (shown when status is work_done or later) -->
 <% if (['work_done','dispute_raised','paid_final','completed'].includes(booking.status)) { %>
-<% const proofItems = typeof booking.completion_proof === 'string' ? JSON.parse(booking.completion_proof || '[]') : (booking.completion_proof || []); %>
+<%
+let proofItems = [];
+if (Array.isArray(booking.completion_proof)) {
+    proofItems = booking.completion_proof;
+} else {
+    try {
+        proofItems = typeof booking.completion_proof === 'string'
+            ? JSON.parse(booking.completion_proof || '[]')
+            : (booking.completion_proof || []);
+    } catch (err) {
+        proofItems = [];
+    }
+}
+if (!Array.isArray(proofItems)) proofItems = [];
+%>
 <% if (proofItems.length) { %>
 <div class="container py-2" style="max-width:800px">
     <div class="ek-card mt-3" style="padding:1.5rem 2rem">
@@ -178,7 +192,7 @@
         <% if (booking.completion_note) { %><p class="text-muted"><%= booking.completion_note %></p><% } %>
         <div class="d-flex flex-wrap gap-2">
             <% proofItems.forEach(function(p) { %>
-                <a href="<%= p.url %>" target="_blank">
+                <a href="<%= p.url %>" target="_blank" rel="noopener noreferrer">
                     <img src="<%= p.url %>" style="width:120px;height:90px;object-fit:cover;border-radius:6px;" alt="proof">
                 </a>
             <% }); %>
