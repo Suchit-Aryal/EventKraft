@@ -38,14 +38,14 @@
                     <% const canDecideBooking = m.booking_status === 'pending' && m.receiver_id === currentUser.id; %>
                     <div id="msg-<%= m.id %>" class="mb-3 msg-wrap booking-card-message" style="position:relative" data-msg-id="<%= m.id %>" data-sender="<%= m.sender_id %>" data-content="<%= m.content || '' %>" data-booking-id="<%= m.booking_id || '' %>">
                         <div class="booking-card">
-                            <div class="booking-card-header" onclick="toggleBookingCard(this)">
+                            <button type="button" class="booking-card-header" aria-expanded="false" onclick="toggleBookingCard(this)">
                                 <div class="booking-card-title">
                                     <span class="booking-icon"><i class="bi bi-calendar-check"></i></span>
                                     <strong>Booking Request</strong>
                                     <span class="booking-gig-name"><%= m.gig_title || '' %></span>
                                 </div>
                                 <span class="booking-card-chevron">▾</span>
-                            </div>
+                            </button>
                             <div class="booking-card-body" style="display:none;">
                                 <div class="booking-detail-row"><span>Package</span><strong><%= m.package_name || 'N/A' %></strong></div>
                                 <div class="booking-detail-row"><span>Event Date</span><strong><%= m.event_date ? new Date(m.event_date).toLocaleDateString('en-NP') : 'Not specified' %></strong></div>
@@ -81,9 +81,9 @@
                             <% } %>
                             <% if (m.file_url && !m.is_unsent) { %>
                                 <% if (m.file_type && m.file_type.startsWith('image/')) { %>
-                                    <a href="<%= m.file_url %>" target="_blank"><img src="<%= m.file_url %>" alt="<%= m.file_name %>" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>
+                                    <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer"><img src="<%= m.file_url %>" alt="<%= m.file_name %>" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>
                                 <% } else { %>
-                                    <a href="<%= m.file_url %>" target="_blank" class="msg-file-preview">
+                                    <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer" class="msg-file-preview">
                                         <i class="bi bi-file-earmark-<%= m.file_type === 'application/pdf' ? 'pdf' : 'zip' %>-fill"></i>
                                         <span style="font-size:.8rem"><%= m.file_name || 'File' %></span>
                                     </a>
