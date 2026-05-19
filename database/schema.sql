@@ -34,6 +34,9 @@ CREATE TYPE booking_status AS ENUM (
     'awaiting_agreement', 'paid_advance', 'work_done', 'dispute_raised',
     'paid_final', 'overdue_final', 'legal_action', 'payment_settlement_failed'
 );
+-- Note: 'disputed' is a legacy terminal status set by Dispute.create().
+--       'dispute_raised' is the modern transitional status set by raiseDispute.
+--       Both are intentionally kept for backward compatibility.
 
 CREATE TYPE transaction_type AS ENUM (
     'payment', 'refund', 'payout'
