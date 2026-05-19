@@ -41,8 +41,23 @@ async function send2FAEnabledEmail(to) {
 module.exports = { sendVerificationEmail, send2FAEnabledEmail, transporter };
 
 async function sendBookingAcceptedEmail(toEmail, booking, deadline) {
-    const formattedDeadline = new Date(deadline).toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' });
-    const advanceAmount = Math.round(booking.total_amount * 0.30).toLocaleString('en-NP');
+    const deadlineDate = new Date(deadline);
+    if (isNaN(deadlineDate.getTime())) {
+        throw new Error(`Invalid booking deadline: ${deadline}`);
+    }
+    const formattedDeadline = deadlineDate.toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' });
+
+    const totalAmount = Number(booking.total_amount);
+    if (!isFinite(totalAmount) || totalAmount < 0) {
+        throw new Error(`Invalid booking total_amount: ${booking.total_amount}`);
+    }
+    const advanceAmount = Math.round(totalAmount * 0.30).toLocaleString('en-NP');
+
+    const appUrl = process.env.APP_URL;
+    if (!appUrl || !/^https?:\/\/.+/.test(appUrl)) {
+        throw new Error(`APP_URL is missing or malformed: ${appUrl}`);
+    }
+
     const workerName = `${booking.worker_first_name || ''} ${booking.worker_last_name || ''}`.trim() || 'the worker';
     const gigTitle = booking.gig_title || 'your booked service';
 
@@ -60,7 +75,7 @@ async function sendBookingAcceptedEmail(toEmail, booking, deadline) {
               Pay the advance of <strong>NPR ${advanceAmount}</strong> to confirm your booking.
               After this deadline, your booking will be automatically cancelled.
             </div>
-            <a href="${process.env.APP_URL}/bookings/${booking.id}/agreement"
+            <a href="${appUrl}/bookings/${booking.id}/agreement"
                style="background:#6b1d2a;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">
               Review Terms &amp; Pay Advance
             </a>
