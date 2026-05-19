@@ -414,6 +414,16 @@ module.exports = {
                 return res.redirect('/dashboard');
             }
 
+            const Transaction = require('../models/Transaction');
+            const existingTxns = await Transaction.findByBooking(booking.id);
+            const hasAdvancePayment = existingTxns.some(
+                t => t.type === 'advance_payment' && t.status === 'completed'
+            );
+            if (hasAdvancePayment) {
+                req.flash('success', 'Advance payment already processed.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
             const { verifyEsewaPayment } = require('../utils/esewa');
             const encodedData = req.query.data;
             if (!encodedData) {
@@ -433,17 +443,18 @@ module.exports = {
                 return res.redirect(`/bookings/${booking.id}/pay-advance`);
             }
 
+            const payerId = booking.customer_id || req.user.id;
+
             await Booking.updateFields(booking.id, {
                 status: 'paid_advance',
                 advance_esewa_ref_id: decoded.ref_id || verified.ref_id || null,
                 advance_paid_at: new Date(),
             });
 
-            const Transaction = require('../models/Transaction');
             const advanceAmount = moneyAmount(booking.advance_amount, Number(booking.total_amount) * 0.30);
             await Transaction.create({
                 booking_id: booking.id,
-                payer_id: req.user.id,
+                payer_id: payerId,
                 payee_id: booking.worker_id,
                 amount: advanceAmount,
                 commission: 0,
@@ -593,6 +604,21 @@ module.exports = {
         try {
             const booking = await Booking.findById(req.params.id);
             if (!booking) return res.redirect('/dashboard');
+
+            if (booking.final_paid_at || booking.status === 'paid_final') {
+                req.flash('success', 'Final payment already processed.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+
+            const Transaction = require('../models/Transaction');
+            const existingTxns = await Transaction.findByBooking(booking.id);
+            const hasFinalPayment = existingTxns.some(
+                t => t.type === 'final_payment' && t.status === 'completed'
+            );
+            if (hasFinalPayment) {
+                req.flash('success', 'Final payment already processed.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
 
             const rawData = req.query.data;
             let esewaData = {};

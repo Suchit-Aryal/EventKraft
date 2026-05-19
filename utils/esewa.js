@@ -22,11 +22,14 @@ function getEsewaEndpoint() {
 
 async function verifyEsewaPayment(transactionUuid, totalAmount) {
   const productCode = process.env.ESEWA_MERCHANT_CODE;
+  if (!productCode) {
+    throw new Error('ESEWA_MERCHANT_CODE is not configured');
+  }
   const baseUrl = process.env.ESEWA_ENV === 'live'
     ? 'https://epay.esewa.com.np/api/epay/transaction/status/'
     : 'https://rc.esewa.com.np/api/epay/transaction/status/';
 
-  const url = `${baseUrl}?product_code=${productCode}&total_amount=${totalAmount}&transaction_uuid=${transactionUuid}`;
+  const url = `${baseUrl}?product_code=${encodeURIComponent(productCode)}&total_amount=${encodeURIComponent(totalAmount)}&transaction_uuid=${encodeURIComponent(transactionUuid)}`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
