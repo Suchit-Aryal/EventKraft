@@ -19,11 +19,11 @@ if (connectionString && connectionString.includes('supabase')) {
 const pool = new Pool(poolConfig);
 
 pool.on('connect', () => {
-    console.log('📦 Connected to PostgreSQL database');
+    console.log('Connected to PostgreSQL database');
 });
 
 pool.on('error', (err) => {
-    console.error('❌ Database connection error:', err);
+    console.error('Database connection error:', err);
     process.exit(-1);
 });
 
