@@ -56,13 +56,14 @@
   --ek-gradient-hero: linear-gradient(135deg, #16080e 0%, #43101b 48%, #243b3b 100%);
   --ek-gradient-gold: linear-gradient(135deg, #f0d48a 0%, #d6a646 100%);
   --ek-gradient-subtle: linear-gradient(180deg, #141116 0%, #1d171d 100%);
+
   color-scheme: dark;
 }
 
 html { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
   background: var(--ek-page-bg);
   color: var(--ek-text);
   min-height: 100vh;
@@ -947,7 +948,7 @@ a:hover { color: var(--ek-maroon-light); }
   font-size: 15px !important; 
   font-weight: 800 !important; 
   color: #1a1018 !important; 
-  font-family: 'Inter', sans-serif !important; 
+  font-family: Inter, sans-serif !important;
   margin: 0 !important; 
   line-height: 1.2 !important;
 }
@@ -1055,10 +1056,15 @@ a:hover { color: var(--ek-maroon-light); }
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    border: 0;
     padding: 12px 16px;
     cursor: pointer;
     user-select: none;
     background: #f0f4ff;
+    color: inherit;
+    font: inherit;
+    text-align: left;
 }
 .booking-card-title {
     display: flex;

@@ -1,5 +1,5 @@
 /* ====== Layout shell ====== */
-.dashboard-body { margin: 0; background: #fdf8f0; font-family: 'Inter', -apple-system, sans-serif; }
+.dashboard-body { margin: 0; background: #fdf8f0; font-family: Inter, -apple-system, sans-serif; }
 .dashboard-shell { display: flex; min-height: calc(100vh - 64px); position: relative; }
 
 /* ====== Sidebar ====== */
