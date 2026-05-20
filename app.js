@@ -114,6 +114,7 @@ app.use('/dashboard', require('./routes/dashboardRoutes'));
 io.on('connection', (socket) => {
     // Join a personal room for real-time badges/notifications
     socket.on('join-user', (userId) => {
+        socket.data.userId = userId;
         socket.join(`user_${userId}`);
     });
 
@@ -134,6 +135,16 @@ io.on('connection', (socket) => {
     socket.on('message-unsent', (data) => {
         socket.to(`conversation_${data.conversationId}`).emit('message-unsent', {
             messageId: data.messageId
+        });
+    });
+
+    // Booking decisions must go through the authenticated HTTP route.
+    // Socket user ids are client-provided in this app, so they are not trusted for writes.
+    socket.on('booking_decision', async ({ booking_id, decision }) => {
+        socket.emit('booking_decision_error', {
+            booking_id,
+            decision,
+            message: 'Please refresh and try again.',
         });
     });
 

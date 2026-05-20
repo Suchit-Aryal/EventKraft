@@ -180,6 +180,20 @@
                                         <input type="hidden" name="commission_rate" value="10">
                                         <input type="hidden" name="commission_amount" value="<%= (pkg.price * 0.1).toFixed(2) %>">
                                         <input type="hidden" name="worker_earning" value="<%= (pkg.price * 0.9).toFixed(2) %>">
+                                        <div class="form-group mt-3">
+                                          <label for="customer_note_<%= i %>" class="form-label">
+                                            Message to worker <span class="text-muted">(optional)</span>
+                                          </label>
+                                          <textarea
+                                            id="customer_note_<%= i %>"
+                                            name="customer_note"
+                                            class="form-control"
+                                            rows="3"
+                                            maxlength="500"
+                                            placeholder="Any special requirements, questions, or notes for the worker..."
+                                          ></textarea>
+                                          <small class="text-muted"><span class="note-char-count">0</span>/500</small>
+                                        </div>
                                         <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
                                     </form>
                                 </div>
@@ -196,6 +210,20 @@
                                 <input type="hidden" name="commission_rate" value="10">
                                 <input type="hidden" name="commission_amount" value="<%= (gig.starting_price * 0.1).toFixed(2) %>">
                                 <input type="hidden" name="worker_earning" value="<%= (gig.starting_price * 0.9).toFixed(2) %>">
+                                <div class="form-group mt-3">
+                                  <label for="customer_note" class="form-label">
+                                    Message to worker <span class="text-muted">(optional)</span>
+                                  </label>
+                                  <textarea
+                                    id="customer_note"
+                                    name="customer_note"
+                                    class="form-control"
+                                    rows="3"
+                                    maxlength="500"
+                                    placeholder="Any special requirements, questions, or notes for the worker..."
+                                  ></textarea>
+                                  <small class="text-muted"><span class="note-char-count">0</span>/500</small>
+                                </div>
                                 <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
                             </form>
                         </div>
@@ -252,6 +280,16 @@
             });
             this.style.borderColor = 'var(--bs-primary)'; this.style.opacity = '1';
         });
+    });
+
+    // Character counter for customer_note textareas
+    document.querySelectorAll('textarea[name="customer_note"]').forEach(function(textarea) {
+        var counter = textarea.parentElement.querySelector('.note-char-count');
+        if (counter) {
+            textarea.addEventListener('input', function() {
+                counter.textContent = this.value.length;
+            });
+        }
     });
 </script>
 

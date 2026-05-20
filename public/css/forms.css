@@ -109,3 +109,86 @@
 .radio-card span { display: block; padding: 11px 20px; border: 1.5px solid #e8e0d8; border-radius: 12px; font-size: 14.5px; font-weight: 600; color: #5c5055; cursor: pointer; transition: all .2s; background: #fff; }
 .radio-card input:checked + span { border-color: #6b1d2a; background: rgba(107,29,42,0.05); color: #6b1d2a; font-weight: 700; }
 .radio-card span:hover { border-color: #c8943e; }
+
+/* Dark mode form/settings surfaces */
+:root[data-theme="dark"] .page-title,
+:root[data-theme="dark"] .form-label,
+:root[data-theme="dark"] .profile-section__label h3,
+:root[data-theme="dark"] .settings-card__title,
+:root[data-theme="dark"] .settings-row__label,
+:root[data-theme="dark"] .upload-zone__text {
+  color: var(--ek-text);
+}
+
+:root[data-theme="dark"] .page-desc,
+:root[data-theme="dark"] .form-hint,
+:root[data-theme="dark"] .form-hint-inline,
+:root[data-theme="dark"] .profile-section__label p,
+:root[data-theme="dark"] .upload-zone__hint {
+  color: var(--ek-text-muted);
+}
+
+:root[data-theme="dark"] .btn-outline,
+:root[data-theme="dark"] .btn-outline-sm,
+:root[data-theme="dark"] .btn-danger-sm,
+:root[data-theme="dark"] .form-input,
+:root[data-theme="dark"] .skills-wrap,
+:root[data-theme="dark"] .cover-btn,
+:root[data-theme="dark"] .settings-card,
+:root[data-theme="dark"] .radio-card span {
+  background: var(--ek-surface);
+  border-color: var(--ek-border);
+  color: var(--ek-text);
+}
+
+:root[data-theme="dark"] .btn-outline:hover,
+:root[data-theme="dark"] .btn-outline-sm:hover,
+:root[data-theme="dark"] .skills-wrap:focus-within,
+:root[data-theme="dark"] .cover-preview:hover,
+:root[data-theme="dark"] .upload-zone:hover,
+:root[data-theme="dark"] .radio-card span:hover {
+  background: var(--ek-surface-muted);
+}
+
+:root[data-theme="dark"] .input-prefix,
+:root[data-theme="dark"] .cover-preview,
+:root[data-theme="dark"] .upload-zone,
+:root[data-theme="dark"] .upload-zone--has-file,
+:root[data-theme="dark"] .pw-strength-bar {
+  background: var(--ek-surface-muted);
+  border-color: var(--ek-border);
+  color: var(--ek-text-muted);
+}
+
+:root[data-theme="dark"] .profile-section,
+:root[data-theme="dark"] .profile-form-footer,
+:root[data-theme="dark"] .settings-row,
+:root[data-theme="dark"] .tabs-bar {
+  border-color: var(--ek-border);
+}
+
+:root[data-theme="dark"] .settings-card--danger {
+  background: rgba(239,68,68,.08);
+  border-color: rgba(239,68,68,.28);
+}
+
+:root[data-theme="dark"] .tab-link {
+  color: var(--ek-text-muted);
+}
+
+:root[data-theme="dark"] .tab-link:hover,
+:root[data-theme="dark"] .tab-link--active,
+:root[data-theme="dark"] .link {
+  color: var(--ek-gold-light);
+}
+
+:root[data-theme="dark"] .tab-link:hover {
+  background: var(--ek-surface-muted);
+}
+
+:root[data-theme="dark"] .skill-chip,
+:root[data-theme="dark"] .radio-card input:checked + span {
+  background: rgba(225,184,94,.12);
+  border-color: rgba(225,184,94,.35);
+  color: var(--ek-gold-light);
+}
