@@ -86,15 +86,20 @@
 </div>
 
 <script>
-  document.getElementById('agree-checkbox').addEventListener('change', function() {
-    document.getElementById('proceed-btn').disabled = !this.checked;
-  });
-  document.getElementById('agreement-form').addEventListener('submit', function(e) {
-    if (!document.getElementById('agree-checkbox').checked) {
-      e.preventDefault();
-      alert('Please read and accept the terms to proceed.');
-    }
-  });
+  (function() {
+    var checkbox = document.getElementById('agree-checkbox');
+    var btn = document.getElementById('proceed-btn');
+    btn.disabled = !checkbox.checked;
+    checkbox.addEventListener('change', function() {
+      btn.disabled = !this.checked;
+    });
+    document.getElementById('agreement-form').addEventListener('submit', function(e) {
+      if (!checkbox.checked) {
+        e.preventDefault();
+        alert('Please read and accept the terms to proceed.');
+      }
+    });
+  })();
 </script>
 
 <%- include('../partials/dashboard-wrapper-end') %>

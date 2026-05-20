@@ -357,6 +357,12 @@
         if (!container) return;
         const convId = String(container.dataset.conversationId || '');
         if (convId && convId !== String(data.conversation_id || '')) return;
+        if (data.content && typeof data.content === 'string') {
+            try {
+                const parsed = JSON.parse(data.content);
+                Object.assign(data, parsed);
+            } catch (e) {}
+        }
         renderBookingCard(data, false, null);
         const messageArea = document.getElementById('messageArea');
         if (messageArea) messageArea.scrollTop = messageArea.scrollHeight;
