@@ -1,5 +1,6 @@
 <%
   const pc = locals.profileCompletion || { percentage: 100, steps: [] };
+  const pcPercentage = Math.max(0, Math.min(100, Math.round(Number(pc.percentage) || 0)));
 %>
 
 <aside class="sidebar" id="sidebar">
@@ -28,16 +29,27 @@
   </div>
 
   <!-- Profile completion bar (only if incomplete) -->
-  <% if (pc.percentage < 100) { %>
-    <a href="/dashboard/profile" class="sidebar__completion">
+  <% if (pcPercentage < 100) { %>
+    <% const nextSteps = (pc.steps || []).filter(step => !step.done).slice(0, 3); %>
+    <div class="sidebar__completion">
       <div class="sidebar__completion-top">
-        <span><%= pc.percentage %>% complete</span>
-        <span class="sidebar__completion-cta">Finish setup →</span>
+        <span><%= pcPercentage %>% complete</span>
+        <a class="sidebar__completion-cta" href="/dashboard/profile">Improve</a>
       </div>
       <div class="sidebar__completion-track">
-        <div class="sidebar__completion-fill" style="width:<%= pc.percentage %>%"></div>
+        <div class="sidebar__completion-fill" style="width:<%= pcPercentage %>%"></div>
       </div>
-    </a>
+      <% if (nextSteps.length > 0) { %>
+        <div class="sidebar__completion-list">
+          <% nextSteps.forEach(function(step) { %>
+            <a href="<%= step.href %>" class="sidebar__completion-step">
+              <span><%= step.label %></span>
+              <strong>+<%= step.impact ?? step.points ?? 0 %>%</strong>
+            </a>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
   <% } %>
 
   <!-- Navigation -->
@@ -119,7 +131,7 @@
         <%- icons.plus %>
         <span>Post a Service</span>
         <% if (!canPost) { %>
-          <span class="sidebar__lock-icon">🔒</span>
+          <span class="sidebar__lock-icon"><i class="bi bi-lock"></i></span>
         <% } %>
       </a>
 

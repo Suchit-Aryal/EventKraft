@@ -3,6 +3,7 @@
 // ============================================================
 
 const User = require('../models/User');
+const Booking = require('../models/Booking');
 const pool = require('../config/db');
 
 module.exports = {
@@ -10,6 +11,9 @@ module.exports = {
     // GET /admin — Dashboard with platform stats
     async dashboard(req, res) {
         try {
+            // Auto-flag overdue bookings on every admin dashboard load
+            await flagOverdueBookings();
+
             const stats = {};
 
             // User stats
@@ -272,5 +276,113 @@ module.exports = {
             req.flash('error', 'Could not reject KYC.');
             res.redirect('/admin/kyc');
         }
+    }
+};
+
+// ─── Admin Helper Functions ──────────────────────────────────
+
+async function flagOverdueBookings() {
+    try {
+        // Auto-cancel bookings where advance deadline passed without payment
+        await pool.query(`
+            UPDATE bookings SET status = 'cancelled'
+            WHERE status IN ('accepted', 'awaiting_agreement')
+            AND advance_deadline < NOW()
+            AND advance_paid_at IS NULL
+        `);
+        // Flag bookings where final deadline passed without payment
+        await pool.query(`
+            UPDATE bookings SET status = 'overdue_final', overdue_flagged_at = NOW()
+            WHERE status = 'work_done'
+            AND final_deadline < NOW()
+            AND final_paid_at IS NULL
+            AND dispute_raised_at IS NULL
+        `);
+    } catch (err) {
+        console.error('flagOverdueBookings error:', err.message);
+    }
+}
+
+async function getLegalActionBookings() {
+    const result = await pool.query(`
+        SELECT
+            b.*,
+            p_customer.first_name || ' ' || p_customer.last_name AS customer_name,
+            u_customer.email AS customer_email,
+            u_customer.phone AS customer_phone,
+            p_worker.first_name || ' ' || p_worker.last_name AS worker_name,
+            ba.agreed_at AS agreement_timestamp,
+            ba.ip_address AS customer_ip,
+            ba.agreement_version,
+            sg.title AS gig_title_full
+        FROM bookings b
+        JOIN users u_customer ON b.customer_id = u_customer.id
+        JOIN profiles p_customer ON b.customer_id = p_customer.user_id
+        JOIN users u_worker ON b.worker_id = u_worker.id
+        JOIN profiles p_worker ON b.worker_id = p_worker.user_id
+        LEFT JOIN booking_agreements ba ON b.id = ba.booking_id
+        LEFT JOIN service_gigs sg ON b.gig_id = sg.id
+        WHERE b.status IN ('overdue_final', 'legal_action')
+        ORDER BY b.overdue_flagged_at DESC NULLS LAST
+    `);
+    return result.rows;
+}
+
+module.exports.legalAction = async function(req, res) {
+    try {
+        await flagOverdueBookings();
+        const bookings = await getLegalActionBookings();
+        res.render('pages/admin-legal', {
+            title: 'Legal Action Panel — EventKraft',
+            layout: 'dashboard',
+            activePage: 'admin',
+            bookings,
+        });
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Failed to load legal action panel');
+        res.redirect('/admin');
+    }
+};
+
+module.exports.markLegalAction = async function(req, res) {
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            req.flash('error', 'Booking not found.');
+            return res.redirect('/admin/legal-action');
+        }
+        if (booking.status !== 'overdue_final') {
+            req.flash('error', 'Only overdue bookings can be moved to legal action.');
+            return res.redirect('/admin/legal-action');
+        }
+        await pool.query("UPDATE bookings SET status = 'legal_action' WHERE id = $1 AND status = 'overdue_final'", [req.params.id]);
+        req.flash('success', 'Booking marked as legal action.');
+        res.redirect('/admin/legal-action');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Failed to update booking.');
+        res.redirect('/admin/legal-action');
+    }
+};
+
+module.exports.resolveOverdue = async function(req, res) {
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            req.flash('error', 'Booking not found.');
+            return res.redirect('/admin/legal-action');
+        }
+        if (!['overdue_final', 'legal_action'].includes(booking.status)) {
+            req.flash('error', 'Only overdue or legal-action bookings can be resolved here.');
+            return res.redirect('/admin/legal-action');
+        }
+        await pool.query("UPDATE bookings SET status = 'completed' WHERE id = $1 AND status IN ('overdue_final', 'legal_action')", [req.params.id]);
+        req.flash('success', 'Booking marked as resolved.');
+        res.redirect('/admin/legal-action');
+    } catch (err) {
+        console.error(err);
+        req.flash('error', 'Failed to resolve booking.');
+        res.redirect('/admin/legal-action');
     }
 };

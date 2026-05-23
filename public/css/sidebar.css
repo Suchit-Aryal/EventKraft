@@ -1,5 +1,5 @@
 /* ====== Layout shell ====== */
-.dashboard-body { margin: 0; background: #fdf8f0; font-family: 'Inter', -apple-system, sans-serif; }
+.dashboard-body { margin: 0; background: #fdf8f0; font-family: Inter, -apple-system, sans-serif; }
 .dashboard-shell { display: flex; min-height: calc(100vh - 64px); position: relative; }
 
 /* ====== Sidebar ====== */
@@ -35,9 +35,18 @@
 .sidebar__completion { display: block; padding: 12px; background: #fdf8f0; border: 1px solid #e3b964; border-radius: 12px; text-decoration: none; margin-bottom: 16px; transition: all .2s; }
 .sidebar__completion:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,148,62,0.1); }
 .sidebar__completion-top { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #a07430; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
-.sidebar__completion-cta { color: #6b1d2a; }
+.sidebar__completion-cta { color: #6b1d2a; text-decoration: none; }
 .sidebar__completion-track { height: 6px; background: rgba(200,148,62,0.15); border-radius: 100px; overflow: hidden; }
 .sidebar__completion-fill { height: 100%; background: linear-gradient(90deg, #c8943e, #e3b964); border-radius: 100px; }
+.sidebar__completion-list { display: grid; gap: 6px; margin-top: 10px; }
+.sidebar__completion-step {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 9px; border-radius: 9px; background: rgba(255,255,255,.72);
+  color: #5c5055; text-decoration: none; font-size: 11px; line-height: 1.3;
+  border: 1px solid rgba(200,148,62,.16);
+}
+.sidebar__completion-step:hover { color: #6b1d2a; border-color: rgba(107,29,42,.18); background: #fff; }
+.sidebar__completion-step strong { color: #a07430; white-space: nowrap; }
 
 /* Nav */
 .sidebar__nav { display: flex; flex-direction: column; flex: 1; gap: 4px; }
@@ -86,4 +95,90 @@
   .sidebar__nav { flex-direction: row; white-space: nowrap; flex: none; gap: 4px; }
   .sidebar__item { padding: 10px 16px; font-size: 13px; flex-shrink: 0; }
   .dashboard-main { border-top-left-radius: 0; margin: 0; border: none; }
+}
+
+:root[data-theme="dark"] .dashboard-body { background: #121015; }
+:root[data-theme="dark"] .sidebar {
+  background: #151015;
+  border-right-color: #2b2025;
+  scrollbar-color: #33262e transparent;
+}
+:root[data-theme="dark"] .sidebar__usercard,
+:root[data-theme="dark"] .sidebar__completion,
+:root[data-theme="dark"] .quick-action {
+  background: #1f181f;
+  border-color: #33262e;
+}
+:root[data-theme="dark"] .sidebar__uc-name,
+:root[data-theme="dark"] .sidebar__item--active,
+:root[data-theme="dark"] .sidebar__completion-step:hover { color: #f8efe9; }
+:root[data-theme="dark"] .sidebar__item,
+:root[data-theme="dark"] .sidebar__completion-step,
+:root[data-theme="dark"] .sidebar__foot a { color: #b9aab0; }
+:root[data-theme="dark"] .sidebar__item:hover {
+  background: #2a1e27;
+  color: #f0d48a;
+}
+:root[data-theme="dark"] .sidebar__completion-step {
+  background: #181217;
+  border-color: #33262e;
+}
+:root[data-theme="dark"] .sidebar__foot {
+  border-top-color: #2b2025;
+}
+:root[data-theme="dark"] .dashboard-main {
+  background: #171217;
+  border-color: #2b2025;
+}
+
+:root[data-theme="dark"] .sidebar__uc-avatar,
+:root[data-theme="dark"] .sidebar__uc-verified,
+:root[data-theme="dark"] .sidebar__badge {
+  border-color: #151015;
+}
+
+:root[data-theme="dark"] .sidebar__icon {
+  stroke: #b9aab0;
+}
+
+:root[data-theme="dark"] .sidebar__completion:hover,
+:root[data-theme="dark"] .sidebar__completion-step:hover {
+  background: #241b22;
+}
+
+:root[data-theme="dark"] .sidebar__completion-step strong,
+:root[data-theme="dark"] .sidebar__completion-cta,
+:root[data-theme="dark"] .sidebar__item--create,
+:root[data-theme="dark"] .sidebar__item--create .sidebar__icon {
+  color: #f0d48a;
+  stroke: #f0d48a;
+}
+
+:root[data-theme="dark"] .sidebar__item--create {
+  background: rgba(225,184,94,.08);
+  border-color: rgba(225,184,94,.42);
+}
+
+:root[data-theme="dark"] .sidebar__item--create:hover {
+  background: rgba(225,184,94,.14);
+}
+
+:root[data-theme="dark"] .sidebar__uc-role-pill--worker {
+  background: rgba(210,100,120,.14);
+  color: #f0a0ad;
+}
+
+:root[data-theme="dark"] .sidebar__uc-role-pill--customer {
+  background: rgba(225,184,94,.14);
+  color: #f0d48a;
+}
+
+:root[data-theme="dark"] .sidebar__foot span {
+  color: #33262e;
+}
+
+@media (max-width: 860px) {
+  :root[data-theme="dark"] .sidebar {
+    border-bottom-color: #2b2025;
+  }
 }

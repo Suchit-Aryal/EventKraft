@@ -80,7 +80,11 @@ function getProfileCompletion(user) {
   // ── Calculate ───────────────────────────────────────────────────
   const totalPoints  = steps.reduce((s, x) => s + x.points, 0);
   const earnedPoints = steps.filter(x => x.done).reduce((s, x) => s + x.points, 0);
-  const percentage   = Math.round((earnedPoints / totalPoints) * 100);
+  const rawPercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;
+  const percentage = Math.max(0, Math.min(100, Math.round(rawPercentage)));
+  steps.forEach(step => {
+    step.impact = Math.round((step.points / totalPoints) * 100);
+  });
 
   // canPostService: worker needs avatar + 50-word bio + KYC approved
   const canPostService = user.role === 'worker'

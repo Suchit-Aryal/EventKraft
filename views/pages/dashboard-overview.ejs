@@ -1,31 +1,52 @@
 <%- include('../partials/dashboard-wrapper-start') %>
 
 <div class="page-header mb-4">
-    <h1 class="font-display fs-2 fw-bold mb-1">Welcome back, <%= currentUser.first_name || 'there' %> 👋</h1>
+    <h1 class="font-display fs-2 fw-bold mb-1">Welcome back, <%= currentUser.first_name || 'there' %></h1>
     <p class="text-muted">Here's a summary of your activity on EventKraft.</p>
 </div>
 
 <% const pc = locals.profileCompletion || { percentage: 100, steps: [] }; %>
-<% if (pc.percentage < 100) { %>
-    <div class="card border-0 shadow-sm mb-4 overflow-hidden" style="border-left: 4px solid var(--ek-gold) !important;">
-        <div class="card-body p-4">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-4">
-                <div>
-                    <h5 class="fw-bold mb-1">Complete your profile</h5>
-                    <p class="text-muted small mb-0">A complete profile attracts more business and builds trust with clients.</p>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="position-relative" style="width: 60px; height: 60px;">
-                        <svg class="w-100 h-100" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
-                            <circle cx="18" cy="18" r="16" fill="none" stroke="#f5ece0" stroke-width="3"></circle>
-                            <circle cx="18" cy="18" r="16" fill="none" stroke="var(--ek-maroon)" stroke-width="3" stroke-dasharray="<%= pc.percentage %>, 100" stroke-linecap="round"></circle>
-                        </svg>
-                        <div class="position-absolute top-50 start-50 translate-middle fw-bold small"><%= pc.percentage %>%</div>
-                    </div>
-                    <a href="/dashboard/profile" class="btn btn-ek-primary btn-sm rounded-pill px-4">Finish Setup</a>
-                </div>
+<% const pcPercentage = Math.max(0, Math.min(100, Math.round(Number(pc.percentage) || 0))); %>
+<% if (pcPercentage < 100) { %>
+    <% const incompleteSteps = (pc.steps || []).filter(step => !step.done); %>
+    <div class="profile-completion-card mb-4">
+        <div class="profile-completion-card__summary">
+            <div>
+                <p class="profile-completion-card__eyebrow">Profile strength</p>
+                <h2>Complete your profile to unlock more trust signals</h2>
+                <p>Each task below adds a specific score. Finish the high-value items first to look more credible in search, proposals, and booking conversations.</p>
+            </div>
+            <div class="profile-completion-ring" style="--completion:<%= pcPercentage %>">
+                <span><%= pcPercentage %>%</span>
             </div>
         </div>
+
+        <div class="profile-completion-card__track">
+            <div style="width:<%= pcPercentage %>%"></div>
+        </div>
+
+        <div class="profile-completion-grid">
+            <% (pc.steps || []).forEach(function(step) { %>
+                <a href="<%= step.href %>" class="profile-completion-task <%= step.done ? 'is-done' : '' %>">
+                    <span class="profile-completion-task__check">
+                        <% if (step.done) { %>
+                            <i class="bi bi-check-lg"></i>
+                        <% } else { %>
+                            <i class="bi bi-circle"></i>
+                        <% } %>
+                    </span>
+                    <div>
+                        <strong><%= step.label %></strong>
+                        <% if (step.detail) { %><small><%= step.detail %></small><% } %>
+                    </div>
+                    <em>+<%= step.impact ?? step.points ?? 0 %>%</em>
+                </a>
+            <% }); %>
+        </div>
+
+        <% if (incompleteSteps.length > 0) { %>
+            <a href="<%= incompleteSteps[0].href %>" class="btn btn-ek-primary btn-sm mt-3">Next: <%= incompleteSteps[0].label %></a>
+        <% } %>
     </div>
 <% } %>
 

@@ -21,6 +21,18 @@
 }
 .topnav__right { display: flex; align-items: center; gap: 8px; }
 
+.topnav__theme-toggle {
+  height: 40px; padding: 0 12px; border-radius: 10px;
+  border: 1px solid #e8e0d8; background: #fff; color: #5c5055;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s, transform .2s;
+}
+.topnav__theme-toggle:hover {
+  background: #fdf8f0; color: #6b1d2a; border-color: #d8c7ba;
+  transform: translateY(-1px);
+}
+
 /* Links (logged out) */
 .topnav__link {
   padding: 8px 14px; border-radius: 8px;
@@ -198,7 +210,44 @@
 }
 .topnav__btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(107,29,42,0.2); background: #4a1019; }
 
+:root[data-theme="dark"] .topnav {
+  background: #151015;
+  border-bottom-color: #2b2025;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+}
+:root[data-theme="dark"] .topnav__logo,
+:root[data-theme="dark"] .topnav__dropdown-head strong,
+:root[data-theme="dark"] .msg-item__name { color: #f7efe8; }
+:root[data-theme="dark"] .topnav__link,
+:root[data-theme="dark"] .topnav__icon-btn,
+:root[data-theme="dark"] .topnav__dropdown-head span,
+:root[data-theme="dark"] .msg-item__snippet,
+:root[data-theme="dark"] .topnav__dropdown-item { color: #bcaeb4; }
+:root[data-theme="dark"] .topnav__dashboard-btn,
+:root[data-theme="dark"] .topnav__user,
+:root[data-theme="dark"] .topnav__theme-toggle,
+:root[data-theme="dark"] .topnav__btn-outline {
+  background: #211820; border-color: #33262e; color: #f0d4a0;
+}
+:root[data-theme="dark"] .topnav__icon-btn:hover,
+:root[data-theme="dark"] .topnav__icon-wrapper.is-active .topnav__icon-btn,
+:root[data-theme="dark"] .topnav__link:hover,
+:root[data-theme="dark"] .topnav__dropdown-item:hover {
+  background: #2a1e27; color: #f0d4a0;
+}
+:root[data-theme="dark"] .topnav__dropdown {
+  background: #181217; border-color: #33262e; box-shadow: 0 18px 45px rgba(0,0,0,.45);
+}
+:root[data-theme="dark"] .topnav__dropdown-head,
+:root[data-theme="dark"] .topnav__dropdown-item-link,
+:root[data-theme="dark"] .topnav__dropdown-foot {
+  background: #181217; border-color: #2b2025;
+}
+:root[data-theme="dark"] .topnav__dropdown-item-link:hover,
+:root[data-theme="dark"] .topnav__dropdown-foot:hover { background: #2a1e27; }
+
 @media (max-width: 640px) {
   .topnav__dashboard-btn span { display: none; }
   .topnav__link { display: none; }
+  .topnav__theme-toggle span { display: none; }
 }
