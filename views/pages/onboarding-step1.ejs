@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+
+<div class="container py-5" style="max-width:500px">
+    <div class="text-center mb-4">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(107,29,42,0.1),rgba(140,58,74,0.15));display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <i class="bi bi-stars fs-3" style="color:var(--ek-maroon)"></i>
+        </div>
+        <h1 class="font-display fs-3 fw-semibold">Welcome to EventKraft!</h1>
+        <p class="text-muted">Let's set up your account. How will you use EventKraft?</p>
+    </div>
+
+    <form method="POST" action="/onboarding/step1">
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="ek-role-card active" id="roleCustomer" onclick="selectRole('customer')" style="cursor:pointer">
+                    <i class="bi bi-bag fs-4 d-block mb-2" style="color:var(--ek-maroon)"></i>
+                    <p class="fw-semibold small mb-1">I'm planning an event</p>
+                    <p class="text-muted" style="font-size:.75rem;margin:0">Find and hire service providers</p>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="ek-role-card" id="roleWorker" onclick="selectRole('worker')" style="cursor:pointer">
+                    <i class="bi bi-camera fs-4 d-block mb-2" style="color:var(--ek-maroon)"></i>
+                    <p class="fw-semibold small mb-1">I provide services</p>
+                    <p class="text-muted" style="font-size:.75rem;margin:0">Photographer, decorator, etc.</p>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="role" id="roleInput" value="customer">
+        <button type="submit" class="btn btn-ek-primary w-100 btn-lg">Continue →</button>
+    </form>
+
+    <div class="d-flex justify-content-center gap-2 mt-4">
+        <span class="rounded-circle bg-dark" style="width:8px;height:8px"></span>
+        <span class="rounded-circle bg-secondary" style="width:8px;height:8px;opacity:.3"></span>
+        <span class="rounded-circle bg-secondary" style="width:8px;height:8px;opacity:.3"></span>
+    </div>
+</div>
+
+<script>
+function selectRole(role) {
+    document.getElementById('roleInput').value = role;
+    document.getElementById('roleCustomer').classList.toggle('active', role === 'customer');
+    document.getElementById('roleWorker').classList.toggle('active', role === 'worker');
+}
+</script>
+
+<%- include('../partials/tail') %>

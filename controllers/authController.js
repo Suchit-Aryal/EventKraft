@@ -58,7 +58,7 @@ module.exports = {
             req.logIn(user, (err) => {
                 if (err) return next(err);
                 req.flash('success', 'Welcome back!');
-                return res.redirect('/auth/dashboard');
+                return res.redirect('/dashboard');
             });
         })(req, res, next);
     },
@@ -245,6 +245,9 @@ module.exports = {
 
     // Google OAuth callback
     googleCallback(req, res) {
+        if (!req.user.profile_complete) {
+            return res.redirect('/onboarding/step1');
+        }
         req.flash('success', 'Welcome!');
         res.redirect('/auth/dashboard');
     },
@@ -260,45 +263,13 @@ module.exports = {
 
     // GET /auth/dashboard — role-based CRM dashboard with real data
     async getDashboard(req, res) {
-        try {
-            const userId = req.user.id;
-            const profile = await Profile.findByUserId(userId);
-
-            switch (req.user.role) {
-                case 'admin':
-                    return res.redirect('/admin');
-                case 'worker':
-                    return await renderWorkerDashboard(req, res, userId, profile);
-                case 'customer':
-                default:
-                    return await renderCustomerDashboard(req, res, userId, profile);
-            }
-        } catch (err) {
-            console.error('Dashboard error:', err);
-            req.flash('error', 'Failed to load dashboard');
-            res.redirect('/');
-        }
+        // Redirect to new unified dashboard
+        return res.redirect('/dashboard');
     },
 
-    // GET /auth/settings
+    // GET /auth/settings  → redirect to unified dashboard settings
     async getSettings(req, res) {
-        try {
-            const user = await pool.query(
-                'SELECT id, email, totp_enabled, google_id FROM users WHERE id = $1',
-                [req.user.id]
-            );
-            const profile = await Profile.findByUserId(req.user.id);
-
-            res.render('pages/settings', {
-                title: 'Settings — EventKraft',
-                userData: user.rows[0],
-                profile
-            });
-        } catch (err) {
-            console.error(err);
-            req.flash('error', 'Failed to load settings');
-            res.redirect('/auth/dashboard');
-        }
+        return res.redirect('/dashboard/settings');
     },
 
     // POST /auth/settings/2fa/setup

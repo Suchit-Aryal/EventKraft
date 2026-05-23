@@ -1,4 +1,6 @@
 {
   "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda"
+  "python-envs.defaultPackageManager": "ms-python.python:conda",
+  "snyk.advanced.organization": "ad426a2e-b1cc-44b3-b151-e97fe8d3fb99",
+  "snyk.advanced.autoSelectOrganization": true
 }

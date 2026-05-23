@@ -34,7 +34,7 @@ module.exports = {
     async index(req, res) {
         try {
             const conversations = await Message.getConversations(req.user.id);
-            res.render('pages/messages', { title: 'Messages', conversations });
+            res.render('pages/messages', { title: 'Messages', layout: 'dashboard', activePage: 'messages', conversations });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load messages');
@@ -75,6 +75,8 @@ module.exports = {
 
             res.render('pages/conversation', {
                 title: 'Conversation',
+                layout: 'dashboard',
+                activePage: 'messages',
                 conversation,
                 messages,
                 otherName,
@@ -88,18 +90,70 @@ module.exports = {
 
     async send(req, res) {
         try {
-            await Message.send({
+            const msg = await Message.send({
                 conversationId: req.params.conversationId,
                 senderId: req.user.id,
                 receiverId: req.body.receiver_id,
                 content: req.body.content,
-                attachments: req.body.attachments
+                attachments: req.body.attachments,
+                replyTo: req.body.reply_to || null
             });
+
+            if (req.is('application/json')) {
+                return res.json({ id: msg.id, created_at: msg.created_at });
+            }
             res.redirect(`/messages/${req.params.conversationId}`);
         } catch (err) {
             console.error(err);
+            if (req.is('application/json')) {
+                return res.status(500).json({ error: 'Failed to send message' });
+            }
             req.flash('error', 'Failed to send message');
             res.redirect(`/messages/${req.params.conversationId}`);
+        }
+    },
+
+    // POST /messages/:conversationId/send-file — upload a file/image
+    async sendFile(req, res) {
+        try {
+            if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+            const cloudinary = require('../config/cloudinary');
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'eventkraft/chat', resource_type: 'auto' },
+                    (err, r) => err ? reject(err) : resolve(r)
+                );
+                stream.end(req.file.buffer);
+            });
+
+            const msg = await Message.send({
+                conversationId: req.params.conversationId,
+                senderId: req.user.id,
+                receiverId: req.body.receiver_id,
+                content: req.body.content || '',
+                replyTo: req.body.reply_to || null,
+                fileUrl: result.secure_url,
+                fileName: req.file.originalname,
+                fileType: req.file.mimetype
+            });
+
+            res.json({ id: msg.id, created_at: msg.created_at, file_url: result.secure_url, file_name: req.file.originalname, file_type: req.file.mimetype });
+        } catch (err) {
+            console.error('File upload error:', err);
+            res.status(500).json({ error: 'Failed to upload file' });
+        }
+    },
+
+    // POST /messages/:messageId/unsend
+    async unsend(req, res) {
+        try {
+            const msg = await Message.unsend(req.params.messageId, req.user.id);
+            if (!msg) return res.status(403).json({ error: 'Cannot unsend this message' });
+            res.json({ success: true });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Failed to unsend' });
         }
     }
 };

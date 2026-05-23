@@ -1,0 +1,162 @@
+<%
+  const pc = locals.profileCompletion || { percentage: 100, steps: [] };
+%>
+
+<aside class="sidebar" id="sidebar">
+
+  <!-- User card -->
+  <div class="sidebar__usercard">
+    <div class="sidebar__uc-avatar-wrap">
+      <img src="<%= locals.currentUser.avatar_url || '/images/default-avatar.png' %>"
+           class="sidebar__uc-avatar" alt="<%= locals.currentUser.first_name || 'User' %>">
+      <% if (locals.currentUser.is_admin_verified) { %>
+        <span class="sidebar__uc-verified" title="Verified">
+          <svg width="8" height="8" viewBox="0 0 10 10" fill="#fff">
+            <path d="M1 5L4 8L9 2"/>
+          </svg>
+        </span>
+      <% } %>
+    </div>
+    <div class="sidebar__uc-info">
+      <span class="sidebar__uc-name">
+        <%= locals.currentUser.first_name || '' %> <%= locals.currentUser.last_name || '' %>
+      </span>
+      <span class="sidebar__uc-role-pill sidebar__uc-role-pill--<%= locals.currentUser.role %>">
+        <%= locals.currentUser.role === 'worker' ? 'Service Provider' : locals.currentUser.role === 'admin' ? 'Admin' : 'Customer' %>
+      </span>
+    </div>
+  </div>
+
+  <!-- Profile completion bar (only if incomplete) -->
+  <% if (pc.percentage < 100) { %>
+    <a href="/dashboard/profile" class="sidebar__completion">
+      <div class="sidebar__completion-top">
+        <span><%= pc.percentage %>% complete</span>
+        <span class="sidebar__completion-cta">Finish setup →</span>
+      </div>
+      <div class="sidebar__completion-track">
+        <div class="sidebar__completion-fill" style="width:<%= pc.percentage %>%"></div>
+      </div>
+    </a>
+  <% } %>
+
+  <!-- Navigation -->
+  <nav class="sidebar__nav" aria-label="Dashboard navigation">
+
+    <span class="sidebar__group-label">Main</span>
+
+    <a href="/dashboard"
+       class="sidebar__item <%= locals.activePage === 'overview' ? 'sidebar__item--active' : '' %>">
+      <%- icons.grid %>
+      <span>Dashboard</span>
+    </a>
+
+    <a href="/bookings"
+       class="sidebar__item <%= locals.activePage === 'bookings' ? 'sidebar__item--active' : '' %>">
+      <%- icons.calendar %>
+      <span>Bookings</span>
+    </a>
+
+    <a href="/messages"
+       class="sidebar__item <%= locals.activePage === 'inbox' ? 'sidebar__item--active' : '' %>">
+      <%- icons.chat %>
+      <span>Inbox</span>
+      <% if ((locals.unreadMsgs || 0) > 0) { %>
+        <em class="sidebar__badge"><%= locals.unreadMsgs %></em>
+      <% } %>
+    </a>
+
+    <span class="sidebar__group-label">Discover</span>
+
+    <a href="/gigs"
+       class="sidebar__item <%= locals.activePage === 'browse-services' ? 'sidebar__item--active' : '' %>">
+      <%- icons.search %>
+      <span>Browse Services</span>
+    </a>
+
+    <a href="/jobs"
+       class="sidebar__item <%= locals.activePage === 'browse-jobs' ? 'sidebar__item--active' : '' %>">
+      <%- icons.briefcase %>
+      <span>Browse Jobs</span>
+    </a>
+
+    <!-- Role-specific section -->
+    <% if (locals.currentUser.role === 'customer') { %>
+
+      <a href="/jobs/create"
+         class="sidebar__item sidebar__item--create <%= locals.activePage === 'post-job' ? 'sidebar__item--active' : '' %>">
+        <%- icons.plus %>
+        <span>Post a Job</span>
+      </a>
+
+    <% } else if (locals.currentUser.role === 'worker') { %>
+
+      <span class="sidebar__group-label">My Work</span>
+
+      <a href="/gigs"
+         class="sidebar__item <%= locals.activePage === 'gigs' ? 'sidebar__item--active' : '' %>">
+        <%- icons.star %>
+        <span>My Services</span>
+      </a>
+
+      <a href="/jobs"
+         class="sidebar__item <%= locals.activePage === 'proposals' ? 'sidebar__item--active' : '' %>">
+        <%- icons.send %>
+        <span>My Proposals</span>
+      </a>
+
+      <%
+        const canPost = locals.currentUser.kyc_status === 'approved'
+          && locals.currentUser.avatar_url
+          && locals.currentUser.bio
+          && (locals.currentUser.bio || '').trim().split(/\s+/).filter(Boolean).length >= 50;
+      %>
+
+      <a href="<%= canPost ? '/gigs/create' : '/dashboard/profile' %>"
+         class="sidebar__item sidebar__item--create <%= !canPost ? 'sidebar__item--locked' : '' %>
+                <%= locals.activePage === 'post-service' ? 'sidebar__item--active' : '' %>"
+         <% if (!canPost) { %> title="Complete your profile to post services" <% } %>>
+        <%- icons.plus %>
+        <span>Post a Service</span>
+        <% if (!canPost) { %>
+          <span class="sidebar__lock-icon">🔒</span>
+        <% } %>
+      </a>
+
+    <% } %>
+
+    <span class="sidebar__group-label">Account</span>
+
+    <a href="/dashboard/profile"
+       class="sidebar__item <%= locals.activePage === 'profile' ? 'sidebar__item--active' : '' %>">
+      <%- icons.user %>
+      <span>My Profile</span>
+    </a>
+
+    <a href="/dashboard/notifications"
+       class="sidebar__item <%= locals.activePage === 'notifications' ? 'sidebar__item--active' : '' %>">
+      <%- icons.bell %>
+      <span>Notifications</span>
+      <% if ((locals.unreadNotifs || 0) > 0) { %>
+        <em class="sidebar__badge"><%= locals.unreadNotifs %></em>
+      <% } %>
+    </a>
+
+    <a href="/dashboard/settings"
+       class="sidebar__item <%= locals.activePage === 'settings' ? 'sidebar__item--active' : '' %>">
+      <%- icons.settings %>
+      <span>Account Settings</span>
+    </a>
+
+  </nav>
+
+  <!-- Footer links -->
+  <div class="sidebar__foot">
+    <a href="#">Help</a>
+    <span>·</span>
+    <a href="#">Terms</a>
+    <span>·</span>
+    <a href="#">Privacy</a>
+  </div>
+
+</aside>

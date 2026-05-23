@@ -86,10 +86,10 @@ function initialize(passport) {
                         }
                     }
 
-                    // Create new user from Google profile
+                    // Create new user from Google profile (profile_complete = false triggers onboarding)
                     const newUser = await pool.query(
-                        `INSERT INTO users (email, google_id, role, is_verified, is_active)
-                         VALUES ($1, $2, 'customer', true, true) RETURNING *`,
+                        `INSERT INTO users (email, google_id, role, is_verified, is_active, profile_complete)
+                         VALUES ($1, $2, 'customer', true, true, false) RETURNING *`,
                         [email ? email.toLowerCase() : `google_${profile.id}@temp.eventkraft`, profile.id]
                     );
 
@@ -116,14 +116,24 @@ function initialize(passport) {
         done(null, user.id);
     });
 
-    // Deserialize user from session
+    // Deserialize user from session — JOIN profiles for full context
     passport.deserializeUser(async (id, done) => {
         try {
-            const result = await pool.query(
-                'SELECT id, email, role, is_verified, is_active, totp_enabled, google_id FROM users WHERE id = $1',
+            const { rows } = await pool.query(
+                `SELECT u.id, u.email, u.phone, u.role, u.is_verified, u.is_active,
+                        u.profile_complete, u.google_id, u.totp_enabled,
+                        u.kyc_status, u.tagline, u.skills,
+                        u.notification_prefs, u.profile_visible, u.show_phone, u.open_messaging,
+                        p.first_name, p.last_name, p.avatar_url, p.cover_photo_url,
+                        p.bio, p.city, p.address, p.date_of_birth, p.gender,
+                        p.social_links, p.is_admin_verified,
+                        p.avg_rating, p.total_reviews, p.total_completed
+                 FROM users u
+                 LEFT JOIN profiles p ON p.user_id = u.id
+                 WHERE u.id = $1 AND u.is_active = true`,
                 [id]
             );
-            done(null, result.rows[0]);
+            done(null, rows[0] || false);
         } catch (err) {
             done(err);
         }
