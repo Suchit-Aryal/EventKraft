@@ -51,7 +51,7 @@ function JobsPage() {
               </p>
             </div>
             <Button asChild className="bg-gradient-hero text-primary-foreground">
-              <Link to="/post-job">Post a job</Link>
+              <Link to="/post-job">Hire</Link>
             </Button>
           </div>
 

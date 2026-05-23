@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const navLinks = [
   { to: "/app/providers" as const, label: "Browse Providers" },
   { to: "/app/jobs" as const, label: "Browse Jobs" },
-  { to: "/app/post-job" as const, label: "Post a Job" },
+  { to: "/app/post-job" as const, label: "Hire" },
   { to: "/app/how-it-works" as const, label: "How it Works" },
 ];
 

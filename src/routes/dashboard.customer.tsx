@@ -32,7 +32,7 @@ function CustomerDashboard() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-semibold">Your active jobs</h2>
           <Button asChild size="sm" className="bg-gradient-hero text-primary-foreground">
-            <Link to="/post-job">Post new job</Link>
+            <Link to="/post-job">Hire</Link>
           </Button>
         </div>
         <div className="space-y-3">

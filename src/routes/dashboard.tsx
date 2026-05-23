@@ -17,12 +17,12 @@ function DashboardLayout() {
       ]
     : [
         { to: "/dashboard/customer" as const, label: "Overview", icon: LayoutDashboard },
-        { to: "/post-job" as const, label: "Post a job", icon: Briefcase },
+        { to: "/post-job" as const, label: "Hire", icon: Briefcase },
       ];
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <aside className="hidden md:flex md:w-64 flex-col border-r border-border bg-card">
+    <div className="h-screen flex bg-background overflow-hidden">
+      <aside className="hidden md:flex md:w-64 flex-col border-r border-border bg-card h-screen sticky top-0 overflow-y-auto">
         <div className="p-5 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-hero">
@@ -64,7 +64,7 @@ function DashboardLayout() {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <header className="md:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />

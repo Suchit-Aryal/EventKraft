@@ -70,10 +70,12 @@ const Proposal = {
         return result.rows;
     },
 
-    // Check if worker already applied to a job
-    async hasApplied(jobId, workerId) {
+    // Check if worker already has an active proposal for a job
+    async hasActiveProposal(jobId, workerId) {
         const result = await pool.query(
-            'SELECT id FROM proposals WHERE job_id = $1 AND worker_id = $2',
+            `SELECT id FROM proposals 
+             WHERE job_id = $1 AND worker_id = $2 
+             AND status NOT IN ('declined', 'withdrawn')`,
             [jobId, workerId]
         );
         return result.rows.length > 0;

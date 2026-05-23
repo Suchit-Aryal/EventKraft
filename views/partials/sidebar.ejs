@@ -95,10 +95,18 @@
     <!-- Role-specific section -->
     <% if (locals.currentUser.role === 'customer') { %>
 
+      <span class="sidebar__group-label">My Work</span>
+
+      <a href="/jobs/mine"
+         class="sidebar__item <%= locals.activePage === 'my-jobs' ? 'sidebar__item--active' : '' %>">
+        <%- icons.briefcase %>
+        <span>My Jobs</span>
+      </a>
+
       <a href="/jobs/create"
          class="sidebar__item sidebar__item--create <%= (locals.activePage === 'post-job' || locals.activePage === 'create-job') ? 'sidebar__item--active' : '' %>">
         <%- icons.plus %>
-        <span>Post a Job</span>
+        <span>Hire</span>
       </a>
 
     <% } else if (locals.currentUser.role === 'worker') { %>

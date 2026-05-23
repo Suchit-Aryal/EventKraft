@@ -14,6 +14,9 @@ router.get('/api/search', jobCtrl.apiSearch);
 // GET  /jobs/my-proposals – Proposals submitted by worker
 router.get('/my-proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.myProposals);
 
+// GET  /jobs/mine      – Customer's own job postings
+router.get('/mine', ensureAuthenticated, ensureRole('customer'), jobCtrl.myJobs);
+
 // GET  /jobs          – Browse all published jobs
 router.get('/', jobCtrl.index);
 
@@ -23,6 +26,9 @@ router.get('/create', ensureAuthenticated, ensureRole('customer'), jobCtrl.creat
 // POST /jobs          – Submit new job posting
 router.post('/', ensureAuthenticated, ensureRole('customer'), jobCtrl.store);
 
+// GET  /jobs/:id/edit  – Edit job form
+router.get('/:id/edit', ensureAuthenticated, ensureRole('customer'), jobCtrl.edit);
+
 // GET  /jobs/:id      – View single job
 router.get('/:id', jobCtrl.show);
 
@@ -31,6 +37,9 @@ router.put('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.update);
 
 // DELETE /jobs/:id    – Delete / cancel job
 router.delete('/:id', ensureAuthenticated, ensureRole('customer'), jobCtrl.destroy);
+
+// POST /jobs/:id/publish – Publish a draft job
+router.post('/:id/publish', ensureAuthenticated, ensureRole('customer'), jobCtrl.publish);
 
 // POST /jobs/:id/proposals – Worker submits a proposal
 router.post('/:id/proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.submitProposal);
