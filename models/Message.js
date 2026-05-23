@@ -60,19 +60,29 @@ const Message = {
 
     // ─── MESSAGES — CREATE ──────────────────────────────────
 
-    async send({ conversationId, senderId, receiverId, content, attachments }) {
+    async send({ conversationId, senderId, receiverId, content, attachments, replyTo, fileUrl, fileName, fileType }) {
+        // Single round-trip: INSERT message + UPDATE conversation timestamp via CTE
         const result = await pool.query(
-            `INSERT INTO messages (conversation_id, sender_id, receiver_id, content, attachments)
-             VALUES ($1, $2, $3, $4, $5)
-             RETURNING *`,
-            [conversationId, senderId, receiverId, content, JSON.stringify(attachments || [])]
+            `WITH new_msg AS (
+               INSERT INTO messages (conversation_id, sender_id, receiver_id, content, attachments, reply_to, file_url, file_name, file_type)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+               RETURNING *
+             ), update_conv AS (
+               UPDATE conversations SET last_message_at = NOW() WHERE id = $1
+             )
+             SELECT * FROM new_msg`,
+            [conversationId, senderId, receiverId, content, JSON.stringify(attachments || []), replyTo || null, fileUrl || null, fileName || null, fileType || null]
         );
 
-        await pool.query(
-            'UPDATE conversations SET last_message_at = NOW() WHERE id = $1',
-            [conversationId]
-        );
+        return result.rows[0];
+    },
 
+    async unsend(messageId, userId) {
+        const result = await pool.query(
+            `UPDATE messages SET is_unsent = true, content = 'This message was unsent'
+             WHERE id = $1 AND sender_id = $2 RETURNING *`,
+            [messageId, userId]
+        );
         return result.rows[0];
     },
 
@@ -81,9 +91,12 @@ const Message = {
     async getByConversation(conversationId, limit = 50, offset = 0) {
         const result = await pool.query(
             `SELECT m.*,
-                    p.first_name AS sender_name, p.avatar_url AS sender_avatar
+                    p.first_name AS sender_name, p.avatar_url AS sender_avatar,
+                    rm.content AS reply_content, rp.first_name AS reply_sender_name
              FROM messages m
              LEFT JOIN profiles p ON m.sender_id = p.user_id
+             LEFT JOIN messages rm ON m.reply_to = rm.id
+             LEFT JOIN profiles rp ON rm.sender_id = rp.user_id
              WHERE m.conversation_id = $1
              ORDER BY m.created_at ASC
              LIMIT $2 OFFSET $3`,

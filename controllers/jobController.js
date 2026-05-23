@@ -28,6 +28,8 @@ module.exports = {
 
             res.render('pages/jobs', {
                 title: 'Browse Jobs',
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'browse-jobs',
                 jobs,
                 categories: categories.rows,
                 filters: { keyword: keyword || '', category_id: category_id || '', minBudget: minBudget || '', maxBudget: maxBudget || '', location: location || '' }
@@ -35,7 +37,23 @@ module.exports = {
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load jobs');
-            res.redirect('/app/jobs');
+            res.redirect('/jobs');
+        }
+    },
+
+    async myProposals(req, res) {
+        try {
+            const proposals = await Proposal.findByWorker(req.user.id);
+            res.render('pages/my-proposals', {
+                title: 'My Proposals',
+                layout: 'dashboard',
+                activePage: 'proposals',
+                proposals
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load your proposals');
+            res.redirect('/dashboard');
         }
     },
 
@@ -67,7 +85,7 @@ module.exports = {
     // GET /jobs/create
     async create(req, res) {
         const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
-        res.render('pages/job-create', { title: 'Post a Job', categories: categories.rows });
+        res.render('pages/job-create', { title: 'Post a Job', layout: 'dashboard', activePage: 'create-job', categories: categories.rows });
     },
 
     // POST /jobs
@@ -95,7 +113,13 @@ module.exports = {
                 proposals = await Proposal.findByJob(req.params.id);
             }
 
-            res.render('pages/job-detail', { title: job.title, job, proposals });
+            res.render('pages/job-detail', {
+                title: job.title,
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'jobs',
+                job,
+                proposals
+            });
         } catch (err) {
             console.error(err);
             res.redirect('/jobs');
@@ -147,7 +171,7 @@ module.exports = {
         try {
             await Job.updateStatus(req.params.id, 'cancelled');
             req.flash('success', 'Job cancelled');
-            res.redirect('/auth/dashboard');
+            res.redirect('/jobs');
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to cancel job');

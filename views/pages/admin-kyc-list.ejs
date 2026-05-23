@@ -1,0 +1,72 @@
+<%- include('../partials/dashboard-wrapper-start') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">KYC Submissions</h1>
+        <span class="text-muted">(<%= submissions.length %> total)</span>
+    </div>
+
+    <div class="crm-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Document Type</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% submissions.forEach(function(s) { %>
+                    <tr>
+                        <td class="fw-semibold">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="<%= s.avatar_url || '/images/default-avatar.png' %>" alt="" width="32" height="32" class="rounded-circle">
+                                <div>
+                                    <div><%= s.first_name || '' %> <%= s.last_name || '' %></div>
+                                    <div class="text-muted small"><%= s.email %></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><%= s.document_type.replace('_', ' ') %></td>
+                        <td>
+                            <% if (s.status === 'pending') { %>
+                                <span class="badge-status badge-pending">Pending</span>
+                            <% } else if (s.status === 'approved') { %>
+                                <span class="badge-status badge-active">Approved</span>
+                            <% } else if (s.status === 'rejected') { %>
+                                <span class="badge-status badge-cancelled">Rejected</span>
+                            <% } else { %>
+                                <span class="badge-status"><%= s.status %></span>
+                            <% } %>
+                        </td>
+                        <td class="text-muted small">
+                            <%= s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '-' %>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="<%= s.doc_front_url %>" target="_blank" class="btn btn-sm btn-ek-outline">Front</a>
+                                <% if (s.doc_back_url) { %>
+                                    <a href="<%= s.doc_back_url %>" target="_blank" class="btn btn-sm btn-ek-outline">Back</a>
+                                <% } %>
+                                <% if (s.status === 'pending') { %>
+                                    <form action="/admin/kyc/<%= s.user_id %>/approve" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form action="/admin/kyc/<%= s.user_id %>/reject" method="POST" class="d-inline">
+                                        <input type="hidden" name="reason" value="Document unclear or invalid.">
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                <% } %>
+                            </div>
+                        </td>
+                    </tr>
+                <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

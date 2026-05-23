@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identity Verification — EventKraft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/topnav.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/forms.css">
+</head>
+<body class="dashboard-body">
+  <%- include('../partials/topnav') %>
+  <div class="dashboard-shell">
+    <%- include('../partials/sidebar') %>
+    <main class="dashboard-main">
+      <div class="dashboard-main__inner">
+
+        <% if (locals.success && success.length > 0) { %>
+          <% success.forEach(function(msg) { %><div class="flash flash--success"><%= msg %></div><% }) %>
+        <% } %>
+        <% if (locals.error && error.length > 0) { %>
+          <% error.forEach(function(msg) { %><div class="flash flash--error"><%= msg %></div><% }) %>
+        <% } %>
+
+        <div class="page-header">
+          <h1 class="page-title">Identity Verification (KYC)</h1>
+          <p class="page-desc">Upload a government-issued document to verify your identity. Required to post services.</p>
+        </div>
+
+        <!-- Status banners -->
+        <% if (currentUser.kyc_status === 'pending') { %>
+          <div class="kyc-banner kyc-banner--pending">
+            <span>⏳</span>
+            <div>
+              <strong>Verification In Progress</strong>
+              <p>We received your documents and are reviewing them. This usually takes 24-48 hours.</p>
+            </div>
+          </div>
+        <% } else if (currentUser.kyc_status === 'approved') { %>
+          <div class="kyc-banner kyc-banner--approved">
+            <span>✅</span>
+            <div>
+              <strong>Identity Verified</strong>
+              <p>Your identity has been verified. You can now post services and receive bookings.</p>
+            </div>
+          </div>
+        <% } else if (currentUser.kyc_status === 'rejected') { %>
+          <div class="kyc-banner kyc-banner--rejected">
+            <span>❌</span>
+            <div>
+              <strong>Verification Rejected</strong>
+              <p>
+                <% if (kycSubmission && kycSubmission.rejection_reason) { %>
+                  Reason: <%= kycSubmission.rejection_reason %>
+                <% } else { %>
+                  Your documents could not be verified. Please resubmit.
+                <% } %>
+              </p>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Info card -->
+        <div class="kyc-info">
+          <h3>Accepted Documents</h3>
+          <div class="kyc-docs-grid">
+            <div class="kyc-doc-option">🪪 National ID Card</div>
+            <div class="kyc-doc-option">📄 Nagarikta (Citizenship)</div>
+            <div class="kyc-doc-option">🛂 Passport</div>
+            <div class="kyc-doc-option">🚗 Driver's Licence</div>
+          </div>
+          <div class="kyc-tips">
+            <ul>
+              <li>Upload clear, unblurred photos of the original document</li>
+              <li>All four corners must be visible</li>
+              <li>File types: JPG, PNG, or PDF — max 5 MB each</li>
+              <li>Document must match the name on your profile</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Upload form (show if not pending or approved) -->
+        <% if (currentUser.kyc_status !== 'pending' && currentUser.kyc_status !== 'approved') { %>
+          <form method="POST" action="/dashboard/kyc/submit" enctype="multipart/form-data" class="kyc-form" id="kyc-form">
+
+            <div class="form-group">
+              <label class="form-label">Document Type <span class="req">*</span></label>
+              <div class="radio-card-row">
+                <label class="radio-card">
+                  <input type="radio" name="document_type" value="national_id" checked>
+                  <span>National ID</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="document_type" value="nagarikta">
+                  <span>Nagarikta</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="document_type" value="passport">
+                  <span>Passport</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="document_type" value="drivers_licence">
+                  <span>Driver's Licence</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-row-2" style="margin-bottom: 24px;">
+              <div class="form-group">
+                <label class="form-label">Front Side <span class="req">*</span></label>
+                <div class="upload-zone" id="front-zone">
+                  <input type="file" id="doc-front" name="doc_front" accept="image/jpeg,image/png,application/pdf" required onchange="previewFile(this,'front-preview','front-zone')">
+                  <label for="doc-front" class="upload-zone__inner">
+                    <div class="upload-zone__text">📤 Click or drag to upload</div>
+                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 10 MB</div>
+                  </label>
+                  <div class="upload-zone__preview is-hidden" id="front-preview"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Back Side <span class="form-hint-inline">(optional)</span></label>
+                <div class="upload-zone" id="back-zone">
+                  <input type="file" id="doc-back" name="doc_back" accept="image/jpeg,image/png,application/pdf" onchange="previewFile(this,'back-preview','back-zone')">
+                  <label for="doc-back" class="upload-zone__inner">
+                    <div class="upload-zone__text">📤 Click or drag to upload</div>
+                    <div class="upload-zone__hint">JPG, PNG, PDF — Max 10 MB</div>
+                  </label>
+                  <div class="upload-zone__preview is-hidden" id="back-preview"></div>
+                </div>
+              </div>
+            </div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" name="consent" required>
+              I confirm these documents are genuine and belong to me. I understand EventKraft stores them securely and uses them solely for identity verification.
+            </label>
+
+            <div class="profile-form-footer">
+              <a href="/dashboard" class="btn-outline">Cancel</a>
+              <button type="submit" class="btn-primary">Submit for Verification</button>
+            </div>
+
+          </form>
+        <% } %>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+  function previewFile(input, previewId, zoneId) {
+    const preview = document.getElementById(previewId);
+    const zone    = document.getElementById(zoneId);
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    preview.classList.remove('is-hidden');
+    zone.classList.add('upload-zone--has-file');
+    if (file.type === 'application/pdf') {
+      preview.innerHTML = `<div class="upload-zone__pdf-label">📄 ${file.name}</div>`;
+    } else {
+      const reader = new FileReader();
+      reader.onload = e => { preview.innerHTML = `<img src="${e.target.result}" alt="preview">`; };
+      reader.readAsDataURL(file);
+    }
+  }
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<%- include('../partials/dashboard-wrapper-start', { title: 'Notifications', activePage: 'notifications' }) %>
+
+<div class="page-header mb-4">
+  <h1 class="font-display fs-2 fw-bold mb-1">Notifications</h1>
+  <p class="text-muted">All your updates in one place.</p>
+</div>
+
+<% if (notifications && notifications.length > 0) { %>
+  <div class="notif-list d-flex flex-column gap-2">
+    <% notifications.forEach(function(n) { %>
+      <a href="<%= n.link || '#' %>" class="card border-0 shadow-sm text-decoration-none p-3 hover-lift <%= n.is_read ? '' : 'border-start border-4 border-primary' %>">
+        <div class="d-flex align-items-start gap-3">
+          <div class="bg-light rounded-circle p-2 text-primary">
+            <i class="bi bi-bell"></i>
+          </div>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1 text-dark"><%= n.title %></h6>
+            <% if (n.message) { %>
+              <p class="text-muted small mb-1"><%= n.message %></p>
+            <% } %>
+            <span class="text-muted" style="font-size: 0.75rem;">
+              <i class="bi bi-clock me-1"></i><%= n.created_at ? new Date(n.created_at).toLocaleString() : '' %>
+            </span>
+          </div>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+<% } else { %>
+  <div class="empty-state py-5 bg-white border rounded-4">
+    <i class="bi bi-bell-slash text-muted mb-3 d-block fs-1"></i>
+    <p class="text-muted fw-medium">No notifications yet.</p>
+  </div>
+<% } %>
+
+<%- include('../partials/dashboard-wrapper-end') %>

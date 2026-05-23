@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= locals.pageTitle || 'Dashboard' %> — EventKraft</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/topnav.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/forms.css">
+  <link rel="stylesheet" href="/css/floating-chat.css">
+  <%- locals.headExtra || '' %>
+</head>
+<body class="dashboard-body">
+
+  <%- include('../partials/topnav') %>
+
+  <div class="dashboard-shell">
+    <%- include('../partials/sidebar') %>
+
+    <main class="dashboard-main" id="dashboard-main">
+      <div class="dashboard-main__inner">
+
+        <!-- Flash messages -->
+        <% if (locals.success && success.length > 0) { %>
+          <% success.forEach(function(msg) { %>
+            <div class="flash flash--success"><%= msg %></div>
+          <% }) %>
+        <% } %>
+        <% if (locals.error && error.length > 0) { %>
+          <% error.forEach(function(msg) { %>
+            <div class="flash flash--error"><%= msg %></div>
+          <% }) %>
+        <% } %>
+
+        <%- body %>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    window.CURRENT_USER_ID = '<%= locals.currentUser ? currentUser.id : "" %>';
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/realtime-badges.js"></script>
+  <script src="/js/notifications-popup.js"></script>
+  <script src="/js/floating-chat.js"></script>
+  <%- locals.scripts || '' %>
+</body>
+</html>

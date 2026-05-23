@@ -1,6 +1,5 @@
 -- ============================================================
 -- EventKraft Database Schema — PostgreSQL
--- Generated from: 08-database-schema.json
 -- ============================================================
 
 -- Enable UUID generation
@@ -52,15 +51,26 @@ CREATE TYPE dispute_status AS ENUM (
 -- ============================================================
 
 CREATE TABLE users (
-    id              UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email           VARCHAR(255) UNIQUE NOT NULL,
-    phone           VARCHAR(20)  UNIQUE,
-    password_hash   VARCHAR(255) NOT NULL,
-    role            user_role    NOT NULL,
-    is_verified     BOOLEAN      DEFAULT false,
-    is_active       BOOLEAN      DEFAULT true,
-    created_at      TIMESTAMP    DEFAULT NOW(),
-    updated_at      TIMESTAMP    DEFAULT NOW()
+    id                  UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email               VARCHAR(255) UNIQUE NOT NULL,
+    phone               VARCHAR(20)  UNIQUE,
+    password_hash       VARCHAR(255),
+    role                user_role    NOT NULL,
+    is_verified         BOOLEAN      DEFAULT false,
+    is_active           BOOLEAN      DEFAULT true,
+    profile_complete    BOOLEAN      DEFAULT false,
+    google_id           VARCHAR(255) UNIQUE,
+    totp_enabled        BOOLEAN      DEFAULT false,
+    totp_secret         VARCHAR(255),
+    kyc_status          VARCHAR(20)  DEFAULT 'none', -- 'none' | 'pending' | 'approved' | 'rejected'
+    tagline             VARCHAR(120),
+    skills              TEXT[],
+    notification_prefs  JSONB        DEFAULT '{}',
+    profile_visible     BOOLEAN      DEFAULT true,
+    show_phone          BOOLEAN      DEFAULT false,
+    open_messaging      BOOLEAN      DEFAULT true,
+    created_at          TIMESTAMP    DEFAULT NOW(),
+    updated_at          TIMESTAMP    DEFAULT NOW()
 );
 
 
@@ -82,7 +92,6 @@ CREATE TABLE profiles (
     gender              gender_type,
     social_links        JSONB,
     is_admin_verified   BOOLEAN      DEFAULT false,
-    verification_docs   JSONB,
     avg_rating          DECIMAL(3,2) DEFAULT 0.00,
     total_reviews       INTEGER      DEFAULT 0,
     total_completed     INTEGER      DEFAULT 0,
@@ -271,6 +280,11 @@ CREATE TABLE messages (
     content         TEXT      NOT NULL,
     attachments     JSONB,
     is_read         BOOLEAN   DEFAULT false,
+    is_unsent       BOOLEAN   DEFAULT false,
+    reply_to        UUID      REFERENCES messages(id) ON DELETE SET NULL,
+    file_url        TEXT,
+    file_name       TEXT,
+    file_type       TEXT,
     created_at      TIMESTAMP DEFAULT NOW()
 );
 
@@ -345,11 +359,47 @@ CREATE TABLE commission_settings (
 
 
 -- ============================================================
+-- 16. KYC_SUBMISSIONS — Identity verification documents
+-- ============================================================
+
+CREATE TABLE kyc_submissions (
+    id                  UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id             UUID         UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    document_type       VARCHAR(30)  NOT NULL, -- 'national_id' | 'nagarikta' | 'passport' | 'drivers_licence'
+    doc_front_url       TEXT         NOT NULL,
+    doc_front_public_id TEXT,
+    doc_back_url        TEXT,
+    doc_back_public_id  TEXT,
+    status              VARCHAR(20)  DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected'
+    rejection_reason    TEXT,
+    reviewed_by         UUID         REFERENCES users(id) ON DELETE SET NULL,
+    submitted_at        TIMESTAMP    DEFAULT NOW(),
+    reviewed_at         TIMESTAMP
+);
+
+
+-- ============================================================
+-- 17. PORTFOLIO_ITEMS — Worker portfolio images
+-- ============================================================
+
+CREATE TABLE portfolio_items (
+    id          UUID         PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    image_url   TEXT         NOT NULL,
+    public_id   TEXT,
+    caption     VARCHAR(200),
+    sort_order  INTEGER      DEFAULT 0,
+    created_at  TIMESTAMP    DEFAULT NOW()
+);
+
+
+-- ============================================================
 -- INDEXES
 -- ============================================================
 
 CREATE INDEX idx_users_email             ON users(email);
 CREATE INDEX idx_users_role              ON users(role);
+CREATE INDEX idx_users_google_id         ON users(google_id);
 CREATE INDEX idx_profiles_user_id        ON profiles(user_id);
 CREATE INDEX idx_job_postings_customer   ON job_postings(customer_id);
 CREATE INDEX idx_job_postings_status     ON job_postings(status);
@@ -364,6 +414,8 @@ CREATE INDEX idx_bookings_worker         ON bookings(worker_id);
 CREATE INDEX idx_bookings_status         ON bookings(status);
 CREATE INDEX idx_messages_conversation   ON messages(conversation_id);
 CREATE INDEX idx_notifications_user      ON notifications(user_id, is_read);
+CREATE INDEX idx_kyc_status              ON kyc_submissions(status);
+CREATE INDEX idx_portfolio_user          ON portfolio_items(user_id);
 
 
 -- ============================================================

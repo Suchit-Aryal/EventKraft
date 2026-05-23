@@ -14,6 +14,7 @@ router.post('/login', authCtrl.postLogin);
 router.get('/register', ensureGuest, authCtrl.getRegister);
 router.post('/register', authCtrl.postRegister);
 router.get('/logout', ensureAuthenticated, authCtrl.logout);
+router.post('/logout', ensureAuthenticated, authCtrl.logout);
 router.get('/dashboard', ensureAuthenticated, authCtrl.getDashboard);
 
 // ── Email Verification ─────────────────────────────────────
