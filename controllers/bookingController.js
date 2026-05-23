@@ -14,11 +14,11 @@ module.exports = {
             } else {
                 bookings = await Booking.findByWorker(req.user.id);
             }
-            res.render('pages/bookings', { title: 'My Bookings', bookings });
+            res.render('pages/bookings', { title: 'My Bookings', layout: 'dashboard', activePage: 'bookings', bookings });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load bookings');
-            res.redirect('/auth/dashboard');
+            res.redirect('/dashboard');
         }
     },
 
@@ -38,7 +38,7 @@ module.exports = {
         try {
             const booking = await Booking.findById(req.params.id);
             if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
-            res.render('pages/booking-detail', { title: 'Booking Details', booking });
+            res.render('pages/booking-detail', { title: 'Booking Details', layout: 'dashboard', activePage: 'bookings', booking });
         } catch (err) {
             console.error(err);
             res.redirect('/bookings');

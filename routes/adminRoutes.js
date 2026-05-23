@@ -35,4 +35,15 @@ router.get('/commissions', adminCtrl.commissions);
 // PUT  /admin/commissions/:id – Update commission tier
 router.put('/commissions/:id', adminCtrl.updateCommission);
 
+// ─── KYC Management ───────────────────────────────────────────
+
+// GET /admin/kyc — list all KYC submissions
+router.get('/kyc', adminCtrl.kycList);
+
+// POST /admin/kyc/:userId/approve
+router.post('/kyc/:userId/approve', adminCtrl.approveKyc);
+
+// POST /admin/kyc/:userId/reject
+router.post('/kyc/:userId/reject', adminCtrl.rejectKyc);
+
 module.exports = router;

@@ -42,6 +42,8 @@ module.exports = {
 
             res.render('pages/gigs', {
                 title: 'Browse Services',
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'browse-services',
                 gigs,
                 categories: categories.rows,
                 filters: { keyword: keyword || '', category_id: category_id || '', minPrice: minPrice || '', maxPrice: maxPrice || '', sortBy: sortBy || '' }
@@ -50,6 +52,22 @@ module.exports = {
             console.error(err);
             req.flash('error', 'Failed to load services');
             res.redirect('/');
+        }
+    },
+
+    async myServices(req, res) {
+        try {
+            const gigs = await Gig.findByWorker(req.user.id);
+            res.render('pages/my-services', {
+                title: 'My Services',
+                layout: 'dashboard',
+                activePage: 'my-services',
+                gigs
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load your services');
+            res.redirect('/dashboard');
         }
     },
 
@@ -80,7 +98,7 @@ module.exports = {
 
     async create(req, res) {
         const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
-        res.render('pages/gig-create', { title: 'Create a Service', categories: categories.rows });
+        res.render('pages/gig-create', { title: 'Create a Service', layout: 'dashboard', activePage: 'create-gig', categories: categories.rows });
     },
 
     async store(req, res) {
@@ -159,6 +177,8 @@ module.exports = {
 
             res.render('pages/gig-detail', {
                 title: gig.title,
+                layout: req.user ? 'dashboard' : 'public',
+                activePage: 'gigs',
                 gig,
                 packages: pkgResult.rows,
                 reviews: reviewResult.rows
@@ -189,9 +209,9 @@ module.exports = {
 
     async destroy(req, res) {
         try {
-            await pool.query("UPDATE service_gigs SET status = 'deleted' WHERE id = $1", [req.params.id]);
+            await Gig.softDelete(req.params.id);
             req.flash('success', 'Service deleted');
-            res.redirect('/auth/dashboard');
+            res.redirect('/gigs/mine');
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to delete service');

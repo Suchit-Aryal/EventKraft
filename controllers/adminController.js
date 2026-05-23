@@ -65,6 +65,8 @@ module.exports = {
 
             res.render('pages/admin-dashboard', {
                 title: 'Admin Dashboard',
+                layout: 'dashboard',
+                activePage: 'admin',
                 stats,
                 recentBookings: recentBookings.rows,
                 recentUsers: recentUsers.rows
@@ -85,7 +87,7 @@ module.exports = {
                 FROM users u LEFT JOIN profiles p ON u.id = p.user_id
                 ORDER BY u.created_at DESC
             `);
-            res.render('pages/admin-users', { title: 'Manage Users', users: users.rows });
+            res.render('pages/admin-users', { title: 'Manage Users', layout: 'dashboard', activePage: 'admin', users: users.rows });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load users');
@@ -118,7 +120,7 @@ module.exports = {
                 LEFT JOIN profiles wp ON b.worker_id = wp.user_id
                 ORDER BY b.created_at DESC
             `);
-            res.render('pages/admin-bookings', { title: 'All Bookings', bookings: result.rows });
+            res.render('pages/admin-bookings', { title: 'All Bookings', layout: 'dashboard', activePage: 'admin', bookings: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -138,7 +140,7 @@ module.exports = {
                 JOIN users ru ON d.raised_by = ru.id
                 ORDER BY d.created_at DESC
             `);
-            res.render('pages/admin-disputes', { title: 'Disputes', disputes: result.rows });
+            res.render('pages/admin-disputes', { title: 'Disputes', layout: 'dashboard', activePage: 'admin', disputes: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -164,7 +166,7 @@ module.exports = {
     async commissions(req, res) {
         try {
             const result = await pool.query('SELECT * FROM commission_settings ORDER BY min_amount');
-            res.render('pages/admin-commissions', { title: 'Commission Settings', commissions: result.rows });
+            res.render('pages/admin-commissions', { title: 'Commission Settings', layout: 'dashboard', activePage: 'admin', commissions: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -183,6 +185,92 @@ module.exports = {
         } catch (err) {
             console.error(err);
             res.redirect('/admin/commissions');
+        }
+    },
+
+    // ─── KYC Management ───────────────────────────────────────────
+
+    async kycList(req, res) {
+        try {
+            const { rows } = await pool.query(
+                `SELECT k.*, u.email,
+                        p.first_name, p.last_name, p.avatar_url,
+                        u.kyc_status
+                 FROM kyc_submissions k
+                 JOIN users u ON u.id = k.user_id
+                 LEFT JOIN profiles p ON p.user_id = k.user_id
+                 ORDER BY
+                   CASE k.status WHEN 'pending' THEN 0 ELSE 1 END,
+                   k.submitted_at DESC`
+            );
+            res.render('pages/admin-kyc-list', { 
+                title: 'KYC Verification', 
+                layout: 'dashboard', 
+                activePage: 'admin', 
+                submissions: rows 
+            });
+        } catch (err) {
+            console.error('Admin KYC list error:', err);
+            req.flash('error', 'Could not load KYC submissions.');
+            res.redirect('/admin');
+        }
+    },
+
+    async approveKyc(req, res) {
+        try {
+            const { userId } = req.params;
+            const { createNotification } = require('../utils/notify');
+            
+            await pool.query(`UPDATE users SET kyc_status = 'approved' WHERE id = $1`, [userId]);
+            await pool.query(`UPDATE profiles SET is_admin_verified = true WHERE user_id = $1`, [userId]);
+            await pool.query(
+                `UPDATE kyc_submissions SET status = 'approved', reviewed_at = NOW(), reviewed_by = $1 WHERE user_id = $2`,
+                [req.user.id, userId]
+            );
+            
+            await createNotification(pool, req.app.get('io'), {
+                userId,
+                type: 'kyc_approved',
+                title: 'Your identity has been verified!',
+                message: 'You now have a Verified badge and can post services on EventKraft.',
+                link: '/dashboard',
+            });
+            
+            req.flash('success', 'KYC approved.');
+            res.redirect('/admin/kyc');
+        } catch (err) {
+            console.error('KYC approve error:', err);
+            req.flash('error', 'Could not approve KYC.');
+            res.redirect('/admin/kyc');
+        }
+    },
+
+    async rejectKyc(req, res) {
+        try {
+            const { userId } = req.params;
+            const { createNotification } = require('../utils/notify');
+            const reason = req.body.reason?.trim() || 'Your document could not be verified. Please resubmit with a clearer image.';
+            
+            await pool.query(`UPDATE users SET kyc_status = 'rejected' WHERE id = $1`, [userId]);
+            await pool.query(
+                `UPDATE kyc_submissions SET status = 'rejected', rejection_reason = $1, reviewed_at = NOW(), reviewed_by = $2 WHERE user_id = $3`,
+                [reason, req.user.id, userId]
+            );
+            
+            await createNotification(pool, req.app.get('io'), {
+                userId,
+                type: 'kyc_rejected',
+                title: 'KYC verification failed — please resubmit',
+                message: reason,
+                link: '/dashboard/kyc',
+            });
+            
+            req.flash('success', 'KYC rejected and worker notified.');
+            res.redirect('/admin/kyc');
+        } catch (err) {
+            console.error('KYC reject error:', err);
+            req.flash('error', 'Could not reject KYC.');
+            res.redirect('/admin/kyc');
         }
     }
 };

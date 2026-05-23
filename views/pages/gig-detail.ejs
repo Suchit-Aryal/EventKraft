@@ -1,4 +1,8 @@
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-start') %>
+<% } else { %>
 <%- include('../partials/header') %>
+<% } %>
 
 <section class="container py-4">
     <a href="/gigs" class="text-decoration-none text-muted small d-inline-flex align-items-center gap-1 mb-3">
@@ -142,87 +146,89 @@
 
         <!-- Sidebar: Packages / Pricing -->
         <div class="col-lg-4">
-            <div class="ek-card ek-sidebar-sticky">
-                <% if (typeof packages !== 'undefined' && packages.length > 0) { %>
-                    <ul class="nav ek-package-tabs" role="tablist">
-                        <% packages.forEach(function(pkg, i) { %>
-                            <li class="nav-item flex-fill text-center" role="presentation">
-                                <button class="nav-link w-100 <%= i === 0 ? 'active' : '' %>" data-bs-toggle="tab" data-bs-target="#pkg<%= i %>">
-                                    <%= pkg.tier || pkg.title %>
-                                </button>
-                            </li>
-                        <% }); %>
-                    </ul>
-                    <div class="tab-content" style="padding:1.5rem">
-                        <% packages.forEach(function(pkg, i) { %>
-                            <div class="tab-pane fade <%= i === 0 ? 'show active' : '' %>" id="pkg<%= i %>">
-                                <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(pkg.price).toLocaleString('en-IN') %></p>
-                                <p class="text-muted small mb-3"><i class="bi bi-clock me-1"></i><%= pkg.delivery_time || 'Standard delivery' %></p>
-                                <% var features = []; try { features = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || []); } catch(e) {} %>
-                                <ul class="list-unstyled mb-4">
-                                    <% features.forEach(function(f) { %>
-                                        <li class="d-flex align-items-start gap-2 mb-2 small">
-                                            <i class="bi bi-check-lg" style="color:var(--ek-success);margin-top:2px"></i>
-                                            <span><%= f %></span>
-                                        </li>
-                                    <% }); %>
-                                </ul>
-                                <form action="/bookings" method="POST">
-                                    <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
-                                    <input type="hidden" name="gig_id" value="<%= gig.id %>">
-                                    <input type="hidden" name="package_id" value="<%= pkg.id %>">
-                                    <input type="hidden" name="total_amount" value="<%= pkg.price %>">
-                                    <input type="hidden" name="commission_rate" value="10">
-                                    <input type="hidden" name="commission_amount" value="<%= (pkg.price * 0.1).toFixed(2) %>">
-                                    <input type="hidden" name="worker_earning" value="<%= (pkg.price * 0.9).toFixed(2) %>">
-                                    <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
-                                </form>
-                            </div>
-                        <% }); %>
-                    </div>
-                <% } else { %>
-                    <div style="padding:1.5rem">
-                        <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(gig.starting_price || 0).toLocaleString('en-IN') %></p>
-                        <p class="text-muted small mb-3">Starting price</p>
-                        <form action="/bookings" method="POST">
-                            <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
-                            <input type="hidden" name="gig_id" value="<%= gig.id %>">
-                            <input type="hidden" name="total_amount" value="<%= gig.starting_price %>">
-                            <input type="hidden" name="commission_rate" value="10">
-                            <input type="hidden" name="commission_amount" value="<%= (gig.starting_price * 0.1).toFixed(2) %>">
-                            <input type="hidden" name="worker_earning" value="<%= (gig.starting_price * 0.9).toFixed(2) %>">
-                            <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
-                        </form>
-                    </div>
-                <% } %>
-                <div class="text-center pb-3">
-                    <small class="text-muted">Payments protected by EventKraft</small>
-                </div>
-            </div>
-
-            <!-- Worker Info Card -->
-            <div class="card shadow-sm mt-3">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">About the Worker</h6>
-                    <a href="/profile/<%= gig.worker_id %>" class="d-flex align-items-center gap-3 mb-2 text-decoration-none text-dark">
-                        <img src="<%= gig.worker_avatar || ('https://ui-avatars.com/api/?name='+(gig.worker_first_name||'U')) %>"
-                            alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
-                        <div>
-                            <strong><%= gig.worker_first_name %> <%= gig.worker_last_name || '' %></strong>
-                            <div class="small text-muted">
-                                <i class="bi bi-star-fill text-warning"></i>
-                                <%= gig.worker_rating || '0' %> · <%= gig.worker_completed || 0 %> completed
-                            </div>
+            <div class="ek-sidebar-sticky">
+                <div class="ek-card mb-3">
+                    <% if (typeof packages !== 'undefined' && packages.length > 0) { %>
+                        <ul class="nav ek-package-tabs" role="tablist">
+                            <% packages.forEach(function(pkg, i) { %>
+                                <li class="nav-item flex-fill text-center" role="presentation">
+                                    <button class="nav-link w-100 <%= i === 0 ? 'active' : '' %>" data-bs-toggle="tab" data-bs-target="#pkg<%= i %>">
+                                        <%= pkg.tier || pkg.title %>
+                                    </button>
+                                </li>
+                            <% }); %>
+                        </ul>
+                        <div class="tab-content" style="padding:1.5rem">
+                            <% packages.forEach(function(pkg, i) { %>
+                                <div class="tab-pane fade <%= i === 0 ? 'show active' : '' %>" id="pkg<%= i %>">
+                                    <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(pkg.price).toLocaleString('en-IN') %></p>
+                                    <p class="text-muted small mb-3"><i class="bi bi-clock me-1"></i><%= pkg.delivery_time || 'Standard delivery' %></p>
+                                    <% var features = []; try { features = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : (pkg.features || []); } catch(e) {} %>
+                                    <ul class="list-unstyled mb-4">
+                                        <% features.forEach(function(f) { %>
+                                            <li class="d-flex align-items-start gap-2 mb-2 small">
+                                                <i class="bi bi-check-lg" style="color:var(--ek-success);margin-top:2px"></i>
+                                                <span><%= f %></span>
+                                            </li>
+                                        <% }); %>
+                                    </ul>
+                                    <form action="/bookings" method="POST">
+                                        <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
+                                        <input type="hidden" name="gig_id" value="<%= gig.id %>">
+                                        <input type="hidden" name="package_id" value="<%= pkg.id %>">
+                                        <input type="hidden" name="total_amount" value="<%= pkg.price %>">
+                                        <input type="hidden" name="commission_rate" value="10">
+                                        <input type="hidden" name="commission_amount" value="<%= (pkg.price * 0.1).toFixed(2) %>">
+                                        <input type="hidden" name="worker_earning" value="<%= (pkg.price * 0.9).toFixed(2) %>">
+                                        <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
+                                    </form>
+                                </div>
+                            <% }); %>
                         </div>
-                    </a>
-                    <a href="/profile/<%= gig.worker_id %>" class="btn btn-outline-secondary btn-sm w-100 mt-1">View Profile</a>
-                    <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.id !== gig.worker_id) { %>
-                        <form action="/messages/start/<%= gig.worker_id %>" method="POST" class="mt-2">
-                            <button type="submit" class="btn btn-primary btn-sm w-100">
-                                <i class="bi bi-chat-dots me-1"></i>Contact Worker
-                            </button>
-                        </form>
+                    <% } else { %>
+                        <div style="padding:1.5rem">
+                            <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(gig.starting_price || 0).toLocaleString('en-IN') %></p>
+                            <p class="text-muted small mb-3">Starting price</p>
+                            <form action="/bookings" method="POST">
+                                <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
+                                <input type="hidden" name="gig_id" value="<%= gig.id %>">
+                                <input type="hidden" name="total_amount" value="<%= gig.starting_price %>">
+                                <input type="hidden" name="commission_rate" value="10">
+                                <input type="hidden" name="commission_amount" value="<%= (gig.starting_price * 0.1).toFixed(2) %>">
+                                <input type="hidden" name="worker_earning" value="<%= (gig.starting_price * 0.9).toFixed(2) %>">
+                                <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
+                            </form>
+                        </div>
                     <% } %>
+                    <div class="text-center pb-3">
+                        <small class="text-muted">Payments protected by EventKraft</small>
+                    </div>
+                </div>
+
+                <!-- Worker Info Card -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">About the Worker</h6>
+                        <a href="/profile/<%= gig.worker_id %>" class="d-flex align-items-center gap-3 mb-2 text-decoration-none text-dark">
+                            <img src="<%= gig.worker_avatar || ('https://ui-avatars.com/api/?name='+(gig.worker_first_name||'U')) %>"
+                                alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+                            <div>
+                                <strong><%= gig.worker_first_name %> <%= gig.worker_last_name || '' %></strong>
+                                <div class="small text-muted">
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    <%= gig.worker_rating || '0' %> · <%= gig.worker_completed || 0 %> completed
+                                </div>
+                            </div>
+                        </a>
+                        <a href="/profile/<%= gig.worker_id %>" class="btn btn-outline-secondary btn-sm w-100 mt-1">View Profile</a>
+                        <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.id !== gig.worker_id) { %>
+                            <form action="/messages/start/<%= gig.worker_id %>" method="POST" class="mt-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">
+                                    <i class="bi bi-chat-dots me-1"></i>Contact Worker
+                                </button>
+                            </form>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>
@@ -249,4 +255,8 @@
     });
 </script>
 
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-end') %>
+<% } else { %>
 <%- include('../partials/tail') %>
+<% } %>

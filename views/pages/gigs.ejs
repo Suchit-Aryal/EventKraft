@@ -1,285 +1,214 @@
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-start') %>
+<% } else { %>
 <%- include('../partials/header') %>
+<% } %>
 
-    <div class="container py-5">
-        <h2><i class="bi bi-briefcase"></i> Browse Services</h2>
-        <p class="text-muted">Discover premium event service providers.</p>
-
-        <!-- Search & Filter Bar -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form action="/gigs" method="GET" id="gigSearchForm">
-                    <div class="row g-3 align-items-end">
-                        <!-- Keyword Search -->
-                        <div class="col-md-4">
-                            <label for="keyword" class="form-label small text-muted">Search</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="keyword" name="keyword"
-                                    placeholder="Search by service or provider name..." value="<%= filters.keyword %>">
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 2rem; z-index: 10;">
+                <div class="card-body">
+                    <h5 class="fw-bold mb-4">Filters</h5>
+                    <form action="/gigs" method="GET" id="gigSearchForm">
+                        <div class="mb-3">
+                            <label for="keyword" class="form-label small fw-semibold text-muted">Search Keyword</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="keyword" name="keyword" 
+                                    placeholder="e.g. Photography, Logo..." value="<%= filters.keyword %>">
                             </div>
                         </div>
-                        <!-- Category Filter -->
-                        <div class="col-md-3">
-                            <label for="category_id" class="form-label small text-muted">Category</label>
-                            <select class="form-select" id="category_id" name="category_id">
+
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label small fw-semibold text-muted">Category</label>
+                            <select class="form-select form-select-sm" id="category_id" name="category_id">
                                 <option value="">All Categories</option>
-                                <% categories.forEach(cat=> { %>
-                                    <option value="<%= cat.id %>" <%=filters.category_id===String(cat.id) ? 'selected'
-                                        : '' %>><%= cat.name %>
-                                    </option>
-                                    <% }) %>
+                                <% categories.forEach(cat => { %>
+                                    <option value="<%= cat.id %>" <%= filters.category_id === String(cat.id) ? 'selected' : '' %>><%= cat.name %></option>
+                                <% }) %>
                             </select>
                         </div>
-                        <!-- Price Range -->
-                        <div class="col-md-2">
-                            <label for="minPrice" class="form-label small text-muted">Min Price</label>
-                            <input type="number" class="form-control" id="minPrice" name="minPrice" placeholder="0"
-                                min="0" value="<%= filters.minPrice %>">
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-muted">Price Range (NPR)</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <input type="number" class="form-control form-control-sm" name="minPrice" placeholder="Min" value="<%= filters.minPrice %>">
+                                <span class="text-muted small">to</span>
+                                <input type="number" class="form-control form-control-sm" name="maxPrice" placeholder="Max" value="<%= filters.maxPrice %>">
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label for="maxPrice" class="form-label small text-muted">Max Price</label>
-                            <input type="number" class="form-control" id="maxPrice" name="maxPrice" placeholder="Any"
-                                min="0" value="<%= filters.maxPrice %>">
-                        </div>
-                        <!-- Buttons -->
-                        <div class="col-md-1 d-flex gap-1">
-                            <button type="submit" class="btn btn-primary w-100" title="Search">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Sort + Clear Row -->
-                    <div class="row mt-2">
-                        <div class="col-md-3">
-                            <select class="form-select form-select-sm" name="sortBy" onchange="this.form.submit()">
-                                <option value="" <%=filters.sortBy==='' ? 'selected' : '' %>>Sort: Newest First</option>
-                                <option value="price_low" <%=filters.sortBy==='price_low' ? 'selected' : '' %>>Price:
-                                    Low to High</option>
-                                <option value="price_high" <%=filters.sortBy==='price_high' ? 'selected' : '' %>>Price:
-                                    High to Low</option>
-                                <option value="rating" <%=filters.sortBy==='rating' ? 'selected' : '' %>>Highest Rated
-                                </option>
+
+                        <div class="mb-4">
+                            <label for="sortBy" class="form-label small fw-semibold text-muted">Sort By</label>
+                            <select class="form-select form-select-sm" id="sortBy" name="sortBy">
+                                <option value="newest" <%= filters.sortBy === 'newest' ? 'selected' : '' %>>Newest First</option>
+                                <option value="price_low" <%= filters.sortBy === 'price_low' ? 'selected' : '' %>>Price: Low to High</option>
+                                <option value="price_high" <%= filters.sortBy === 'price_high' ? 'selected' : '' %>>Price: High to Low</option>
+                                <option value="rating" <%= filters.sortBy === 'rating' ? 'selected' : '' %>>Highest Rated</option>
                             </select>
                         </div>
-                        <div class="col-md-9 d-flex align-items-center">
-                            <% const hasAnyFilter=filters.keyword || filters.category_id || filters.minPrice ||
-                                filters.maxPrice || filters.sortBy; %>
-                                <% if (hasAnyFilter) { %>
-                                    <a href="/gigs" class="btn btn-link btn-sm text-danger p-0"><i
-                                            class="bi bi-x-circle"></i> Clear Filters</a>
-                                    <span class="text-muted small ms-3">
-                                        <%= gigs.length %> result<%= gigs.length !==1 ? 's' : '' %> found
-                                    </span>
-                                    <% } %>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                            <a href="/gigs" class="btn btn-outline-secondary btn-sm">Clear All</a>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Results Grid -->
-        <div class="row g-4">
-            <% if (gigs && gigs.length> 0) { %>
-                <% gigs.forEach(gig=> { %>
-                    <div class="col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <% var cardImages=[]; try { if (Array.isArray(gig.portfolio_images)) {
-                                cardImages=gig.portfolio_images; } else if (typeof gig.portfolio_images==='string' ) {
-                                cardImages=JSON.parse(gig.portfolio_images || '[]' ); } } catch(e) {} %>
-                                <% if (cardImages.length> 0) { %>
-                                    <img src="<%= cardImages[0] %>" class="card-img-top" alt="<%= gig.title %>"
-                                        style="height:180px;object-fit:cover">
-                                    <% } else { %>
-                                        <div class="card-img-top d-flex align-items-center justify-content-center"
-                                            style="height:180px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">
-                                            <i class="bi bi-camera fs-1 text-white opacity-50"></i>
-                                        </div>
-                                        <% } %>
-                                            <div class="card-body d-flex flex-column">
-                                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                                    <h5 class="card-title mb-0">
-                                                        <%= gig.title %>
-                                                    </h5>
-                                                </div>
-                                                <span class="badge bg-secondary mb-2 align-self-start">
-                                                    <%= gig.category_name || 'Uncategorized' %>
-                                                </span>
-                                                <p class="card-text text-muted small flex-grow-1">
-                                                    <%= gig.description ? gig.description.substring(0, 120) + '...' : ''
-                                                        %>
-                                                </p>
-                                                <% if (gig.worker_first_name) { %>
-                                                    <div class="d-flex align-items-center gap-2 mb-2 small text-muted">
-                                                        <i class="bi bi-person-circle"></i>
-                                                        <%= gig.worker_first_name %>
-                                                            <%= gig.worker_last_name || '' %>
-                                                                <% if (gig.worker_rating && Number(gig.worker_rating)>
-                                                                    0) { %>
-                                                                    <span class="ms-auto"><i
-                                                                            class="bi bi-star-fill text-warning"></i>
-                                                                        <%= gig.worker_rating %>
-                                                                    </span>
-                                                                    <% } %>
-                                                    </div>
-                                                    <% } %>
-                                                        <div
-                                                            class="d-flex justify-content-between align-items-center mt-auto">
-                                                            <span class="text-success fw-bold">From NPR <%=
-                                                                    Number(gig.starting_price).toLocaleString() %>
-                                                                    </span>
-                                                            <a href="/gigs/<%= gig.id %>"
-                                                                class="btn btn-sm btn-outline-primary">View</a>
-                                                        </div>
-                                            </div>
-                        </div>
-                    </div>
-                    <% }) %>
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Services</h2>
+                    <p class="text-muted small mb-0">
+                        <% if (filters.keyword || filters.category_id) { %>
+                            Showing results for <span class="text-dark fw-semibold">"<%= filters.keyword || 'selected category' %>"</span>
                         <% } else { %>
-                            <div class="col-12 text-center py-5">
-                                <i class="bi bi-search fs-1 text-muted"></i>
-                                <% if (hasAnyFilter) { %>
-                                    <p class="text-muted mt-2">No services match your search. Try different filters.</p>
-                                    <a href="/gigs" class="btn btn-outline-primary btn-sm">Clear All Filters</a>
-                                    <% } else { %>
-                                        <p class="text-muted mt-2">No services available yet. Check back later!</p>
+                            Discover the best talent for your event
+                        <% } %>
+                    </p>
+                </div>
+                <div class="text-muted small">
+                    <span class="fw-bold text-dark"><%= gigs.length %></span> services found
+                </div>
+            </div>
+
+            <% if (gigs && gigs.length > 0) { %>
+                <div class="row g-4">
+                    <% gigs.forEach(gig => { %>
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card h-100 border-0 shadow-sm hover-lift">
+                                <div class="position-relative">
+                                    <% 
+                                        let cardImages = [];
+                                        try {
+                                            if (Array.isArray(gig.portfolio_images)) {
+                                                cardImages = gig.portfolio_images;
+                                            } else if (typeof gig.portfolio_images === 'string') {
+                                                cardImages = JSON.parse(gig.portfolio_images || '[]');
+                                            }
+                                        } catch(e) {}
+                                    %>
+                                    <a href="/gigs/<%= gig.id %>" class="text-decoration-none">
+                                        <% if (cardImages.length > 0) { %>
+                                            <img src="<%= cardImages[0] %>" class="card-img-top" alt="<%= gig.title %>" style="height: 200px; object-fit: cover;">
+                                        <% } else { %>
+                                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                                <i class="bi bi-image text-muted fs-1"></i>
+                                            </div>
                                         <% } %>
+                                    </a>
+                                    <div class="position-absolute top-0 end-0 p-2">
+                                        <span class="badge bg-white text-dark shadow-sm">
+                                            <i class="bi bi-star-fill text-warning me-1"></i>
+                                            <%= gig.worker_rating && Number(gig.worker_rating) > 0 ? Number(gig.worker_rating).toFixed(1) : 'New' %>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <img src="<%= gig.worker_avatar || '/images/default-avatar.png' %>" class="rounded-circle border" width="24" height="24" alt="Avatar">
+                                        <span class="text-muted small fw-medium"><%= gig.worker_first_name %> <%= gig.worker_last_name %></span>
+                                    </div>
+                                    <h6 class="card-title fw-bold mb-2">
+                                        <a href="/gigs/<%= gig.id %>" class="text-dark text-decoration-none stretched-link">
+                                            <%= gig.title %>
+                                        </a>
+                                    </h6>
+                                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                        <span class="text-muted small">Starting at</span>
+                                        <span class="fw-bold text-primary">NPR <%= Number(gig.starting_price).toLocaleString() %></span>
+                                    </div>
+                                </div>
                             </div>
-                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <img src="/images/no-results.svg" alt="No results" class="mb-4" style="max-width: 200px; opacity: 0.5;">
+                        <h4>No services found</h4>
+                        <p class="text-muted">Try adjusting your filters or search terms to find what you're looking for.</p>
+                        <a href="/gigs" class="btn btn-primary btn-sm">Clear All Filters</a>
+                    </div>
+                </div>
+            <% } %>
         </div>
     </div>
+</div>
 
-    <!-- Autocomplete Styles -->
-    <style>
-        .autocomplete-wrapper {
-            position: relative;
-        }
+<style>
+    .hover-lift { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+    .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important; }
+    .card-img-top { border-top-left-radius: calc(0.375rem - 1px); border-top-right-radius: calc(0.375rem - 1px); }
+</style>
 
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            z-index: 1050;
-            max-height: 280px;
-            overflow-y: auto;
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
-            display: none;
-        }
+<!-- Autocomplete Logic stays similar but optimized for the new layout if needed -->
+<script>
+    (function () {
+        const input = document.getElementById('keyword');
+        if (!input) return;
 
-        .autocomplete-dropdown.show {
-            display: block;
-        }
+        const dropdown = document.createElement('div');
+        dropdown.className = 'autocomplete-dropdown shadow-sm border rounded-3';
+        input.parentElement.parentElement.appendChild(dropdown);
 
-        .autocomplete-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background .15s;
-        }
+        let debounceTimer;
 
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
+        input.addEventListener('input', function () {
+            const q = this.value.trim();
+            clearTimeout(debounceTimer);
+            if (q.length < 2) { dropdown.classList.remove('show'); return; }
 
-        .autocomplete-item:hover,
-        .autocomplete-item.active {
-            background: #f0f4ff;
-        }
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch('/gigs/api/search?q=' + encodeURIComponent(q));
+                    const items = await res.json();
+                    if (items.length === 0) { dropdown.classList.remove('show'); return; }
 
-        .autocomplete-item .item-title {
-            font-weight: 600;
-            font-size: .95rem;
-        }
-
-        .autocomplete-item .item-meta {
-            font-size: .78rem;
-            color: #6c757d;
-        }
-
-        .autocomplete-item .item-price {
-            color: #198754;
-            font-weight: 600;
-            font-size: .82rem;
-        }
-    </style>
-
-    <!-- Autocomplete Script -->
-    <script>
-        (function () {
-            const input = document.getElementById('keyword');
-            if (!input) return;
-
-            const wrapper = input.closest('.input-group');
-            wrapper.style.position = 'relative';
-
-            const dropdown = document.createElement('div');
-            dropdown.className = 'autocomplete-dropdown';
-            wrapper.parentElement.appendChild(dropdown);
-
-            let debounceTimer, currentIndex = -1, activeController = null, lastQuery = '', lastResultIds = '';
-
-            input.addEventListener('input', function () {
-                const q = this.value.trim();
-                clearTimeout(debounceTimer);
-                if (activeController) { activeController.abort(); activeController = null; }
-                if (q.length < 2) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastQuery = ''; lastResultIds = ''; return; }
-                if (q === lastQuery) return;
-
-                debounceTimer = setTimeout(async () => {
-                    const controller = new AbortController();
-                    activeController = controller;
-                    try {
-                        const res = await fetch('/gigs/api/search?q=' + encodeURIComponent(q), { signal: controller.signal });
-                        const items = await res.json();
-                        if (controller !== activeController && activeController !== null) return;
-                        lastQuery = q;
-                        if (items.length === 0) { dropdown.classList.remove('show'); dropdown.innerHTML = ''; lastResultIds = ''; return; }
-                        const newIds = items.map(i => i.id).join(',');
-                        if (newIds === lastResultIds) return;
-                        lastResultIds = newIds;
-
-                        dropdown.innerHTML = items.map(item => `
-                    <div class="autocomplete-item" data-href="/gigs/${item.id}">
-                        <div class="item-title">${escapeHtml(item.title)}</div>
-                        <div class="d-flex justify-content-between">
-                            <span class="item-meta">${escapeHtml(item.category_name || 'Uncategorized')}${item.worker_name ? ' · ' + escapeHtml(item.worker_name) : ''}</span>
-                            <span class="item-price">From NPR ${Number(item.starting_price).toLocaleString()}</span>
+                    dropdown.innerHTML = items.map(item => `
+                        <div class="autocomplete-item p-2 border-bottom cursor-pointer" onclick="window.location.href='/gigs/${item.id}'">
+                            <div class="fw-bold small text-dark">${item.title}</div>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="text-muted" style="font-size: 0.7rem;">${item.category_name} • ${item.worker_name}</span>
+                                <span class="text-success fw-bold" style="font-size: 0.75rem;">NPR ${Number(item.starting_price).toLocaleString()}</span>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
-                        currentIndex = -1;
-                        dropdown.classList.add('show');
-                        dropdown.querySelectorAll('.autocomplete-item').forEach(el => {
-                            el.addEventListener('click', () => window.location.href = el.dataset.href);
-                        });
-                    } catch (e) {
-                        if (e.name !== 'AbortError') dropdown.classList.remove('show');
-                    }
-                }, 400);
-            });
+                    `).join('');
+                    dropdown.classList.add('show');
+                } catch (e) { dropdown.classList.remove('show'); }
+            }, 300);
+        });
 
-            input.addEventListener('keydown', function (e) {
-                const items = dropdown.querySelectorAll('.autocomplete-item');
-                if (!items.length || !dropdown.classList.contains('show')) return;
-                if (e.key === 'ArrowDown') { e.preventDefault(); currentIndex = Math.min(currentIndex + 1, items.length - 1); updateActive(items); }
-                else if (e.key === 'ArrowUp') { e.preventDefault(); currentIndex = Math.max(currentIndex - 1, 0); updateActive(items); }
-                else if (e.key === 'Enter' && currentIndex >= 0) { e.preventDefault(); items[currentIndex].click(); }
-                else if (e.key === 'Escape') { dropdown.classList.remove('show'); }
-            });
+        document.addEventListener('click', (e) => {
+            if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('show');
+        });
+    })();
+</script>
 
-            function updateActive(items) {
-                items.forEach((el, i) => el.classList.toggle('active', i === currentIndex));
-                if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
-            }
-            document.addEventListener('click', (e) => {
-                if (!wrapper.parentElement.contains(e.target)) dropdown.classList.remove('show');
-            });
-            function escapeHtml(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
-        })();
-    </script>
+<style>
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        z-index: 1000;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+    }
+    .autocomplete-dropdown.show { display: block; }
+    .autocomplete-item:hover { background-color: #f8f9fa; cursor: pointer; }
+</style>
 
-    <%- include('../partials/tail') %>
+<% if (locals.layout === 'dashboard') { %>
+<%- include('../partials/dashboard-wrapper-end') %>
+<% } else { %>
+<%- include('../partials/tail') %>
+<% } %>

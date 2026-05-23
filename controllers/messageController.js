@@ -34,11 +34,23 @@ module.exports = {
     async index(req, res) {
         try {
             const conversations = await Message.getConversations(req.user.id);
-            res.render('pages/messages', { title: 'Messages', conversations });
+            res.render('pages/messages', { title: 'Messages', layout: 'dashboard', activePage: 'messages', conversations });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load messages');
             res.redirect('/auth/dashboard');
+        }
+    },
+
+    // ─── API: GET /messages/api/recent ──────────────────────────
+    async getRecentConversationsApi(req, res) {
+        try {
+            const conversations = await Message.getConversations(req.user.id);
+            // Just return top 5
+            res.json(conversations.slice(0, 5));
+        } catch (err) {
+            console.error('Recent messages API error:', err);
+            res.status(500).json({ error: 'Failed to fetch messages' });
         }
     },
 
@@ -75,6 +87,8 @@ module.exports = {
 
             res.render('pages/conversation', {
                 title: 'Conversation',
+                layout: 'dashboard',
+                activePage: 'messages',
                 conversation,
                 messages,
                 otherName,
@@ -86,20 +100,131 @@ module.exports = {
         }
     },
 
+    // ─── API: GET /messages/:conversationId/api/history ────────
+    async getHistoryApi(req, res) {
+        try {
+            const messages = await Message.getByConversation(req.params.conversationId);
+            await Message.markAsRead(req.params.conversationId, req.user.id);
+            res.json(messages);
+        } catch (err) {
+            console.error('History API error:', err);
+            res.status(500).json({ error: 'Failed to fetch history' });
+        }
+    },
+
     async send(req, res) {
         try {
-            await Message.send({
+            const conversationId = req.params.conversationId;
+            const { content, attachments, reply_to } = req.body;
+
+            // Always verify membership and compute receiver server-side
+            const conversation = await Message.getConversationById(conversationId);
+            if (!conversation) {
+                return req.is('application/json')
+                    ? res.status(404).json({ error: 'Conversation not found' })
+                    : res.redirect('/messages');
+            }
+
+            const isP1 = conversation.participant_1 === req.user.id;
+            const isP2 = conversation.participant_2 === req.user.id;
+            if (!isP1 && !isP2) {
+                return req.is('application/json')
+                    ? res.status(403).json({ error: 'Not a member of this conversation' })
+                    : res.redirect('/messages');
+            }
+
+            // Compute receiver from the conversation — never trust client input
+            const receiver_id = isP1 ? conversation.participant_2 : conversation.participant_1;
+
+            // Single CTE query: INSERT + UPDATE in one round-trip
+            const msg = await Message.send({
+                conversationId,
+                senderId: req.user.id,
+                receiverId: receiver_id,
+                content,
+                attachments,
+                replyTo: reply_to || null
+            });
+
+            // Respond to client IMMEDIATELY, then emit socket (non-blocking)
+            if (req.is('application/json')) {
+                res.json({ id: msg.id, created_at: msg.created_at });
+            } else {
+                res.redirect(`/messages/${conversationId}`);
+            }
+
+            // Fire-and-forget socket emit AFTER response is sent
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const socketData = {
+                        id: msg.id,
+                        conversation_id: conversationId,
+                        content: msg.content,
+                        sender_id: req.user.id,
+                        sender_name: req.user.first_name,
+                        receiver_id: receiver_id,
+                        created_at: msg.created_at
+                    };
+                    io.to(`conversation_${conversationId}`).emit('new-message', socketData);
+                    io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
+                }
+            } catch (emitErr) {
+                console.error('Socket emit error:', emitErr);
+            }
+
+        } catch (err) {
+            console.error('Send message error:', err);
+            if (res.headersSent) return;
+            if (req.is('application/json')) {
+                return res.status(500).json({ error: 'Failed to send message' });
+            }
+            req.flash('error', 'Failed to send message');
+            res.redirect(`/messages/${req.params.conversationId}`);
+        }
+    },
+
+    // POST /messages/:conversationId/send-file — upload a file/image
+    async sendFile(req, res) {
+        try {
+            if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+            const cloudinary = require('../config/cloudinary');
+            const result = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: 'eventkraft/chat', resource_type: 'auto' },
+                    (err, r) => err ? reject(err) : resolve(r)
+                );
+                stream.end(req.file.buffer);
+            });
+
+            const msg = await Message.send({
                 conversationId: req.params.conversationId,
                 senderId: req.user.id,
                 receiverId: req.body.receiver_id,
-                content: req.body.content,
-                attachments: req.body.attachments
+                content: req.body.content || '',
+                replyTo: req.body.reply_to || null,
+                fileUrl: result.secure_url,
+                fileName: req.file.originalname,
+                fileType: req.file.mimetype
             });
-            res.redirect(`/messages/${req.params.conversationId}`);
+
+            res.json({ id: msg.id, created_at: msg.created_at, file_url: result.secure_url, file_name: req.file.originalname, file_type: req.file.mimetype });
+        } catch (err) {
+            console.error('File upload error:', err);
+            res.status(500).json({ error: 'Failed to upload file' });
+        }
+    },
+
+    // POST /messages/:messageId/unsend
+    async unsend(req, res) {
+        try {
+            const msg = await Message.unsend(req.params.messageId, req.user.id);
+            if (!msg) return res.status(403).json({ error: 'Cannot unsend this message' });
+            res.json({ success: true });
         } catch (err) {
             console.error(err);
-            req.flash('error', 'Failed to send message');
-            res.redirect(`/messages/${req.params.conversationId}`);
+            res.status(500).json({ error: 'Failed to unsend' });
         }
     }
 };

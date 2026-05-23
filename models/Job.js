@@ -77,6 +77,7 @@ const Job = {
         let query = `
             SELECT jp.*, c.name AS category_name,
                    p.first_name AS customer_first_name, p.last_name AS customer_last_name,
+                   p.avatar_url AS customer_avatar,
                    (SELECT COUNT(*) FROM proposals WHERE job_id = jp.id) AS proposal_count
             FROM job_postings jp
             LEFT JOIN categories c ON jp.category_id = c.id
@@ -86,11 +87,40 @@ const Job = {
         const params = [];
         let i = 1;
 
-        if (category_id) { query += ` AND jp.category_id = $${i++}`; params.push(category_id); }
-        if (minBudget) { query += ` AND jp.budget_max >= $${i++}`; params.push(minBudget); }
-        if (maxBudget) { query += ` AND jp.budget_min <= $${i++}`; params.push(maxBudget); }
-        if (location) { query += ` AND jp.event_location ILIKE $${i++}`; params.push(`%${location}%`); }
-        if (keyword) { query += ` AND (jp.title ILIKE $${i} OR jp.description ILIKE $${i} OR p.first_name ILIKE $${i} OR p.last_name ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
+        if (category_id) { 
+            query += ` AND jp.category_id = $${i++}`; 
+            params.push(category_id); 
+        }
+        
+        if (minBudget) { 
+            query += ` AND jp.budget_max >= $${i++}`; 
+            params.push(minBudget); 
+        }
+        
+        if (maxBudget) { 
+            query += ` AND jp.budget_min <= $${i++}`; 
+            params.push(maxBudget); 
+        }
+        
+        if (location) { 
+            query += ` AND (jp.event_location ILIKE $${i} OR p.city ILIKE $${i})`; 
+            params.push(`%${location}%`); 
+            i++;
+        }
+
+        if (keyword) { 
+            const searchPattern = `%${keyword}%`;
+            query += ` AND (
+                jp.title ILIKE $${i} OR 
+                jp.description ILIKE $${i} OR 
+                c.name ILIKE $${i} OR 
+                p.first_name ILIKE $${i} OR 
+                p.last_name ILIKE $${i} OR
+                jp.event_type ILIKE $${i}
+            )`; 
+            params.push(searchPattern); 
+            i++; 
+        }
 
         query += ' ORDER BY jp.created_at DESC';
         const result = await pool.query(query, params);

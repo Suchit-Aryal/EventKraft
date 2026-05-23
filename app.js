@@ -30,6 +30,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+app.set('io', io);
 
 const PORT = process.env.PORT || 3000;
 
@@ -60,12 +61,15 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Global variables for templates
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     res.locals.currentUser = req.user || null;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
 });
+
+// Dashboard nav data (icons, unread counts, profile completion)
+app.use(require('./middleware/injectNavData'));
 
 // ─── Routes ─────────────────────────────────────────────────
 
@@ -103,22 +107,37 @@ app.use('/reviews', reviewRoutes);
 app.use('/messages', messageRoutes);
 app.use('/admin', adminRoutes);
 app.use('/profile', require('./routes/profileRoutes'));
+app.use('/onboarding', require('./routes/onboardingRoutes'));
+app.use('/dashboard', require('./routes/dashboardRoutes'));
 
-// ─── Socket.io (Real-time Chat) ────────────────────────────
+// ─── Socket.io (Real-time Chat & Notifications) ────────────
 io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    // Join a personal room for real-time badges/notifications
+    socket.on('join-user', (userId) => {
+        socket.join(`user_${userId}`);
+    });
 
-    socket.on('join-room', (roomId) => {
-        socket.join(roomId);
+    socket.on('join-conversation', (conversationId) => {
+        socket.join(`conversation_${conversationId}`);
     });
 
     socket.on('send-message', (data) => {
-        io.to(data.roomId).emit('new-message', data);
+        // Emit to conversation room for the chat window
+        socket.to(`conversation_${data.conversationId}`).emit('new-message', data);
+        
+        // Also emit to the specific receiver's personal room for the navbar badge
+        if (data.receiver_id) {
+            socket.to(`user_${data.receiver_id}`).emit('new-message-badge', data);
+        }
     });
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+    socket.on('message-unsent', (data) => {
+        socket.to(`conversation_${data.conversationId}`).emit('message-unsent', {
+            messageId: data.messageId
+        });
     });
+
+    socket.on('disconnect', () => {});
 });
 
 // ─── 404 Handler ────────────────────────────────────────────

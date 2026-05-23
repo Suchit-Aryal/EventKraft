@@ -80,7 +80,7 @@ const Gig = {
         let query = `
             SELECT sg.*, c.name AS category_name,
                    p.first_name AS worker_first_name, p.last_name AS worker_last_name,
-                   p.avg_rating AS worker_rating
+                   p.avatar_url AS worker_avatar, p.avg_rating AS worker_rating
             FROM service_gigs sg
             LEFT JOIN categories c ON sg.category_id = c.id
             LEFT JOIN profiles p ON sg.worker_id = p.user_id
@@ -89,16 +89,42 @@ const Gig = {
         const params = [];
         let i = 1;
 
-        if (category_id) { query += ` AND sg.category_id = $${i++}`; params.push(category_id); }
-        if (minPrice) { query += ` AND sg.starting_price >= $${i++}`; params.push(minPrice); }
-        if (maxPrice) { query += ` AND sg.starting_price <= $${i++}`; params.push(maxPrice); }
-        //Search base query in this line of code
-        if (keyword) { query += ` AND (sg.title ILIKE $${i} OR sg.description ILIKE $${i} OR p.first_name ILIKE $${i} OR p.last_name ILIKE $${i})`; params.push(`%${keyword}%`); i++; }
+        if (category_id) { 
+            query += ` AND sg.category_id = $${i++}`; 
+            params.push(category_id); 
+        }
+        
+        if (minPrice) { 
+            query += ` AND sg.starting_price >= $${i++}`; 
+            params.push(minPrice); 
+        }
+        
+        if (maxPrice) { 
+            query += ` AND sg.starting_price <= $${i++}`; 
+            params.push(maxPrice); 
+        }
+
+        if (keyword) { 
+            const searchPattern = `%${keyword}%`;
+            query += ` AND (
+                sg.title ILIKE $${i} OR 
+                sg.description ILIKE $${i} OR 
+                c.name ILIKE $${i} OR 
+                p.first_name ILIKE $${i} OR 
+                p.last_name ILIKE $${i} OR
+                EXISTS (
+                    SELECT 1 FROM jsonb_array_elements_text(sg.tags) AS t WHERE t ILIKE $${i}
+                )
+            )`; 
+            params.push(searchPattern); 
+            i++; 
+        }
 
         switch (sortBy) {
             case 'price_low': query += ' ORDER BY sg.starting_price ASC'; break;
             case 'price_high': query += ' ORDER BY sg.starting_price DESC'; break;
-            case 'rating': query += ' ORDER BY p.avg_rating DESC'; break;
+            case 'rating': query += ' ORDER BY p.avg_rating DESC NULLS LAST'; break;
+            case 'newest': query += ' ORDER BY sg.created_at DESC'; break;
             default: query += ' ORDER BY sg.created_at DESC';
         }
 
