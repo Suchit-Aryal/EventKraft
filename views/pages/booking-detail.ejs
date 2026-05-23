@@ -135,8 +135,71 @@
             <% if ((booking.status === 'pending' || booking.status === 'accepted') && currentUser.id === booking.customer_id) { %>
                 <form action="/bookings/<%= booking.id %>/cancel" method="POST"><button type="submit" class="btn btn-outline-danger">Cancel Booking</button></form>
             <% } %>
+            <% if (booking.status === 'awaiting_agreement' && currentUser.id === booking.customer_id) { %>
+                <a href="/bookings/<%= booking.id %>/agreement" class="btn btn-ek-primary">Review & Sign Agreement</a>
+            <% } %>
+            <% if (booking.status === 'work_done' && currentUser.id === booking.customer_id) { %>
+                <a href="/bookings/<%= booking.id %>/pay-final" class="btn btn-ek-primary">Pay Final Balance</a>
+            <% } %>
         </div>
     </div>
 </div>
+
+<!-- Worker Completion Form (shown when status = paid_advance) -->
+<% if (booking.status === 'paid_advance' && currentUser && currentUser.id === booking.worker_id) { %>
+<div class="container py-2" style="max-width:800px">
+    <div class="ek-card mt-3" style="padding:1.5rem 2rem">
+        <h5 class="fw-semibold mb-3">Submit Work Completion</h5>
+        <form action="/bookings/<%= booking.id %>/submit-complete" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Upload Proof Photos (max 5)</label>
+                <input type="file" name="completion_proof" multiple accept="image/*" class="form-control">
+                <small class="text-muted">Upload photos as evidence of completed work</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Completion Note</label>
+                <textarea name="completion_note" class="form-control" rows="3" placeholder="Brief description of what was delivered..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-success" onclick="return confirm('Mark this job as complete? The customer will be notified to make final payment.')">
+                <i class="bi bi-check-circle me-1"></i> Submit Completion
+            </button>
+        </form>
+    </div>
+</div>
+<% } %>
+
+<!-- Proof Gallery (shown when status is work_done or later) -->
+<% if (['work_done','dispute_raised','paid_final','completed'].includes(booking.status)) { %>
+<%
+let proofItems = [];
+if (Array.isArray(booking.completion_proof)) {
+    proofItems = booking.completion_proof;
+} else {
+    try {
+        proofItems = typeof booking.completion_proof === 'string'
+            ? JSON.parse(booking.completion_proof || '[]')
+            : (booking.completion_proof || []);
+    } catch (err) {
+        proofItems = [];
+    }
+}
+if (!Array.isArray(proofItems)) proofItems = [];
+%>
+<% if (proofItems.length) { %>
+<div class="container py-2" style="max-width:800px">
+    <div class="ek-card mt-3" style="padding:1.5rem 2rem">
+        <h5 class="fw-semibold mb-3">Work Completion Proof</h5>
+        <% if (booking.completion_note) { %><p class="text-muted"><%= booking.completion_note %></p><% } %>
+        <div class="d-flex flex-wrap gap-2">
+            <% proofItems.forEach(function(p) { %>
+                <a href="<%= p.url %>" target="_blank" rel="noopener noreferrer">
+                    <img src="<%= p.url %>" style="width:120px;height:90px;object-fit:cover;border-radius:6px;" alt="proof">
+                </a>
+            <% }); %>
+        </div>
+    </div>
+</div>
+<% } %>
+<% } %>
 
 <%- include('../partials/dashboard-wrapper-end') %>

@@ -250,15 +250,18 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - **KYC/Identity Verification** with document upload (passport, citizenship, license)
 - Admin KYC approval workflow
 - Public profile page with active gigs listing
+- **Portfolio Gallery** for workers to showcase their best work
 
 ### Real-time Features
 - **Socket.io-powered messaging** with read receipts
 - **In-app notifications** with real-time badge updates
 - Notification center page with mark-as-read
+- **Message Reply & Unsend** functionality
+- **File attachments** in chat (Images, PDFs)
 
 ### Authentication & Security
 - Passport.js session-based auth
-- **2FA/TOTP support** via speakeasy
+- **2FA/TOTP support** via speakeasy (Google Authenticator)
 - Role-based access control (customer / worker / admin)
 - Profile completion enforcement for workers
 - Account deactivation & deletion
@@ -290,13 +293,11 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 
 ## Changelog
 
-### 2026-05-12 — Bug Fix: Chat Message Sending ([EVE-5](https://linear.app/eventkraft/issue/EVE-5))
+### 2026-05-16 — Documentation: Blueprint & Schema Sync
 
-**Branch:** `bug_fixes/chat`
+**Branch:** `docs/blueprint-sync`
 
-| Issue | Fix |
-| ----- | --- |
-| `ReferenceError: receiverId is not defined` in `messageController.js:133` — completely blocked all chat message sending | Changed `receiverId` (undefined camelCase) to `receiverId: receiver_id` to properly map the snake_case variable destructured from `req.body` to the camelCase parameter expected by `Message.send()` |
-
-**Files changed:**
-- `controllers/messageController.js` — line 133, variable name mismatch fix
+- Synchronized `EventKraft-Blueprint` (MD, JSON, and SQL) with the current project implementation.
+- Updated `README.md` to reflect latest features: **KYC Verification**, **2FA Security**, and **Advanced Chat (Reply/Unsend)**.
+- Documented 2 new database tables (`kyc_submissions`, `portfolio_items`) and updated schema specifications to match PostgreSQL reality (17 tables total).
+- Moved implemented suggestions (Video Portfolios, Comparison View, Badges) to the completed section in blueprints.

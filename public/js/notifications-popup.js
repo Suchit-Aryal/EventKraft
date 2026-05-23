@@ -151,7 +151,7 @@
         const res = await fetch('/dashboard/notifications/api/mark-all-read', { method: 'POST' });
         if (!res.ok) throw new Error(`Server error ${res.status}`);
 
-        if (notifList) notifList.innerHTML = '<div class="topnav__dropdown-empty">All caught up! 🎉</div>';
+        if (notifList) notifList.innerHTML = '<div class="topnav__dropdown-empty">All caught up.</div>';
         if (notifBadge) {
           notifBadge.textContent = '0';
           notifBadge.classList.add('d-none');

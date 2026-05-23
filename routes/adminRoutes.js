@@ -46,4 +46,15 @@ router.post('/kyc/:userId/approve', adminCtrl.approveKyc);
 // POST /admin/kyc/:userId/reject
 router.post('/kyc/:userId/reject', adminCtrl.rejectKyc);
 
+// ─── Legal Action Panel ────────────────────────────────────────
+
+// GET /admin/legal-action — overdue/legal action bookings
+router.get('/legal-action', adminCtrl.legalAction);
+
+// POST /admin/bookings/:id/legal-action — mark as legal action
+router.post('/bookings/:id/legal-action', adminCtrl.markLegalAction);
+
+// POST /admin/bookings/:id/resolve — mark as resolved/completed
+router.post('/bookings/:id/resolve', adminCtrl.resolveOverdue);
+
 module.exports = router;

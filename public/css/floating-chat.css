@@ -134,6 +134,98 @@
   display: block; text-align: right;
 }
 
+/* ── Booking request cards ───────────────────────────────── */
+.floating-booking-card {
+  align-self: stretch !important;
+  background: #fff !important;
+  border: 1px solid #eadfd7 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 18px rgba(107,29,42,.08) !important;
+  overflow: hidden !important;
+}
+.floating-booking-card__head {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  border: 0 !important;
+  background: #fff7ed !important;
+  color: #28131b !important;
+  padding: 10px 12px !important;
+  cursor: pointer !important;
+  text-align: left !important;
+}
+.floating-booking-card__head strong {
+  display: block !important;
+  font-size: 13px !important;
+}
+.floating-booking-card__head small {
+  display: block !important;
+  color: #8b6b5b !important;
+  font-size: 11px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.floating-booking-card__body {
+  display: none !important;
+  padding: 10px 12px !important;
+  gap: 7px !important;
+}
+.floating-booking-card__body.is-open {
+  display: flex !important;
+  flex-direction: column !important;
+}
+.floating-booking-card__body div:not(.floating-booking-card__actions):not(.floating-booking-card__decision):not(.floating-booking-card__progress) {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  font-size: 12px !important;
+}
+.floating-booking-card__body span {
+  color: #8b6b5b !important;
+}
+.floating-booking-card__body strong {
+  color: #241019 !important;
+  text-align: right !important;
+}
+.floating-booking-card__body p {
+  margin: 2px 0 0 !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  background: #faf7f2 !important;
+  color: #5f4b45 !important;
+  font-size: 12px !important;
+}
+.floating-booking-card__actions {
+  display: flex !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+.floating-booking-card__actions button {
+  flex: 1 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  padding: 8px 10px !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+.floating-booking-card__accept { background: #15803d !important; }
+.floating-booking-card__decline { background: #b42318 !important; }
+.floating-booking-card__decision,
+.floating-booking-card__progress {
+  display: block !important;
+  padding: 8px 0 0 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+.floating-booking-card__decision--accepted { color: #15803d !important; }
+.floating-booking-card__decision--declined { color: #b42318 !important; }
+.floating-booking-card__progress { color: #8b6b5b !important; }
+
 /* ── Footer (Input area) ─────────────────────────────── */
 .chat-box__footer {
   padding: 10px 12px !important;
@@ -279,4 +371,72 @@
   .chat-box {
     width: 100% !important; height: 380px !important;
   }
+}
+
+/* Dark mode overrides for floating chat, loaded after the main stylesheet. */
+:root[data-theme="dark"] .chat-box {
+  background: var(--ek-surface, #171217) !important;
+  box-shadow: 0 -8px 36px rgba(0,0,0,.42), 0 0 0 1px var(--ek-border, #32262d) !important;
+}
+
+:root[data-theme="dark"] .chat-box__body {
+  background: var(--ek-page-bg, #121015) !important;
+}
+
+:root[data-theme="dark"] .chat-bubble--received {
+  background: var(--ek-surface-raised, #1f181f) !important;
+  border-color: var(--ek-border, #32262d) !important;
+  color: var(--ek-text, #f8efe9) !important;
+}
+
+:root[data-theme="dark"] .floating-booking-card {
+  background: var(--ek-surface, #171217) !important;
+  border-color: var(--ek-border, #32262d) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.32) !important;
+}
+
+:root[data-theme="dark"] .floating-booking-card__head {
+  background: var(--ek-surface-muted, #1d171d) !important;
+  color: var(--ek-text, #f8efe9) !important;
+}
+
+:root[data-theme="dark"] .floating-booking-card__head small,
+:root[data-theme="dark"] .floating-booking-card__body span,
+:root[data-theme="dark"] .floating-booking-card__progress {
+  color: var(--ek-text-muted, #b9aab0) !important;
+}
+
+:root[data-theme="dark"] .floating-booking-card__body strong {
+  color: var(--ek-text, #f8efe9) !important;
+}
+
+:root[data-theme="dark"] .floating-booking-card__body p {
+  background: var(--ek-surface-muted, #1d171d) !important;
+  color: var(--ek-text-muted, #b9aab0) !important;
+}
+
+:root[data-theme="dark"] .chat-box__footer {
+  background: var(--ek-surface, #171217) !important;
+  border-top-color: var(--ek-border, #32262d) !important;
+}
+
+:root[data-theme="dark"] .chat-box__input {
+  background: var(--ek-surface-raised, #1f181f) !important;
+  border-color: var(--ek-border, #32262d) !important;
+  color: var(--ek-text, #f8efe9) !important;
+}
+
+:root[data-theme="dark"] .chat-box__input:focus {
+  background: var(--ek-surface-raised, #1f181f) !important;
+  border-color: var(--ek-gold, #e1b85e) !important;
+}
+
+:root[data-theme="dark"] .chat-box__input::placeholder {
+  color: #8f8188 !important;
+}
+
+:root[data-theme="dark"] .minimized-chat-icon img,
+:root[data-theme="dark"] .minimized-chat-close,
+:root[data-theme="dark"] .chat-box__badge {
+  border-color: var(--ek-surface, #171217) !important;
 }

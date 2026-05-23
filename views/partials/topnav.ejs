@@ -3,7 +3,7 @@
 
     <!-- Logo -->
     <a href="/" class="topnav__logo">
-      <span class="topnav__logo-icon">✦</span>
+      <span class="topnav__logo-icon"><i class="bi bi-stars"></i></span>
       EventKraft
     </a>
 
@@ -16,6 +16,11 @@
           <%= locals.activePage === 'dashboard' ? 'topnav__dashboard-btn--active' : '' %>">
           Dashboard
         </a>
+
+        <button type="button" class="topnav__theme-toggle" data-theme-toggle aria-label="Switch color theme">
+          <i class="bi bi-moon-stars" data-theme-icon></i>
+          <span data-theme-label>Dark</span>
+        </button>
 
         <!-- Notification bell -->
         <div class="topnav__icon-wrapper" id="notif-wrapper">
@@ -104,6 +109,10 @@
         <!-- Logged-out nav links -->
         <a href="/gigs" class="topnav__link">Services</a>
         <a href="/jobs" class="topnav__link">Jobs</a>
+        <button type="button" class="topnav__theme-toggle" data-theme-toggle aria-label="Switch color theme">
+          <i class="bi bi-moon-stars" data-theme-icon></i>
+          <span data-theme-label>Dark</span>
+        </button>
         <a href="/auth/login" class="topnav__btn-outline">Log in</a>
         <a href="/auth/register" class="topnav__btn-primary">Sign up free</a>
       <% } %>
