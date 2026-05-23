@@ -40,7 +40,7 @@
             <!-- About This Service -->
             <div class="mb-4">
                 <h3 class="font-display fs-5 fw-semibold mb-2">About this service</h3>
-                <p class="text-muted" style="line-height:1.7"><%= gig.description %></p>
+                <p class="text-muted" style="white-space:pre-line;line-height:1.7;word-break:break-word"><%= gig.description %></p>
             </div>
 
             <!-- Portfolio Images -->
@@ -92,13 +92,13 @@
 
             <!-- Stats -->
             <div class="d-flex gap-4 mb-4">
-                <div class="text-center">
-                    <i class="bi bi-eye fs-5"></i>
-                    <div class="small text-muted"><%= gig.view_count || 0 %> views</div>
+                <div class="text-center" style="min-width:100px">
+                    <div class="fs-5 fw-semibold"><%= gig.view_count || 0 %></div>
+                    <div class="small text-muted"><i class="bi bi-eye me-1"></i>views</div>
                 </div>
-                <div class="text-center">
-                    <i class="bi bi-bar-chart fs-5"></i>
-                    <div class="small text-muted"><%= gig.impression_count || 0 %> impressions</div>
+                <div class="text-center" style="min-width:100px">
+                    <div class="fs-5 fw-semibold"><%= gig.impression_count || 0 %></div>
+                    <div class="small text-muted"><i class="bi bi-bar-chart me-1"></i>impressions</div>
                 </div>
             </div>
 
@@ -172,6 +172,9 @@
                                             </li>
                                         <% }); %>
                                     </ul>
+                                    <% if (alreadyBooked) { %>
+                                        <div class="alert alert-info mt-3 mb-0">You already have an active booking for this service.</div>
+                                    <% } else { %>
                                     <form action="/bookings" method="POST">
                                         <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
                                         <input type="hidden" name="gig_id" value="<%= gig.id %>">
@@ -194,8 +197,13 @@
                                           ></textarea>
                                           <small class="text-muted"><span class="note-char-count">0</span>/500</small>
                                         </div>
-                                        <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
+                                        <% if (locals.alreadyBooked) { %>
+                                            <button class="btn btn-secondary w-100" disabled>Already Booked</button>
+                                        <% } else { %>
+                                            <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
+                                        <% } %>
                                     </form>
+                                <% } %>
                                 </div>
                             <% }); %>
                         </div>
@@ -224,7 +232,11 @@
                                   ></textarea>
                                   <small class="text-muted"><span class="note-char-count">0</span>/500</small>
                                 </div>
-                                <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
+                                <% if (locals.alreadyBooked) { %>
+                                    <button class="btn btn-secondary w-100" disabled>Already Booked</button>
+                                <% } else { %>
+                                    <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
+                                <% } %>
                             </form>
                         </div>
                     <% } %>

@@ -34,4 +34,7 @@ router.put('/:id', ensureAuthenticated, ensureRole('worker'), upload.array('port
 // DELETE /gigs/:id    – Delete gig
 router.delete('/:id', ensureAuthenticated, ensureRole('worker'), gigCtrl.destroy);
 
+// POST /gigs/:id/publish – Publish a draft gig
+router.post('/:id/publish', ensureAuthenticated, ensureRole('worker'), gigCtrl.publish);
+
 module.exports = router;

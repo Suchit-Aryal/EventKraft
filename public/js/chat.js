@@ -21,6 +21,9 @@
     // State
     let replyToId = null;
     let pendingFile = null;
+    let sending = false;
+    const FETCH_TIMEOUT = 30000; // 30s
+    const pendingMessages = {}; // tempId → { timer }
 
     // Join room
     socket.emit('join-conversation', conversationId);
@@ -94,8 +97,11 @@
     if (messageForm) {
         messageForm.addEventListener('submit', async function (e) {
             e.preventDefault();
+            if (sending) return;
             var content = messageInput.value.trim();
             if (!content && !pendingFile) return;
+
+            sending = true;
 
             var tempId = 'temp_' + Date.now();
 
@@ -116,11 +122,17 @@
             var savedReplyTo = replyToId;
             clearReply();
 
+            var abortController = new AbortController();
+            var timeoutTimer = setTimeout(function () {
+                abortController.abort();
+            }, FETCH_TIMEOUT);
+
             try {
                 var saved;
 
                 if (pendingFile) {
-                    // Upload file
+                    // Upload file — AbortSignal not supported with FormData on all browsers, skip timeout for file sends
+                    clearTimeout(timeoutTimer);
                     var formData = new FormData();
                     formData.append('chatFile', pendingFile);
                     formData.append('receiver_id', receiverId);
@@ -131,6 +143,7 @@
                         method: 'POST',
                         body: formData
                     });
+                    if (!res.ok) throw new Error('Server returned ' + res.status);
                     saved = await res.json();
                     clearFile();
                 } else {
@@ -141,10 +154,15 @@
                             content: content,
                             receiver_id: receiverId,
                             reply_to: savedReplyTo
-                        })
+                        }),
+                        signal: abortController.signal
                     });
+                    clearTimeout(timeoutTimer);
+                    if (!res.ok) throw new Error('Server returned ' + res.status);
                     saved = await res.json();
                 }
+
+                if (!saved || !saved.id) throw new Error('Invalid response from server');
 
                 // Confirm
                 var tempEl = document.getElementById('msg-' + tempId);
@@ -165,9 +183,13 @@
                 console.error('Send failed:', err);
                 var tempEl = document.getElementById('msg-' + tempId);
                 if (tempEl) {
+                    tempEl.classList.remove('msg-pending');
                     var timeEl = tempEl.querySelector('.msg-time');
-                    if (timeEl) timeEl.textContent = 'Failed to send';
+                    if (timeEl) timeEl.textContent = err.name === 'AbortError' ? 'Timed out' : 'Failed to send';
                 }
+            } finally {
+                sending = false;
+                clearTimeout(timeoutTimer);
             }
         });
     }

@@ -6,6 +6,7 @@ const Gig = require('../models/Gig');
 const GigPackage = require('../models/GigPackage');
 const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
+const NEPAL_CITIES = require('../lib/nepal-cities');
 
 // Upload a buffer to Cloudinary and return the secure URL
 function uploadToCloudinary(fileBuffer, mimetype) {
@@ -98,11 +99,20 @@ module.exports = {
 
     async create(req, res) {
         const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
-        res.render('pages/gig-create', { title: 'Create a Service', layout: 'dashboard', activePage: 'create-gig', categories: categories.rows });
+        res.render('pages/gig-create', { title: 'Create a Service', layout: 'dashboard', activePage: 'create-gig', categories: categories.rows, nepalCities: NEPAL_CITIES });
     },
 
     async store(req, res) {
         try {
+            // Limit: max 3 active gigs per worker
+            if (req.body.status !== 'draft') {
+                const activeCount = await Gig.countActiveByWorker(req.user.id);
+                if (activeCount >= 3) {
+                    req.flash('error', 'You can only have 3 active services. Please deactivate an existing one before posting a new service.');
+                    return res.redirect('/gigs/create');
+                }
+            }
+
             // Upload images to Cloudinary
             let imageUrls = [];
             if (req.files && req.files.length > 0) {
@@ -144,6 +154,10 @@ module.exports = {
                     await GigPackage.createAll(gig.id, packages);
                 }
             }
+            if (gig.status === 'draft') {
+                req.flash('success', 'Service saved as draft. You can edit or publish it from your services page.');
+                return res.redirect('/gigs/mine');
+            }
             req.flash('success', 'Service created!');
             res.redirect(`/gigs/${gig.id}`);
         } catch (err) {
@@ -158,6 +172,13 @@ module.exports = {
             const gig = await Gig.findById(req.params.id);
             if (!gig) return res.status(404).render('pages/404', { title: 'Service Not Found' });
             await Gig.incrementViews(req.params.id);
+
+            // Check if current user already booked this gig
+            let alreadyBooked = false;
+            if (req.user) {
+                const Booking = require('../models/Booking');
+                alreadyBooked = await Booking.hasActiveBooking(req.params.id, req.user.id);
+            }
 
             // Get packages for this gig
             const pkgResult = await pool.query(
@@ -181,7 +202,8 @@ module.exports = {
                 activePage: 'gigs',
                 gig,
                 packages: pkgResult.rows,
-                reviews: reviewResult.rows
+                reviews: reviewResult.rows,
+                alreadyBooked,
             });
         } catch (err) {
             console.error(err);
@@ -217,5 +239,28 @@ module.exports = {
             req.flash('error', 'Failed to delete service');
             res.redirect(`/gigs/${req.params.id}`);
         }
-    }
+    },
+
+    async publish(req, res) {
+        try {
+            const gig = await Gig.findById(req.params.id);
+            if (!gig) { req.flash('error', 'Service not found'); return res.redirect('/gigs/mine'); }
+
+            if (gig.status !== 'active') {
+                const activeCount = await Gig.countActiveByWorker(req.user.id);
+                if (activeCount >= 3) {
+                    req.flash('error', 'You can only have 3 active services. Deactivate an existing one first.');
+                    return res.redirect('/gigs/mine');
+                }
+            }
+
+            await Gig.updateStatus(req.params.id, 'active');
+            req.flash('success', 'Service published!');
+            res.redirect('/gigs/mine');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to publish service');
+            res.redirect('/gigs/mine');
+        }
+    },
 };

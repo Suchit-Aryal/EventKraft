@@ -180,6 +180,14 @@ const Gig = {
 
     async softDelete(id) {
         await this.updateStatus(id, 'deleted');
+    },
+
+    async countActiveByWorker(workerId) {
+        const result = await pool.query(
+            "SELECT COUNT(*) FROM service_gigs WHERE worker_id = $1 AND status = 'active'",
+            [workerId]
+        );
+        return parseInt(result.rows[0].count);
     }
 };
 

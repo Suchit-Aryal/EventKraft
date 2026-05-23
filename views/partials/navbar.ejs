@@ -13,7 +13,7 @@
                 <% if (currentUser) { %>
                     <% if (currentUser.role==='customer' ) { %>
                         <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/jobs/create">Post a Job</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/jobs/create">Hire</a></li>
                         <% } else if (currentUser.role==='worker' ) { %>
                             <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
                             <li class="nav-item"><a class="nav-link" href="/gigs/create">Create Service</a></li>
@@ -24,7 +24,7 @@
                                     <% } else { %>
                                         <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
                                         <li class="nav-item"><a class="nav-link" href="/jobs">Browse Jobs</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="/auth/login">Post a Job</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/auth/login">Hire</a></li>
                                         <% } %>
             </ul>
             <ul class="navbar-nav ms-auto align-items-lg-center">

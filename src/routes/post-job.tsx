@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categories } from "@/lib/mock-data";
+import { categories, NEPAL_CITIES } from "@/lib/mock-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/post-job")({
@@ -42,7 +42,7 @@ function PostJob() {
       <section className="container mx-auto px-4 lg:px-8 py-12 flex-1 max-w-3xl">
         <div className="text-center mb-10">
           <h1 className="font-display text-3xl md:text-4xl font-semibold">
-            Post a job
+            Hire
           </h1>
           <p className="mt-2 text-muted-foreground">
             Tell us what you need — workers will reach out within hours.
@@ -51,11 +51,6 @@ function PostJob() {
 
         <Card className="p-6 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <Label htmlFor="title">Job title *</Label>
-              <Input id="title" required placeholder="e.g. Wedding photographer for 3-day ceremony" />
-            </div>
-
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <Label htmlFor="category">Service category *</Label>
@@ -105,19 +100,33 @@ function PostJob() {
                 <Input id="date" type="date" required />
               </div>
               <div>
-                <Label htmlFor="location">Location *</Label>
-                <Input id="location" required placeholder="Kathmandu, Hyatt Regency" />
+                <Label htmlFor="location">City / District *</Label>
+                <select
+                  id="location"
+                  required
+                  defaultValue=""
+                  className="w-full h-9 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="" disabled>Select city / district</option>
+                  {NEPAL_CITIES.map((city) => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="venue">Venue / Landmark <span className="text-muted-foreground">(optional)</span></Label>
+                <Input id="venue" placeholder="e.g. Hyatt Regency, Lakeside Road..." />
               </div>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <Label htmlFor="bmin">Budget min (NPR) *</Label>
-                <Input id="bmin" type="number" required min={1000} placeholder="50000" />
+                <Input id="bmin" type="number" required min={1000} placeholder="Min budget" />
               </div>
               <div>
                 <Label htmlFor="bmax">Budget max (NPR) *</Label>
-                <Input id="bmax" type="number" required min={1000} placeholder="120000" />
+                <Input id="bmax" type="number" required min={1000} placeholder="Max budget" />
               </div>
             </div>
 
@@ -133,7 +142,7 @@ function PostJob() {
                 className="bg-gradient-hero text-primary-foreground"
                 disabled={submitting}
               >
-                {submitting ? "Posting…" : "Publish job"}
+                {submitting ? "Posting…" : "Publish"}
               </Button>
               <Button type="button" size="lg" variant="outline">
                 Save as draft

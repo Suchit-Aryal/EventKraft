@@ -109,12 +109,12 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <img src="<%= gig.worker_avatar || '/images/default-avatar.png' %>" class="rounded-circle border" width="24" height="24" alt="Avatar">
-                                        <span class="text-muted small fw-medium"><%= gig.worker_first_name %> <%= gig.worker_last_name %></span>
+                                <div class="card-body d-flex flex-column" style="gap:0">
+                                    <div class="d-flex align-items-center gap-2 mb-2" style="flex-shrink:0">
+                                        <img src="<%= gig.worker_avatar || ('https://ui-avatars.com/api/?name='+(gig.worker_first_name||'U')+'&size=24&background=random') %>" class="rounded-circle border" width="24" height="24" alt="">
+                                        <span class="text-muted small fw-medium text-truncate"><%= gig.worker_first_name %> <%= gig.worker_last_name %></span>
                                     </div>
-                                    <h6 class="card-title fw-bold mb-2">
+                                    <h6 class="card-title fw-bold mb-0" style="word-break:break-word;overflow-wrap:break-word;line-height:1.4;flex:1">
                                         <a href="/gigs/<%= gig.id %>" class="text-dark text-decoration-none stretched-link">
                                             <%= gig.title %>
                                         </a>

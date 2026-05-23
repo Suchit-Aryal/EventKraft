@@ -2,8 +2,13 @@
 
 <section class="container py-5" style="max-width:720px">
     <div class="text-center mb-4">
-        <h1 class="font-display fs-2 fw-semibold">Post a Job</h1>
-        <p class="text-muted">Tell us what you need — workers will reach out within hours.</p>
+        <% if (typeof job !== 'undefined' && job) { %>
+            <h1 class="font-display fs-2 fw-semibold">Edit Job</h1>
+            <p class="text-muted">Update your job posting and publish when ready.</p>
+        <% } else { %>
+            <h1 class="font-display fs-2 fw-semibold">Hire</h1>
+            <p class="text-muted">Tell us what you need — workers will reach out within hours.</p>
+        <% } %>
     </div>
 
     <!-- Step Indicator -->
@@ -16,42 +21,40 @@
     </div>
 
     <div class="ek-card" style="padding:1.5rem 2rem">
-        <form action="/jobs" method="POST" id="jobForm" class="ek-form">
-            <input type="hidden" name="status" value="published" id="statusInput">
+        <% var isEditing = typeof job !== 'undefined' && job; %>
+        <form action="<%= isEditing ? ('/jobs/'+job.id+'?_method=PUT') : '/jobs' %>" method="POST" id="jobForm" class="ek-form">
+            <input type="hidden" name="status" value="<%= isEditing ? job.status : 'published' %>" id="statusInput">
+            <input type="hidden" name="title" id="autoTitle" value="<%= isEditing ? (job.title || '') : '' %>">
 
             <!-- ═══ Step 1: Basics ═══ -->
             <div class="wizard-panel" id="step1">
                 <h5 class="fw-semibold mb-3"><i class="bi bi-1-circle me-2" style="color:var(--ek-maroon)"></i>What do you need?</h5>
 
-                <div class="mb-3">
-                    <label class="form-label" for="title">Job title <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="title" name="title" required placeholder="e.g. Wedding Photographer for June Reception">
-                    <small class="text-muted">Be specific — workers use this to decide if your job fits them.</small>
-                </div>
-
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label" for="category_id">Service category <span class="text-danger">*</span></label>
                         <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="" disabled selected>Select a category</option>
+                            <option value="" disabled <%= isEditing ? '' : 'selected' %>>Select a category</option>
                             <% categories.forEach(function(c) { %>
-                                <option value="<%= c.id %>"><%= c.name %></option>
+                                <option value="<%= c.id %>" <%= isEditing && String(job.category_id) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
                             <% }); %>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label" for="event_type">Event type <span class="text-danger">*</span></label>
                         <select class="form-select" id="event_type" name="event_type" required>
-                            <option value="" disabled selected>Select event type</option>
-                            <option>Wedding</option><option>Reception</option><option>Engagement</option>
-                            <option>Mehendi</option><option>Birthday</option><option>Corporate</option><option>Other</option>
+                            <option value="" disabled <%= isEditing ? '' : 'selected' %>>Select event type</option>
+                            <% var eventTypes = ['Wedding','Reception','Engagement','Mehendi','Birthday','Corporate','Other']; %>
+                            <% eventTypes.forEach(function(et) { %>
+                                <option <%= isEditing && job.event_type === et ? 'selected' : '' %>><%= et %></option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="description">Description <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe your event, guest count, and exactly what you need. Be specific."></textarea>
+                    <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe your event, guest count, and exactly what you need. Be specific."><%= isEditing ? (job.description || '') : '' %></textarea>
                 </div>
 
                 <div class="text-end">
@@ -66,35 +69,45 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label" for="event_date">Event date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="event_date" name="event_date" required>
+                        <input type="date" class="form-control" id="event_date" name="event_date" required value="<%= isEditing && job.event_date ? new Date(job.event_date).toISOString().split('T')[0] : '' %>">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" for="event_location">Event location <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="event_location" name="event_location" required placeholder="Kathmandu, Hyatt Regency">
-                        <small class="text-muted">Full address or venue name</small>
+                        <label class="form-label" for="event_location">City / District <span class="text-danger">*</span></label>
+                        <select class="form-select" id="event_location" name="event_location" required>
+                            <option value="" disabled <%= isEditing ? '' : 'selected' %>>Select city / district</option>
+                            <% (nepalCities).forEach(function(city) { %>
+                                <option value="<%= city %>" <%= isEditing && job.event_location === city ? 'selected' : '' %>><%= city %></option>
+                            <% }); %>
+                        </select>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="venue">Venue / Landmark <span class="text-muted">(optional)</span></label>
+                    <input type="text" class="form-control" id="venue" name="venue" placeholder="e.g. Hyatt Regency, Lakeside Road...">
+                    <small class="text-muted">Give workers more specific location details.</small>
                 </div>
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label" for="budget_min">Budget min (NPR) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="budget_min" name="budget_min" required min="500" placeholder="50000">
+                        <input type="number" class="form-control" id="budget_min" name="budget_min" required min="500" placeholder="Min budget" value="<%= isEditing ? (job.budget_min || '') : '' %>">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label" for="budget_max">Budget max (NPR) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="budget_max" name="budget_max" required min="500" placeholder="120000">
+                        <input type="number" class="form-control" id="budget_max" name="budget_max" required min="500" placeholder="Max budget" value="<%= isEditing ? (job.budget_max || '') : '' %>">
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="proposal_deadline">Proposal deadline (optional)</label>
-                    <input type="date" class="form-control" id="proposal_deadline" name="proposal_deadline">
+                    <input type="date" class="form-control" id="proposal_deadline" name="proposal_deadline" value="<%= isEditing && job.proposal_deadline ? new Date(job.proposal_deadline).toISOString().split('T')[0] : '' %>">
                     <small class="text-muted">Leave blank to keep it open until you close it manually.</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="special_requirements">Special requirements (optional)</label>
-                    <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Drone coverage, specific style, language preference…"></textarea>
+                    <textarea class="form-control" id="special_requirements" name="special_requirements" rows="3" placeholder="Drone coverage, specific style, language preference…"><%= isEditing ? (job.special_requirements || '') : '' %></textarea>
                 </div>
 
                 <div class="d-flex justify-content-between">
@@ -107,9 +120,9 @@
             <div class="wizard-panel d-none" id="step3">
                 <h5 class="fw-semibold mb-3"><i class="bi bi-3-circle me-2" style="color:var(--ek-maroon)"></i>Review & Publish</h5>
 
-                <div class="mb-4" style="background:#fafafa;border-radius:12px;padding:1.25rem">
+                <div class="mb-4 review-box">
                     <div class="review-row mb-2">
-                        <small class="text-muted">Job Title</small>
+                        <small class="text-muted">Service</small>
                         <p class="fw-semibold mb-0" id="rev-title"></p>
                     </div>
                     <div class="review-row mb-2">
@@ -137,16 +150,31 @@
                     </div>
                 </div>
 
-                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i> Your posting goes live immediately. Workers can start submitting proposals right away.</p>
+                <p class="text-muted small"><i class="bi bi-info-circle me-1"></i> Review your details before posting.</p>
 
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-ek-outline btn-lg" onclick="goStep(2)"><i class="bi bi-arrow-left"></i> Back</button>
-                    <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1" id="publishBtn">
-                        <i class="bi bi-rocket-takeoff me-1"></i> Publish Job
-                    </button>
-                    <button type="submit" class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('statusInput').value='draft'">
-                        <i class="bi bi-save me-1"></i> Save Draft
-                    </button>
+                    <% if (isEditing) { %>
+                        <% if (job.status === 'draft') { %>
+                            <button type="submit" class="btn btn-success btn-lg flex-grow-1" onclick="document.getElementById('statusInput').value='published'">
+                                <i class="bi bi-check-circle me-1"></i> Publish Job
+                            </button>
+                            <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1">
+                                <i class="bi bi-save me-1"></i> Update Draft
+                            </button>
+                        <% } else { %>
+                            <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        <% } %>
+                    <% } else { %>
+                        <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1" id="publishBtn">
+                            <i class="bi bi-rocket-takeoff me-1"></i> Publish Job
+                        </button>
+                        <button type="submit" class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('statusInput').value='draft'">
+                            <i class="bi bi-save me-1"></i> Save Draft
+                        </button>
+                    <% } %>
                 </div>
 
                 <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you hire.</p>
@@ -159,9 +187,24 @@
     .wizard-step { font-size:.85rem; font-weight:600; color:#aaa; padding:.4rem .8rem; border-radius:50px; transition:all .2s; }
     .wizard-step.active { color:var(--ek-maroon); background:rgba(107,29,42,0.08); }
     .wizard-divider { width:30px; height:2px; background:#ddd; align-self:center; }
+    .review-box { background:var(--ek-review-bg,#fafafa); border-radius:12px; padding:1.25rem; }
+    :root[data-theme="dark"] .review-box { --ek-review-bg: #1f181f; }
 </style>
 
 <script>
+// Set min date on load
+(function() {
+    var today = new Date(); today.setHours(0,0,0,0);
+    var y = today.getFullYear();
+    var m = String(today.getMonth()+1).padStart(2,'0');
+    var d = String(today.getDate()).padStart(2,'0');
+    var minStr = y+'-'+m+'-'+d;
+    var ed = document.getElementById('event_date');
+    var pd = document.getElementById('proposal_deadline');
+    if (ed) ed.setAttribute('min', minStr);
+    if (pd) pd.setAttribute('min', minStr);
+})();
+
 function goStep(step) {
     var form = document.getElementById('jobForm');
 
@@ -179,11 +222,40 @@ function goStep(step) {
         }
     }
 
+    // Validate budget
+    if (step === 3) {
+        var bmin = Number(document.getElementById('budget_min').value);
+        var bmax = Number(document.getElementById('budget_max').value);
+        if (bmin > bmax) {
+            document.getElementById('budget_min').reportValidity();
+            return alert('Minimum budget cannot be greater than maximum budget.');
+        }
+    }
+
+    // Validate dates
+    if (step === 3) {
+        var today = new Date(); today.setHours(0,0,0,0);
+        var eventDate = new Date(document.getElementById('event_date').value);
+        if (eventDate < today) {
+            return alert('Event date cannot be in the past.');
+        }
+        var deadline = document.getElementById('proposal_deadline').value;
+        if (deadline) {
+            var deadlineDate = new Date(deadline);
+            if (deadlineDate < today) {
+                return alert('Proposal deadline cannot be in the past.');
+            }
+        }
+    }
+
     // Populate review
     if (step === 3) {
-        document.getElementById('rev-title').textContent = document.getElementById('title').value;
         var catSelect = document.getElementById('category_id');
-        document.getElementById('rev-category').textContent = (catSelect.options[catSelect.selectedIndex]?.text || '') + ' / ' + (document.getElementById('event_type').value || '');
+        var catName = catSelect.options[catSelect.selectedIndex]?.text || '';
+        var city = document.getElementById('event_location').value || '';
+        document.getElementById('rev-title').textContent = catName + ' in ' + city;
+        document.getElementById('autoTitle').value = catName + ' in ' + city;
+        document.getElementById('rev-category').textContent = catName + ' / ' + (document.getElementById('event_type').value || '');
         document.getElementById('rev-desc').textContent = document.getElementById('description').value;
         document.getElementById('rev-date').textContent = document.getElementById('event_date').value;
         document.getElementById('rev-location').textContent = document.getElementById('event_location').value;

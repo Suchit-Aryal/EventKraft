@@ -176,6 +176,14 @@ const Job = {
 
     async cancel(id) {
         return this.updateStatus(id, 'cancelled');
+    },
+
+    async countActiveByCustomer(customerId) {
+        const result = await pool.query(
+            "SELECT COUNT(*) FROM job_postings WHERE customer_id = $1 AND status = 'published'",
+            [customerId]
+        );
+        return parseInt(result.rows[0].count);
     }
 };
 

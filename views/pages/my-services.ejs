@@ -54,6 +54,13 @@
                                 <span class="fw-bold text-primary">NPR <%= Number(gig.starting_price).toLocaleString() %></span>
                             </div>
                             <div class="d-flex gap-2">
+                                <% if (gig.status === 'draft') { %>
+                                    <form action="/gigs/<%= gig.id %>/publish" method="POST" style="display:inline">
+                                        <button type="submit" class="btn btn-success btn-sm" title="Publish">
+                                            <i class="bi bi-check-lg"></i> Publish
+                                        </button>
+                                    </form>
+                                <% } %>
                                 <a href="/gigs/<%= gig.id %>/edit" class="btn btn-outline-secondary btn-sm" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </a>

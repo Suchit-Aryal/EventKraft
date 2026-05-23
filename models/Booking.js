@@ -148,6 +148,16 @@ const Booking = {
         return this.updateStatus(id, 'cancelled');
     },
 
+    async hasActiveBooking(gigId, customerId) {
+        const result = await pool.query(
+            `SELECT id FROM bookings 
+             WHERE gig_id = $1 AND customer_id = $2 
+             AND status NOT IN ('completed', 'cancelled')`,
+            [gigId, customerId]
+        );
+        return result.rows.length > 0;
+    },
+
     async updateFields(id, fields) {
         if (!fields || typeof fields !== 'object') return null;
         const keys = Object.keys(fields).filter(k => ALLOWED_UPDATE_COLUMNS.has(k));

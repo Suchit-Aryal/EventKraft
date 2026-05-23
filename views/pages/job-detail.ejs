@@ -34,37 +34,44 @@
                 <hr style="border-color:var(--ek-border)">
 
                 <h5 class="fw-semibold mb-2">Description</h5>
-                <p class="text-muted" style="white-space:pre-line;line-height:1.7"><%= job.description %></p>
+                <p class="text-muted" style="white-space:pre-line;line-height:1.7;word-break:break-word"><%= job.description %></p>
 
                 <% if (job.special_requirements) { %>
                     <h5 class="fw-semibold mb-2 mt-4">Special Requirements</h5>
-                    <p class="text-muted"><%= job.special_requirements %></p>
+                    <p class="text-muted" style="white-space:pre-line;word-break:break-word"><%= job.special_requirements %></p>
                 <% } %>
             </div>
 
             <!-- Proposal Form (workers only) -->
             <% if (currentUser && currentUser.role === 'worker' && job.status === 'published' && currentUser.id !== job.customer_id) { %>
-                <div class="ek-card mt-4" style="padding:1.5rem 2rem">
-                    <h3 class="font-display fs-5 fw-semibold mb-3">Submit your proposal</h3>
-                    <form action="/jobs/<%= job.id %>/proposals" method="POST" class="ek-form">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label" for="proposed_price">Your bid (NPR)</label>
-                                <input type="number" class="form-control" id="proposed_price" name="proposed_price" required min="1000" placeholder="<%= job.budget_min || 50000 %>">
-                                <small class="text-muted">Budget: NPR <%= Number(job.budget_min||0).toLocaleString('en-IN') %> – <%= Number(job.budget_max||0).toLocaleString('en-IN') %></small>
+                <% if (locals.alreadyApplied) { %>
+                    <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
+                        <p class="text-muted mb-3"><i class="bi bi-check-circle me-1" style="color:var(--ek-success)"></i> You've already submitted a proposal for this job.</p>
+                        <button class="btn btn-secondary" disabled>Already Applied</button>
+                    </div>
+                <% } else { %>
+                    <div class="ek-card mt-4" style="padding:1.5rem 2rem">
+                        <h3 class="font-display fs-5 fw-semibold mb-3">Submit your proposal</h3>
+                        <form action="/jobs/<%= job.id %>/proposals" method="POST" class="ek-form">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="proposed_price">Your bid (NPR)</label>
+                                    <input type="number" class="form-control" id="proposed_price" name="proposed_price" required min="1000" placeholder="<%= job.budget_min || 50000 %>">
+                                    <small class="text-muted">Budget: NPR <%= Number(job.budget_min||0).toLocaleString('en-IN') %> – <%= Number(job.budget_max||0).toLocaleString('en-IN') %></small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="estimated_duration">Estimated duration</label>
+                                    <input type="text" class="form-control" id="estimated_duration" name="estimated_duration" placeholder="e.g. 3 days" required>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label class="form-label" for="cover_letter">Cover letter</label>
+                                    <textarea class="form-control" id="cover_letter" name="cover_letter" rows="5" required placeholder="Tell the customer why you're the perfect fit…"></textarea>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="estimated_duration">Estimated duration</label>
-                                <input type="text" class="form-control" id="estimated_duration" name="estimated_duration" placeholder="e.g. 3 days" required>
-                            </div>
-                            <div class="col-12 mt-3">
-                                <label class="form-label" for="cover_letter">Cover letter</label>
-                                <textarea class="form-control" id="cover_letter" name="cover_letter" rows="5" required placeholder="Tell the customer why you're the perfect fit…"></textarea>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-ek-primary mt-3">Send proposal</button>
-                    </form>
-                </div>
+                            <button type="submit" class="btn btn-ek-primary mt-3">Send proposal</button>
+                        </form>
+                    </div>
+                <% } %>
             <% } %>
 
             <!-- Proposals list (job owner or admin) -->

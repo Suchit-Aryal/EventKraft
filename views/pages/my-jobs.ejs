@@ -1,0 +1,56 @@
+<%- include('../partials/dashboard-wrapper-start') %>
+
+<div class="mb-4">
+    <h1 class="font-display fs-2 fw-bold mb-1">My Jobs</h1>
+    <p class="text-muted">Manage your job postings and track proposals.</p>
+</div>
+
+<% if (jobs && jobs.length > 0) { %>
+    <div class="crm-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Budget</th>
+                    <th>Proposals</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <% jobs.forEach(function(j) { %>
+                    <tr>
+                        <td>
+                            <a href="/jobs/<%= j.id %>" class="fw-semibold text-dark text-decoration-none"><%= j.title %></a>
+                            <div class="text-muted small"><%= j.event_location || 'Nepal' %> · <%= j.category_name || 'General' %></div>
+                        </td>
+                        <td class="fw-semibold">NPR <%= Number(j.budget_min || 0).toLocaleString() %> – <%= Number(j.budget_max || 0).toLocaleString() %></td>
+                        <td><span class="badge bg-light text-dark rounded-pill px-3"><%= j.proposal_count || 0 %></span></td>
+                        <td><span class="badge-status badge-<%= j.status %>"><%= j.status %></span></td>
+                        <td class="text-end" style="white-space:nowrap">
+                            <% if (j.status === 'draft') { %>
+                                <a href="/jobs/<%= j.id %>/edit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Edit</a>
+                                <form action="/jobs/<%= j.id %>/publish" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i> Publish</button>
+                                </form>
+                            <% } else { %>
+                                <a href="/jobs/<%= j.id %>" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i> View</a>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+<% } else { %>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-megaphone fs-1 text-muted mb-3 d-block"></i>
+            <h4>No jobs yet</h4>
+            <p class="text-muted">Post your first job to get proposals from talented workers.</p>
+            <a href="/jobs/create" class="btn btn-ek-primary">Hire</a>
+        </div>
+    </div>
+<% } %>
+
+<%- include('../partials/dashboard-wrapper-end') %>

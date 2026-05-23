@@ -115,7 +115,7 @@ function JobDetail() {
                   <Input
                     id="bid"
                     type="number"
-                    placeholder={String(job.budgetMin)}
+                    placeholder="Your bid amount"
                     value={bid}
                     onChange={(e) => setBid(e.target.value)}
                     required
