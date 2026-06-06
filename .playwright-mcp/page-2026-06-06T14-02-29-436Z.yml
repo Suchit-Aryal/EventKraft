@@ -1,0 +1,158 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - generic [ref=e7]:
+        - link "Dashboard" [ref=e8] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Switch color theme" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: 
+          - generic [ref=e11]: Dark
+        - link "Notifications" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e14]
+        - link "Messages" [ref=e18] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e19]
+        - generic [ref=e21] [cursor=pointer]:
+          - img "System" [ref=e22]
+          - img [ref=e23]
+  - generic [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]:
+        - img "System" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]: System Admin
+          - generic [ref=e32]: Admin
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 0% complete
+          - link "Improve" [ref=e36] [cursor=pointer]:
+            - /url: /dashboard/profile
+        - generic [ref=e38]:
+          - link "Upload a profile photo +27%" [ref=e39] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e40]: Upload a profile photo
+            - strong [ref=e41]: +27%
+          - link "Write an introduction (50 words minimum) +36%" [ref=e42] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e43]: Write an introduction (50 words minimum)
+            - strong [ref=e44]: +36%
+          - link "Add your city/location +18%" [ref=e45] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e46]: Add your city/location
+            - strong [ref=e47]: +18%
+      - navigation "Dashboard navigation" [ref=e48]:
+        - generic [ref=e49]: Main
+        - link "Dashboard" [ref=e50] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e51]
+          - generic [ref=e56]: Dashboard
+        - link "Bookings" [ref=e57] [cursor=pointer]:
+          - /url: /bookings
+          - img [ref=e58]
+          - generic [ref=e60]: Bookings
+        - link "Inbox" [ref=e61] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e62]
+          - generic [ref=e64]: Inbox
+        - generic [ref=e65]: Discover
+        - link "Browse Services" [ref=e66] [cursor=pointer]:
+          - /url: /gigs
+          - img [ref=e67]
+          - generic [ref=e70]: Browse Services
+        - link "Browse Gigs" [ref=e71] [cursor=pointer]:
+          - /url: /jobs
+          - img [ref=e72]
+          - generic [ref=e75]: Browse Gigs
+        - generic [ref=e76]: Admin
+        - link "Admin Overview" [ref=e77] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e78]
+          - generic [ref=e83]: Admin Overview
+        - link "Users" [ref=e84] [cursor=pointer]:
+          - /url: /admin/users
+          - img [ref=e85]
+          - generic [ref=e88]: Users
+        - link "Bookings" [ref=e89] [cursor=pointer]:
+          - /url: /admin/bookings
+          - img [ref=e90]
+          - generic [ref=e92]: Bookings
+        - link "Services" [ref=e93] [cursor=pointer]:
+          - /url: /admin/services
+          - img [ref=e94]
+          - generic [ref=e96]: Services
+        - link "Jobs" [ref=e97] [cursor=pointer]:
+          - /url: /admin/jobs
+          - img [ref=e98]
+          - generic [ref=e101]: Jobs
+        - link "KYC Verification" [ref=e102] [cursor=pointer]:
+          - /url: /admin/kyc
+          - img [ref=e103]
+          - generic [ref=e106]: KYC Verification
+        - link "Disputes" [ref=e107] [cursor=pointer]:
+          - /url: /admin/disputes
+          - img [ref=e108]
+          - generic [ref=e110]: Disputes
+        - link "Commissions" [ref=e111] [cursor=pointer]:
+          - /url: /admin/commissions
+          - img [ref=e112]
+          - generic [ref=e116]: Commissions
+        - link "Legal Action" [ref=e117] [cursor=pointer]:
+          - /url: /admin/legal-action
+          - img [ref=e118]
+          - generic [ref=e121]: Legal Action
+        - generic [ref=e122]: Account
+        - link "My Profile" [ref=e123] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e124]
+          - generic [ref=e127]: My Profile
+        - link "Notifications" [ref=e128] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e129]
+          - generic [ref=e132]: Notifications
+        - link "Account Settings" [ref=e133] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e134]
+          - generic [ref=e137]: Account Settings
+      - generic [ref=e138]:
+        - link "Help" [ref=e139] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e140]: ·
+        - link "Terms" [ref=e141] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e142]: ·
+        - link "Privacy" [ref=e143] [cursor=pointer]:
+          - /url: "#"
+    - main [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]: Welcome back!
+        - generic [ref=e147]:
+          - heading "Welcome back, System" [level=1] [ref=e148]
+          - paragraph [ref=e149]: Here's a summary of your activity on EventKraft.
+        - generic [ref=e150]:
+          - generic [ref=e151]:
+            - paragraph [ref=e153]: Profile strength — 0%
+            - generic [ref=e155]:
+              - link "Complete profile" [ref=e156] [cursor=pointer]:
+                - /url: /dashboard/profile
+              - button "×" [ref=e157] [cursor=pointer]
+          - generic [ref=e158]:
+            - link " Upload a profile photo +27%" [ref=e159] [cursor=pointer]:
+              - /url: /dashboard/profile
+              - generic [ref=e161]: 
+              - strong [ref=e163]: Upload a profile photo
+              - emphasis [ref=e164]: +27%
+            - link " Write an introduction (50 words minimum) +36%" [ref=e165] [cursor=pointer]:
+              - /url: /dashboard/profile
+              - generic [ref=e167]: 
+              - strong [ref=e169]: Write an introduction (50 words minimum)
+              - emphasis [ref=e170]: +36%
+            - link " Add your city/location +18%" [ref=e171] [cursor=pointer]:
+              - /url: /dashboard/profile
+              - generic [ref=e173]: 
+              - strong [ref=e175]: Add your city/location
+              - emphasis [ref=e176]: +18%

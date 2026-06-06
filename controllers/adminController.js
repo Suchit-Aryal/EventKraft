@@ -91,7 +91,7 @@ module.exports = {
                 FROM users u LEFT JOIN profiles p ON u.id = p.user_id
                 ORDER BY u.created_at DESC
             `);
-            res.render('pages/admin-users', { title: 'Manage Users', layout: 'dashboard', activePage: 'admin', users: users.rows });
+            res.render('pages/admin-users', { title: 'Manage Users', layout: 'dashboard', activePage: 'admin-users', users: users.rows });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load users');
@@ -124,7 +124,7 @@ module.exports = {
                 LEFT JOIN profiles wp ON b.worker_id = wp.user_id
                 ORDER BY b.created_at DESC
             `);
-            res.render('pages/admin-bookings', { title: 'All Bookings', layout: 'dashboard', activePage: 'admin', bookings: result.rows });
+            res.render('pages/admin-bookings', { title: 'All Bookings', layout: 'dashboard', activePage: 'admin-bookings', bookings: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -144,7 +144,7 @@ module.exports = {
                 JOIN users ru ON d.raised_by = ru.id
                 ORDER BY d.created_at DESC
             `);
-            res.render('pages/admin-disputes', { title: 'Disputes', layout: 'dashboard', activePage: 'admin', disputes: result.rows });
+            res.render('pages/admin-disputes', { title: 'Disputes', layout: 'dashboard', activePage: 'admin-disputes', disputes: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -170,7 +170,7 @@ module.exports = {
     async commissions(req, res) {
         try {
             const result = await pool.query('SELECT * FROM commission_settings ORDER BY min_amount');
-            res.render('pages/admin-commissions', { title: 'Commission Settings', layout: 'dashboard', activePage: 'admin', commissions: result.rows });
+            res.render('pages/admin-commissions', { title: 'Commission Settings', layout: 'dashboard', activePage: 'admin-commissions', commissions: result.rows });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
@@ -192,6 +192,129 @@ module.exports = {
         }
     },
 
+    // ─── Service (Gig) Moderation ─────────────────────────────────
+
+    async services(req, res) {
+        try {
+            const { status, keyword } = req.query;
+            let whereClause = '';
+            const params = [];
+
+            if (status) {
+                params.push(status);
+                whereClause += ` AND sg.status = $${params.length}`;
+            }
+            if (keyword) {
+                params.push(`%${keyword}%`);
+                whereClause += ` AND (sg.title ILIKE $${params.length} OR p.first_name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;
+            }
+
+            const result = await pool.query(`
+                SELECT sg.*, c.name AS category_name,
+                    p.first_name AS worker_first_name, p.last_name AS worker_last_name,
+                    u.email AS worker_email
+                FROM service_gigs sg
+                LEFT JOIN categories c ON sg.category_id = c.id
+                LEFT JOIN profiles p ON sg.worker_id = p.user_id
+                LEFT JOIN users u ON sg.worker_id = u.id
+                WHERE 1=1 ${whereClause}
+                ORDER BY sg.created_at DESC
+            `, params);
+
+            res.render('pages/admin-services', {
+                title: 'Manage Services',
+                layout: 'dashboard',
+                activePage: 'admin-services',
+                gigs: result.rows,
+                filters: { status: status || '', keyword: keyword || '' }
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load services');
+            res.redirect('/admin');
+        }
+    },
+
+    async updateService(req, res) {
+        try {
+            const { status } = req.body;
+            const allowed = ['active', 'paused', 'draft'];
+            if (!allowed.includes(status)) {
+                req.flash('error', 'Invalid status');
+                return res.redirect('/admin/services');
+            }
+            await pool.query('UPDATE service_gigs SET status = $1 WHERE id = $2', [status, req.params.id]);
+            req.flash('success', 'Service status updated');
+            res.redirect('/admin/services');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to update service');
+            res.redirect('/admin/services');
+        }
+    },
+
+    // ─── Job Moderation ─────────────────────────────────────────
+
+    async jobs(req, res) {
+        try {
+            const { status, keyword } = req.query;
+            let whereClause = '';
+            const params = [];
+
+            if (status) {
+                params.push(status);
+                whereClause += ` AND jp.status = $${params.length}`;
+            }
+            if (keyword) {
+                params.push(`%${keyword}%`);
+                whereClause += ` AND (jp.title ILIKE $${params.length} OR p.first_name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;
+            }
+
+            const result = await pool.query(`
+                SELECT jp.*, c.name AS category_name,
+                    p.first_name AS customer_first_name, p.last_name AS customer_last_name,
+                    u.email AS customer_email,
+                    (SELECT COUNT(*) FROM proposals pr WHERE pr.job_id = jp.id) AS proposal_count
+                FROM job_postings jp
+                LEFT JOIN categories c ON jp.category_id = c.id
+                LEFT JOIN profiles p ON jp.customer_id = p.user_id
+                LEFT JOIN users u ON jp.customer_id = u.id
+                WHERE 1=1 ${whereClause}
+                ORDER BY jp.created_at DESC
+            `, params);
+
+            res.render('pages/admin-jobs', {
+                title: 'Manage Jobs',
+                layout: 'dashboard',
+                activePage: 'admin-jobs',
+                jobs: result.rows,
+                filters: { status: status || '', keyword: keyword || '' }
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load jobs');
+            res.redirect('/admin');
+        }
+    },
+
+    async updateJob(req, res) {
+        try {
+            const { status } = req.body;
+            const allowed = ['published', 'closed', 'draft', 'cancelled'];
+            if (!allowed.includes(status)) {
+                req.flash('error', 'Invalid status');
+                return res.redirect('/admin/jobs');
+            }
+            await pool.query('UPDATE job_postings SET status = $1 WHERE id = $2', [status, req.params.id]);
+            req.flash('success', 'Job status updated');
+            res.redirect('/admin/jobs');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to update job');
+            res.redirect('/admin/jobs');
+        }
+    },
+
     // ─── KYC Management ───────────────────────────────────────────
 
     async kycList(req, res) {
@@ -207,11 +330,11 @@ module.exports = {
                    CASE k.status WHEN 'pending' THEN 0 ELSE 1 END,
                    k.submitted_at DESC`
             );
-            res.render('pages/admin-kyc-list', { 
-                title: 'KYC Verification', 
-                layout: 'dashboard', 
-                activePage: 'admin', 
-                submissions: rows 
+            res.render('pages/admin-kyc-list', {
+                title: 'KYC Verification',
+                layout: 'dashboard',
+                activePage: 'admin-kyc',
+                submissions: rows
             });
         } catch (err) {
             console.error('Admin KYC list error:', err);
@@ -335,7 +458,7 @@ module.exports.legalAction = async function(req, res) {
         res.render('pages/admin-legal', {
             title: 'Legal Action Panel — EventKraft',
             layout: 'dashboard',
-            activePage: 'admin',
+            activePage: 'admin-legal',
             bookings,
         });
     } catch (err) {

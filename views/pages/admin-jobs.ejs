@@ -1,0 +1,91 @@
+<%- include('../partials/dashboard-wrapper-start') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">Manage Jobs</h1>
+        <span class="text-muted">(<%= jobs.length %> total)</span>
+    </div>
+
+    <form action="/admin/jobs" method="GET" class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Search</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="Title, customer name or email..." value="<%= filters.keyword %>">
+            </div>
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="published" <%= filters.status === 'published' ? 'selected' : '' %>>Published</option>
+                    <option value="draft" <%= filters.status === 'draft' ? 'selected' : '' %>>Draft</option>
+                    <option value="closed" <%= filters.status === 'closed' ? 'selected' : '' %>>Closed</option>
+                    <option value="cancelled" <%= filters.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="/admin/jobs" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </div>
+    </form>
+
+    <% if (jobs.length > 0) { %>
+        <div class="crm-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Customer</th>
+                        <th>Category</th>
+                        <th>Budget</th>
+                        <th>Proposals</th>
+                        <th>Status</th>
+                        <th>Posted</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% jobs.forEach(function(j) { %>
+                        <tr>
+                            <td>
+                                <a href="/jobs/<%= j.id %>" class="fw-semibold text-decoration-none" target="_blank" rel="noopener noreferrer"><%= j.title %></a>
+                            </td>
+                            <td>
+                                <div><%= j.customer_first_name || '' %> <%= j.customer_last_name || '' %></div>
+                                <div class="text-muted small"><%= j.customer_email %></div>
+                            </td>
+                            <td><span class="ek-badge ek-badge-category"><%= j.category_name || '-' %></span></td>
+                            <td class="fw-semibold small">NPR <%= Number(j.budget_min || 0).toLocaleString('en-IN') %> – <%= Number(j.budget_max || 0).toLocaleString('en-IN') %></td>
+                            <td class="text-center"><%= j.proposal_count %></td>
+                            <td><span class="badge-status badge-<%= j.status %>"><%= j.status %></span></td>
+                            <td class="text-muted small"><%= new Date(j.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) %></td>
+                            <td>
+                                <% if (j.status === 'published') { %>
+                                    <form action="/admin/jobs/<%= j.id %>?_method=PUT" method="POST" class="d-inline">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <input type="hidden" name="status" value="closed">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Close this job"><i class="bi bi-x-circle"></i></button>
+                                    </form>
+                                <% } else if (j.status === 'closed' || j.status === 'draft') { %>
+                                    <form action="/admin/jobs/<%= j.id %>?_method=PUT" method="POST" class="d-inline">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <input type="hidden" name="status" value="published">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Publish this job"><i class="bi bi-play-circle"></i></button>
+                                    </form>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state text-center py-5">
+            <i class="bi bi-briefcase fs-1 text-muted"></i>
+            <p class="mt-2 text-muted">No jobs found.</p>
+        </div>
+    <% } %>
+</div>
+
+<%- include('../partials/dashboard-wrapper-end') %>

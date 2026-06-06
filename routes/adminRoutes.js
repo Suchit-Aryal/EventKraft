@@ -23,6 +23,18 @@ router.put('/users/:id', adminCtrl.updateUser);
 // GET  /admin/bookings    – View all bookings
 router.get('/bookings', adminCtrl.bookings);
 
+// GET  /admin/services    – Manage all gigs/services
+router.get('/services', adminCtrl.services);
+
+// PUT  /admin/services/:id – Update gig status
+router.put('/services/:id', adminCtrl.updateService);
+
+// GET  /admin/jobs        – Manage all job postings
+router.get('/jobs', adminCtrl.jobs);
+
+// PUT  /admin/jobs/:id    – Update job status
+router.put('/jobs/:id', adminCtrl.updateJob);
+
 // GET  /admin/disputes    – View disputes
 router.get('/disputes', adminCtrl.disputes);
 
