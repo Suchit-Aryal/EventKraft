@@ -36,19 +36,22 @@
                 </div>
             <% } %>
 
-            <form action="/auth/login" method="POST" class="ek-form">
+            <% const fe = locals.fieldErrors || {}; const old = locals.old || {}; %>
+            <form action="/auth/login" method="POST" class="ek-form" novalidate>
                 <div class="mb-3">
                     <label class="form-label" for="email">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" required placeholder="you@example.com" autocomplete="email">
+                    <input type="email" class="form-control <%= fe.email ? 'is-invalid' : '' %>" id="email" name="email" required placeholder="you@example.com" autocomplete="email" value="<%= old.email || '' %>">
+                    <% if (fe.email) { %><div class="invalid-feedback d-block"><%= fe.email %></div><% } %>
                 </div>
                 <div class="mb-3">
                     <label class="form-label" for="password">Password</label>
                     <div class="input-group">
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+                        <input type="password" class="form-control <%= fe.password ? 'is-invalid' : '' %>" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
                         <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)" title="Show/hide password">
                             <i class="bi bi-eye"></i>
                         </button>
                     </div>
+                    <% if (fe.password) { %><div class="invalid-feedback d-block"><%= fe.password %></div><% } %>
                 </div>
                 <button type="submit" class="btn btn-ek-primary w-100 btn-lg mt-2">Log in</button>
             </form>

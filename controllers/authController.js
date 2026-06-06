@@ -16,6 +16,27 @@ function generateCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+// Input validation helpers
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NEPAL_PHONE_REGEX = /^(\+977[-\s]?)?9[78]\d{8}$/;
+
+function validateRegistration({ email, phone, password, confirmPassword }) {
+    const errors = {};
+    if (!email || !EMAIL_REGEX.test(email.trim())) {
+        errors.email = 'Please enter a valid email address';
+    }
+    if (!phone || !NEPAL_PHONE_REGEX.test(phone.replace(/\s/g, ''))) {
+        errors.phone = 'Please enter a valid Nepali phone number (e.g. 98XXXXXXXX or +977-98XXXXXXXX)';
+    }
+    if (!password || password.length < 8) {
+        errors.password = 'Password must be at least 8 characters';
+    }
+    if (password !== confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+    }
+    return Object.keys(errors).length > 0 ? errors : null;
+}
+
 module.exports = {
 
     // GET /auth/login
@@ -28,6 +49,23 @@ module.exports = {
 
     // POST /auth/login
     postLogin(req, res, next) {
+        const { email, password } = req.body;
+        const loginErrors = {};
+        if (!email || !EMAIL_REGEX.test((email || '').trim())) {
+            loginErrors.email = 'Please enter a valid email address';
+        }
+        if (!password) {
+            loginErrors.password = 'Please enter your password';
+        }
+        if (Object.keys(loginErrors).length > 0) {
+            return res.render('pages/login', {
+                title: 'Log In — EventKraft',
+                googleEnabled: !!(process.env.GOOGLE_CLIENT_ID),
+                fieldErrors: loginErrors,
+                old: { email },
+            });
+        }
+
         passport.authenticate('local', async (err, user, info) => {
             if (err) return next(err);
             if (!user) {
@@ -76,18 +114,27 @@ module.exports = {
         try {
             const { email, phone, password, confirmPassword, role } = req.body;
 
-            if (password !== confirmPassword) {
-                req.flash('error', 'Passwords do not match');
-                return res.redirect('/auth/register');
+            const validationErrors = validateRegistration({ email, phone, password, confirmPassword });
+            if (validationErrors) {
+                return res.render('pages/register', {
+                    title: 'Register — EventKraft',
+                    googleEnabled: !!(process.env.GOOGLE_CLIENT_ID),
+                    fieldErrors: validationErrors,
+                    old: { email, phone, first_name: req.body.first_name, last_name: req.body.last_name, role },
+                });
             }
 
-            const existing = await User.findByEmail(email);
+            const existing = await User.findByEmail(email.trim());
             if (existing) {
-                req.flash('error', 'Email is already registered');
-                return res.redirect('/auth/register');
+                return res.render('pages/register', {
+                    title: 'Register — EventKraft',
+                    googleEnabled: !!(process.env.GOOGLE_CLIENT_ID),
+                    fieldErrors: { email: 'Email is already registered' },
+                    old: { email, phone, first_name: req.body.first_name, last_name: req.body.last_name, role },
+                });
             }
 
-            const user = await User.create({ email, phone, password, role });
+            const user = await User.create({ email: email.trim(), phone: phone.replace(/\s/g, ''), password, role });
 
             const { first_name, last_name } = req.body;
             await pool.query(

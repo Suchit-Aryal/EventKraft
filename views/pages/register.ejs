@@ -41,41 +41,46 @@
                 </div>
             </div>
 
-            <form action="/auth/register" method="POST" class="ek-form">
-                <input type="hidden" name="role" id="roleInput" value="customer">
+            <% const fe = locals.fieldErrors || {}; const old = locals.old || {}; %>
+            <form action="/auth/register" method="POST" class="ek-form" novalidate>
+                <input type="hidden" name="role" id="roleInput" value="<%= old.role || 'customer' %>">
                 <div class="row g-3">
                     <div class="col-sm-6">
                         <label class="form-label" for="first_name">First name</label>
-                        <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Aarav">
+                        <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Aarav" value="<%= old.first_name || '' %>">
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label" for="last_name">Last name</label>
-                        <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Shrestha">
+                        <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Shrestha" value="<%= old.last_name || '' %>">
                     </div>
                 </div>
                 <div class="row g-3 mt-1">
                     <div class="col-sm-6">
                         <label class="form-label" for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required placeholder="you@example.com">
+                        <input type="email" class="form-control <%= fe.email ? 'is-invalid' : '' %>" id="email" name="email" required placeholder="you@example.com" value="<%= old.email || '' %>">
+                        <% if (fe.email) { %><div class="invalid-feedback d-block"><%= fe.email %></div><% } %>
                     </div>
                     <div class="col-sm-6">
                         <label class="form-label" for="phone">Phone</label>
-                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="+977 98XXXXXXXX">
+                        <input type="tel" class="form-control <%= fe.phone ? 'is-invalid' : '' %>" id="phone" name="phone" required placeholder="+977 98XXXXXXXX" value="<%= old.phone || '' %>">
+                        <% if (fe.phone) { %><div class="invalid-feedback d-block"><%= fe.phone %></div><% } %>
                     </div>
                 </div>
                 <div class="mt-3">
                     <label class="form-label" for="password">Password</label>
                     <div class="input-group">
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="At least 8 characters" minlength="8">
+                        <input type="password" class="form-control <%= fe.password ? 'is-invalid' : '' %>" id="password" name="password" required placeholder="At least 8 characters" minlength="8">
                         <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', this)"><i class="bi bi-eye"></i></button>
                     </div>
+                    <% if (fe.password) { %><div class="invalid-feedback d-block"><%= fe.password %></div><% } %>
                 </div>
                 <div class="mt-3">
                     <label class="form-label" for="confirmPassword">Confirm password</label>
                     <div class="input-group">
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="Re-enter password" minlength="8">
+                        <input type="password" class="form-control <%= fe.confirmPassword ? 'is-invalid' : '' %>" id="confirmPassword" name="confirmPassword" required placeholder="Re-enter password" minlength="8">
                         <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', this)"><i class="bi bi-eye"></i></button>
                     </div>
+                    <% if (fe.confirmPassword) { %><div class="invalid-feedback d-block"><%= fe.confirmPassword %></div><% } %>
                 </div>
                 <button type="submit" class="btn btn-ek-primary w-100 btn-lg mt-4">Create account</button>
             </form>
