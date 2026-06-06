@@ -1,0 +1,160 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - generic [ref=e7]:
+        - link "Dashboard" [ref=e8] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Switch color theme" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: 
+          - generic [ref=e11]: Dark
+        - link "Notifications" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e14]
+        - link "Messages" [ref=e18] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e19]
+        - generic [ref=e21] [cursor=pointer]:
+          - img "Ram" [ref=e22]
+          - img [ref=e23]
+  - generic [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]:
+        - img "Ram" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]: Ram Maharjan
+          - generic [ref=e32]: Service Provider
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 10% complete
+          - link "Improve" [ref=e36] [cursor=pointer]:
+            - /url: /dashboard/profile
+        - generic [ref=e39]:
+          - link "Upload a profile photo +15%" [ref=e40] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e41]: Upload a profile photo
+            - strong [ref=e42]: +15%
+          - link "Write an introduction (50 words minimum) +20%" [ref=e43] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e44]: Write an introduction (50 words minimum)
+            - strong [ref=e45]: +20%
+          - link "Add your phone number +10%" [ref=e46] [cursor=pointer]:
+            - /url: /dashboard/settings
+            - generic [ref=e47]: Add your phone number
+            - strong [ref=e48]: +10%
+      - navigation "Dashboard navigation" [ref=e49]:
+        - generic [ref=e50]: Main
+        - link "Dashboard" [ref=e51] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e52]
+          - generic [ref=e57]: Dashboard
+        - link "Bookings" [ref=e58] [cursor=pointer]:
+          - /url: /bookings
+          - img [ref=e59]
+          - generic [ref=e61]: Bookings
+        - link "Inbox" [ref=e62] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e63]
+          - generic [ref=e65]: Inbox
+        - generic [ref=e66]: Discover
+        - link "Browse Services" [ref=e67] [cursor=pointer]:
+          - /url: /gigs
+          - img [ref=e68]
+          - generic [ref=e71]: Browse Services
+        - link "Browse Gigs" [ref=e72] [cursor=pointer]:
+          - /url: /jobs
+          - img [ref=e73]
+          - generic [ref=e76]: Browse Gigs
+        - generic [ref=e77]: My Work
+        - link "My Services" [ref=e78] [cursor=pointer]:
+          - /url: /gigs/mine
+          - img [ref=e79]
+          - generic [ref=e81]: My Services
+        - link "My Proposals" [ref=e82] [cursor=pointer]:
+          - /url: /jobs/my-proposals
+          - img [ref=e83]
+          - generic [ref=e86]: My Proposals
+        - link "Post a Service " [ref=e87]:
+          - /url: /dashboard/profile
+          - img [ref=e88]
+          - generic [ref=e90]: Post a Service
+          - generic [ref=e92]: 
+        - generic [ref=e93]: Account
+        - link "My Profile" [ref=e94] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e95]
+          - generic [ref=e98]: My Profile
+        - link "Notifications" [ref=e99] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e100]
+          - generic [ref=e103]: Notifications
+        - link "Account Settings" [ref=e104] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e105]
+          - generic [ref=e108]: Account Settings
+      - generic [ref=e109]:
+        - link "Help" [ref=e110] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e111]: ·
+        - link "Terms" [ref=e112] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e113]: ·
+        - link "Privacy" [ref=e114] [cursor=pointer]:
+          - /url: "#"
+    - main [ref=e115]:
+      - generic [ref=e117]:
+        - link " Back to jobs" [ref=e118] [cursor=pointer]:
+          - /url: /jobs
+          - generic [ref=e119]: 
+          - text: Back to jobs
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]: Photography
+                - generic [ref=e125]: Wedding
+                - generic [ref=e126]: published
+              - heading "Looking for Wedding Photographer — Kathmandu" [level=1] [ref=e127]
+              - generic [ref=e128]:
+                - generic [ref=e129]:
+                  - generic [ref=e130]: 
+                  - text: Kathmandu
+                - generic [ref=e131]:
+                  - generic [ref=e132]: 
+                  - text: 15 June 2026
+                - generic [ref=e133]:
+                  - generic [ref=e134]: 
+                  - text: 2 proposals
+              - separator [ref=e135]
+              - heading "Description" [level=5] [ref=e136]
+              - paragraph [ref=e137]: We are getting married on June 15, 2026 at Hotel Yak & Yeti, Kathmandu. Looking for an experienced photographer who can capture both traditional and candid moments. Budget is negotiable for the right portfolio.
+            - generic [ref=e138]:
+              - paragraph [ref=e139]:
+                - generic [ref=e140]: 
+                - text: You've already submitted a proposal for this job.
+              - button "Already Applied" [disabled]
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - paragraph [ref=e143]: Budget
+              - paragraph [ref=e144]: NPR 30,000 – 80,000
+              - separator [ref=e145]
+              - generic [ref=e146]:
+                - generic [ref=e147]: Proposals
+                - generic [ref=e148]: 2 / 20
+              - separator [ref=e149]
+              - paragraph [ref=e150]: Posted by
+              - paragraph [ref=e152]: Aarav Sharma
+            - generic [ref=e153]:
+              - heading "Tips for a winning proposal" [level=6] [ref=e154]
+              - list [ref=e155]:
+                - listitem [ref=e156]: Reference the customer's specific needs
+                - listitem [ref=e157]: Show a relevant portfolio link
+                - listitem [ref=e158]: Be transparent about pricing
+                - listitem [ref=e159]: Reply within 24 hours
+              - separator [ref=e160]
+              - button " Contact Client" [ref=e162] [cursor=pointer]:
+                - generic [ref=e163]: 
+                - text: Contact Client

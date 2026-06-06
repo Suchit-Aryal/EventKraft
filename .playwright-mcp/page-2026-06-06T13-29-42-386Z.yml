@@ -1,0 +1,214 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - generic [ref=e7]:
+        - link "Dashboard" [ref=e8] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Switch color theme" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: 
+          - generic [ref=e11]: Dark
+        - link "Notifications" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e14]
+        - link "Messages" [ref=e18] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e19]
+        - generic [ref=e21] [cursor=pointer]:
+          - img "Sita" [ref=e22]
+          - img [ref=e23]
+  - generic [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]:
+        - img "Sita" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]: Sita Thapa
+          - generic [ref=e32]: Customer
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 18% complete
+          - link "Improve" [ref=e36] [cursor=pointer]:
+            - /url: /dashboard/profile
+        - generic [ref=e39]:
+          - link "Upload a profile photo +27%" [ref=e40] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e41]: Upload a profile photo
+            - strong [ref=e42]: +27%
+          - link "Write an introduction (50 words minimum) +36%" [ref=e43] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e44]: Write an introduction (50 words minimum)
+            - strong [ref=e45]: +36%
+          - link "Add your phone number +18%" [ref=e46] [cursor=pointer]:
+            - /url: /dashboard/settings
+            - generic [ref=e47]: Add your phone number
+            - strong [ref=e48]: +18%
+      - navigation "Dashboard navigation" [ref=e49]:
+        - generic [ref=e50]: Main
+        - link "Dashboard" [ref=e51] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e52]
+          - generic [ref=e57]: Dashboard
+        - link "Bookings" [ref=e58] [cursor=pointer]:
+          - /url: /bookings
+          - img [ref=e59]
+          - generic [ref=e61]: Bookings
+        - link "Inbox" [ref=e62] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e63]
+          - generic [ref=e65]: Inbox
+        - generic [ref=e66]: Discover
+        - link "Browse Services" [ref=e67] [cursor=pointer]:
+          - /url: /gigs
+          - img [ref=e68]
+          - generic [ref=e71]: Browse Services
+        - link "Browse Gigs" [ref=e72] [cursor=pointer]:
+          - /url: /jobs
+          - img [ref=e73]
+          - generic [ref=e76]: Browse Gigs
+        - generic [ref=e77]: My Work
+        - link "My Jobs" [ref=e78] [cursor=pointer]:
+          - /url: /jobs/mine
+          - img [ref=e79]
+          - generic [ref=e82]: My Jobs
+        - link "Hire" [ref=e83] [cursor=pointer]:
+          - /url: /jobs/create
+          - img [ref=e84]
+          - generic [ref=e86]: Hire
+        - generic [ref=e87]: Account
+        - link "My Profile" [ref=e88] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e89]
+          - generic [ref=e92]: My Profile
+        - link "Notifications" [ref=e93] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e94]
+          - generic [ref=e97]: Notifications
+        - link "Account Settings" [ref=e98] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e99]
+          - generic [ref=e102]: Account Settings
+      - generic [ref=e103]:
+        - link "Help" [ref=e104] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e105]: ·
+        - link "Terms" [ref=e106] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e107]: ·
+        - link "Privacy" [ref=e108] [cursor=pointer]:
+          - /url: "#"
+    - main [ref=e109]:
+      - generic [ref=e112]:
+        - generic [ref=e115]:
+          - heading "Filters" [level=5] [ref=e116]
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e119]: Search Keyword
+              - generic [ref=e120]:
+                - generic [ref=e122]: 
+                - textbox "Search Keyword" [ref=e123]:
+                  - /placeholder: e.g. Photography, Logo...
+            - generic [ref=e124]:
+              - generic [ref=e125]: Category
+              - combobox "Category" [ref=e126]:
+                - option "All Categories" [selected]
+                - option "Photography"
+                - option "Videography"
+                - option "Painting & Art"
+                - option "Decoration"
+                - option "Makeup & Styling"
+                - option "Music & DJ"
+                - option "Catering"
+                - option "Event Planning"
+                - option "Mehendi"
+                - option "Pandit/Priest"
+            - generic [ref=e127]:
+              - generic [ref=e128]: Price Range (NPR)
+              - generic [ref=e129]:
+                - spinbutton [ref=e130]
+                - generic [ref=e131]: to
+                - spinbutton [ref=e132]
+            - generic [ref=e133]:
+              - generic [ref=e134]: Sort By
+              - combobox "Sort By" [ref=e135]:
+                - option "Newest First" [selected]
+                - 'option "Price: Low to High"'
+                - 'option "Price: High to Low"'
+                - option "Highest Rated"
+            - generic [ref=e136]:
+              - button "Apply Filters" [ref=e137] [cursor=pointer]
+              - link "Clear All" [ref=e138] [cursor=pointer]:
+                - /url: /gigs
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - heading "Services" [level=2] [ref=e142]
+              - paragraph [ref=e143]: Discover the best talent for your event
+            - generic [ref=e144]: 4 services found
+          - generic [ref=e145]:
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - link "" [ref=e149] [cursor=pointer]:
+                  - /url: /gigs/1f5952ab-e70e-4cc9-85ee-829dac20cc24
+                  - generic [ref=e151]: 
+                - generic [ref=e153]:
+                  - generic [ref=e154]: 
+                  - text: New
+              - generic [ref=e155]:
+                - generic [ref=e157]: Anita Gurung
+                - heading "Traditional & Modern Mehendi Art" [level=6] [ref=e158]:
+                  - link "Traditional & Modern Mehendi Art" [ref=e159] [cursor=pointer]:
+                    - /url: /gigs/1f5952ab-e70e-4cc9-85ee-829dac20cc24
+                - generic [ref=e160]:
+                  - generic [ref=e161]: Starting at
+                  - generic [ref=e162]: NPR 5,000
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - link "" [ref=e166] [cursor=pointer]:
+                  - /url: /gigs/6a009a9d-c808-4d6e-9cd8-d4c6d585db8d
+                  - generic [ref=e168]: 
+                - generic [ref=e170]:
+                  - generic [ref=e171]: 
+                  - text: New
+              - generic [ref=e172]:
+                - generic [ref=e174]: Bikash Tamang
+                - heading "Cinematic Wedding Videography" [level=6] [ref=e175]:
+                  - link "Cinematic Wedding Videography" [ref=e176] [cursor=pointer]:
+                    - /url: /gigs/6a009a9d-c808-4d6e-9cd8-d4c6d585db8d
+                - generic [ref=e177]:
+                  - generic [ref=e178]: Starting at
+                  - generic [ref=e179]: NPR 35,000
+            - generic [ref=e181]:
+              - generic [ref=e182]:
+                - link "" [ref=e183] [cursor=pointer]:
+                  - /url: /gigs/6be782e2-03e0-4791-85e5-8537c8b618b7
+                  - generic [ref=e185]: 
+                - generic [ref=e187]:
+                  - generic [ref=e188]: 
+                  - text: New
+              - generic [ref=e189]:
+                - generic [ref=e191]: Priya Shrestha
+                - heading "Luxury Wedding Decoration & Mandap Setup" [level=6] [ref=e192]:
+                  - link "Luxury Wedding Decoration & Mandap Setup" [ref=e193] [cursor=pointer]:
+                    - /url: /gigs/6be782e2-03e0-4791-85e5-8537c8b618b7
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Starting at
+                  - generic [ref=e196]: NPR 50,000
+            - generic [ref=e198]:
+              - generic [ref=e199]:
+                - link "" [ref=e200] [cursor=pointer]:
+                  - /url: /gigs/8674cb79-1eb9-4ff6-a846-8a40aed9b571
+                  - generic [ref=e202]: 
+                - generic [ref=e204]:
+                  - generic [ref=e205]: 
+                  - text: New
+              - generic [ref=e206]:
+                - generic [ref=e208]: Ram Maharjan
+                - heading "Premium Wedding Photography" [level=6] [ref=e209]:
+                  - link "Premium Wedding Photography" [ref=e210] [cursor=pointer]:
+                    - /url: /gigs/8674cb79-1eb9-4ff6-a846-8a40aed9b571
+                - generic [ref=e211]:
+                  - generic [ref=e212]: Starting at
+                  - generic [ref=e213]: NPR 25,000

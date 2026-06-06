@@ -1,0 +1,137 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - button "Toggle navigation" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: 
+      - text: 
+  - generic [ref=e9]:
+    - link " Back to services" [ref=e10] [cursor=pointer]:
+      - /url: /gigs
+      - generic [ref=e11]: 
+      - text: Back to services
+    - generic [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - link [ref=e15] [cursor=pointer]:
+            - /url: /profile/ae09f27f-c8a4-4586-9cbd-07c7ebfa2716
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - heading "Ram Maharjan" [level=1] [ref=e18]:
+                - link "Ram Maharjan" [ref=e19] [cursor=pointer]:
+                  - /url: /profile/ae09f27f-c8a4-4586-9cbd-07c7ebfa2716
+              - generic [ref=e20]:
+                - generic [ref=e21]: 
+                - text: Verified
+            - paragraph [ref=e22]: Premium Wedding Photography
+            - generic [ref=e23]:
+              - generic [ref=e24]:
+                - generic [ref=e25]: 
+                - strong [ref=e26]: "0.00"
+              - generic [ref=e27]:
+                - generic [ref=e28]: 
+                - text: Photography
+              - generic [ref=e29]:
+                - generic [ref=e30]: 
+                - text: 0 completed
+        - generic [ref=e31]:
+          - heading "About this service" [level=3] [ref=e32]
+          - paragraph [ref=e33]: Professional wedding photography with 10+ years of experience. Covering Kathmandu Valley weddings with cinematic shots, candid moments, and premium editing.
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: "0"
+            - generic [ref=e37]:
+              - generic [ref=e38]: 
+              - text: views
+          - generic [ref=e39]:
+            - generic [ref=e40]: "0"
+            - generic [ref=e41]:
+              - generic [ref=e42]: 
+              - text: impressions
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - tablist [ref=e46]:
+            - tab "basic" [selected] [ref=e47] [cursor=pointer]
+            - tab "standard" [ref=e48] [cursor=pointer]
+            - tab "premium" [ref=e49] [cursor=pointer]
+          - generic [ref=e50]:
+            - tabpanel [ref=e51]:
+              - paragraph [ref=e52]: NPR 25,000
+              - paragraph [ref=e53]:
+                - generic [ref=e54]: 
+                - text: 7 days
+              - list [ref=e55]:
+                - listitem [ref=e56]:
+                  - generic [ref=e57]: 
+                  - generic [ref=e58]: 200 edited photos
+                - listitem [ref=e59]:
+                  - generic [ref=e60]: 
+                  - generic [ref=e61]: 4 hours coverage
+              - link "Log in to book" [ref=e62] [cursor=pointer]:
+                - /url: /auth/login
+            - text:         
+          - generic [ref=e63]: Payments protected by EventKraft
+        - generic [ref=e65]:
+          - heading "About the Worker" [level=6] [ref=e66]
+          - link "Ram Maharjan  0.00 · 0 completed" [ref=e67] [cursor=pointer]:
+            - /url: /profile/ae09f27f-c8a4-4586-9cbd-07c7ebfa2716
+            - generic [ref=e68]:
+              - strong [ref=e69]: Ram Maharjan
+              - generic [ref=e70]:
+                - generic [ref=e71]: 
+                - text: 0.00 · 0 completed
+          - link "View Profile" [ref=e72] [cursor=pointer]:
+            - /url: /profile/ae09f27f-c8a4-4586-9cbd-07c7ebfa2716
+  - contentinfo [ref=e73]:
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]:
+            - generic [ref=e78]: 
+            - text: EventKraft
+          - paragraph [ref=e79]: Nepal's premium marketplace for wedding & event professionals. Connecting talent with unforgettable moments.
+        - generic [ref=e80]:
+          - heading "Platform" [level=6] [ref=e81]
+          - list [ref=e82]:
+            - listitem [ref=e83]:
+              - link "Browse Services" [ref=e84] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e85]:
+              - link "Browse Jobs" [ref=e86] [cursor=pointer]:
+                - /url: /jobs
+            - listitem [ref=e87]:
+              - link "Get Started" [ref=e88] [cursor=pointer]:
+                - /url: /auth/register
+        - generic [ref=e89]:
+          - heading "Categories" [level=6] [ref=e90]
+          - list [ref=e91]:
+            - listitem [ref=e92]:
+              - link "Photography" [ref=e93] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e94]:
+              - link "Videography" [ref=e95] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e96]:
+              - link "Decoration" [ref=e97] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e98]:
+              - link "Mehendi" [ref=e99] [cursor=pointer]:
+                - /url: /gigs
+        - generic [ref=e100]:
+          - heading "Stay connected" [level=6] [ref=e101]
+          - paragraph [ref=e102]: Follow us for wedding inspiration and marketplace updates.
+          - generic [ref=e103]:
+            - link "" [ref=e104] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e105]: 
+            - link "" [ref=e106] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e107]: 
+            - link "" [ref=e108] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e109]: 
+      - separator [ref=e110]
+      - paragraph [ref=e111]: © 2026 EventKraft. Where Premium Talent Meets Grand Events.

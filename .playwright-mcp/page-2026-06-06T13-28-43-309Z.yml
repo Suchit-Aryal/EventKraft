@@ -1,0 +1,216 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - generic [ref=e7]:
+        - link "Dashboard" [ref=e8] [cursor=pointer]:
+          - /url: /dashboard
+        - button "Switch color theme" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: 
+          - generic [ref=e11]: Dark
+        - link "Notifications" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e14]
+        - link "Messages" [ref=e18] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e19]
+        - generic [ref=e21] [cursor=pointer]:
+          - img "Sita" [ref=e22]
+          - img [ref=e23]
+  - generic [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]:
+        - img "Sita" [ref=e29]
+        - generic [ref=e30]:
+          - generic [ref=e31]: Sita Thapa
+          - generic [ref=e32]: Customer
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 18% complete
+          - link "Improve" [ref=e36] [cursor=pointer]:
+            - /url: /dashboard/profile
+        - generic [ref=e39]:
+          - link "Upload a profile photo +27%" [ref=e40] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e41]: Upload a profile photo
+            - strong [ref=e42]: +27%
+          - link "Write an introduction (50 words minimum) +36%" [ref=e43] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e44]: Write an introduction (50 words minimum)
+            - strong [ref=e45]: +36%
+          - link "Add your phone number +18%" [ref=e46] [cursor=pointer]:
+            - /url: /dashboard/settings
+            - generic [ref=e47]: Add your phone number
+            - strong [ref=e48]: +18%
+      - navigation "Dashboard navigation" [ref=e49]:
+        - generic [ref=e50]: Main
+        - link "Dashboard" [ref=e51] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e52]
+          - generic [ref=e57]: Dashboard
+        - link "Bookings" [ref=e58] [cursor=pointer]:
+          - /url: /bookings
+          - img [ref=e59]
+          - generic [ref=e61]: Bookings
+        - link "Inbox" [ref=e62] [cursor=pointer]:
+          - /url: /messages
+          - img [ref=e63]
+          - generic [ref=e65]: Inbox
+        - generic [ref=e66]: Discover
+        - link "Browse Services" [ref=e67] [cursor=pointer]:
+          - /url: /gigs
+          - img [ref=e68]
+          - generic [ref=e71]: Browse Services
+        - link "Browse Gigs" [ref=e72] [cursor=pointer]:
+          - /url: /jobs
+          - img [ref=e73]
+          - generic [ref=e76]: Browse Gigs
+        - generic [ref=e77]: My Work
+        - link "My Jobs" [ref=e78] [cursor=pointer]:
+          - /url: /jobs/mine
+          - img [ref=e79]
+          - generic [ref=e82]: My Jobs
+        - link "Hire" [ref=e83] [cursor=pointer]:
+          - /url: /jobs/create
+          - img [ref=e84]
+          - generic [ref=e86]: Hire
+        - generic [ref=e87]: Account
+        - link "My Profile" [ref=e88] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e89]
+          - generic [ref=e92]: My Profile
+        - link "Notifications" [ref=e93] [cursor=pointer]:
+          - /url: /dashboard/notifications
+          - img [ref=e94]
+          - generic [ref=e97]: Notifications
+        - link "Account Settings" [ref=e98] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e99]
+          - generic [ref=e102]: Account Settings
+      - generic [ref=e103]:
+        - link "Help" [ref=e104] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e105]: ·
+        - link "Terms" [ref=e106] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e107]: ·
+        - link "Privacy" [ref=e108] [cursor=pointer]:
+          - /url: "#"
+    - main [ref=e109]:
+      - generic [ref=e112]:
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - heading "Filters" [level=5] [ref=e117]
+            - link "" [ref=e118] [cursor=pointer]:
+              - /url: /jobs/create
+              - generic [ref=e119]: 
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]: Search
+              - generic [ref=e123]:
+                - generic [ref=e125]: 
+                - textbox "Search" [ref=e126]:
+                  - /placeholder: Keywords...
+            - generic [ref=e127]:
+              - generic [ref=e128]: Category
+              - combobox "Category" [ref=e129]:
+                - option "All Categories" [selected]
+                - option "Photography"
+                - option "Videography"
+                - option "Painting & Art"
+                - option "Decoration"
+                - option "Makeup & Styling"
+                - option "Music & DJ"
+                - option "Catering"
+                - option "Event Planning"
+                - option "Mehendi"
+                - option "Pandit/Priest"
+            - generic [ref=e130]:
+              - generic [ref=e131]: Location
+              - generic [ref=e132]:
+                - generic [ref=e134]: 
+                - textbox "Location" [ref=e135]:
+                  - /placeholder: e.g. Kathmandu
+            - generic [ref=e136]:
+              - generic [ref=e137]: Budget Range
+              - generic [ref=e138]:
+                - spinbutton [ref=e139]
+                - generic [ref=e140]: to
+                - spinbutton [ref=e141]
+            - generic [ref=e142]:
+              - button "Apply Filters" [ref=e143] [cursor=pointer]
+              - link "Clear All" [ref=e144] [cursor=pointer]:
+                - /url: /jobs
+        - generic [ref=e145]:
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - heading "Available Jobs" [level=2] [ref=e148]
+              - paragraph [ref=e149]: Browse event projects and submit your proposals
+            - generic [ref=e150]: 3 jobs found
+          - generic [ref=e151]:
+            - generic [ref=e154]:
+              - generic [ref=e155]:
+                - generic [ref=e156]:
+                  - generic [ref=e157]: Music & DJ
+                  - heading "DJ for Reception Party — Bhaktapur" [level=5] [ref=e158]:
+                    - link "DJ for Reception Party — Bhaktapur" [ref=e159] [cursor=pointer]:
+                      - /url: /jobs/75d0a0f2-8df3-4bbd-b702-61c9376c0436
+                  - generic [ref=e160]:
+                    - generic [ref=e161]:
+                      - generic [ref=e162]: 
+                      - text: Rajan KC
+                    - generic [ref=e163]:
+                      - generic [ref=e164]: 
+                      - text: Bhaktapur
+                    - generic [ref=e165]:
+                      - generic [ref=e166]: 
+                      - text: 6/6/2026
+                - generic [ref=e167]:
+                  - generic [ref=e168]: NPR 15,000 - 30,000
+                  - generic [ref=e169]: 0 proposals
+              - paragraph [ref=e170]: Need a DJ for wedding reception, 4-5 hours, mix of Nepali and Hindi songs. Must bring own equipment. Venue has power supply.
+            - generic [ref=e173]:
+              - generic [ref=e174]:
+                - generic [ref=e175]:
+                  - generic [ref=e176]: Decoration
+                  - heading "Full Wedding Decoration Needed — Pokhara" [level=5] [ref=e177]:
+                    - link "Full Wedding Decoration Needed — Pokhara" [ref=e178] [cursor=pointer]:
+                      - /url: /jobs/6d010346-1f6a-4484-b50e-272fa7603002
+                  - generic [ref=e179]:
+                    - generic [ref=e180]:
+                      - generic [ref=e181]: 
+                      - text: Sita Thapa
+                    - generic [ref=e182]:
+                      - generic [ref=e183]: 
+                      - text: Pokhara
+                    - generic [ref=e184]:
+                      - generic [ref=e185]: 
+                      - text: 6/6/2026
+                - generic [ref=e186]:
+                  - generic [ref=e187]: NPR 100,000 - 200,000
+                  - generic [ref=e188]: 1 proposals
+              - paragraph [ref=e189]: "Looking for a decorator for a lakeside wedding venue in Pokhara. Need full mandap, stage, entrance, and table decorations. Theme: Royal Blue & Gold."
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - generic [ref=e195]: Photography
+                  - heading "Looking for Wedding Photographer — Kathmandu" [level=5] [ref=e196]:
+                    - link "Looking for Wedding Photographer — Kathmandu" [ref=e197] [cursor=pointer]:
+                      - /url: /jobs/1d444172-711c-41ed-98ca-82776e07adca
+                  - generic [ref=e198]:
+                    - generic [ref=e199]:
+                      - generic [ref=e200]: 
+                      - text: Aarav Sharma
+                    - generic [ref=e201]:
+                      - generic [ref=e202]: 
+                      - text: Kathmandu
+                    - generic [ref=e203]:
+                      - generic [ref=e204]: 
+                      - text: 6/6/2026
+                - generic [ref=e205]:
+                  - generic [ref=e206]: NPR 30,000 - 80,000
+                  - generic [ref=e207]: 2 proposals
+              - paragraph [ref=e208]: We are getting married on June 15, 2026 at Hotel Yak & Yeti, Kathmandu. Looking for an experienced photographer who can capture both traditional and candid moments. Budget is negotiable for the right portfolio.

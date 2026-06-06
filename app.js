@@ -100,6 +100,16 @@ app.use(async (req, res, next) => {
 // Dashboard nav data (icons, unread counts, profile completion)
 app.use(require('./middleware/injectNavData'));
 
+// Force incomplete profiles (e.g. Google OAuth signups) through onboarding
+app.use((req, res, next) => {
+    if (req.isAuthenticated() && req.user.profile_complete === false
+        && !req.path.startsWith('/onboarding')
+        && !req.path.startsWith('/auth')) {
+        return res.redirect('/onboarding/step1');
+    }
+    next();
+});
+
 // ─── Routes ─────────────────────────────────────────────────
 
 // Home page

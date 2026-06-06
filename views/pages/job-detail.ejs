@@ -42,8 +42,8 @@
                 <% } %>
             </div>
 
-            <!-- Proposal Form (workers only) -->
-            <% if (currentUser && currentUser.role === 'worker' && job.status === 'published' && currentUser.id !== job.customer_id) { %>
+            <!-- Proposal Section -->
+            <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'worker' && job.status === 'published' && currentUser.id !== job.customer_id) { %>
                 <% if (locals.alreadyApplied) { %>
                     <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
                         <p class="text-muted mb-3"><i class="bi bi-check-circle me-1" style="color:var(--ek-success)"></i> You've already submitted a proposal for this job.</p>
@@ -72,6 +72,18 @@
                         </form>
                     </div>
                 <% } %>
+            <% } else if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'customer' && currentUser.id !== job.customer_id && job.status === 'published') { %>
+                <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
+                    <i class="bi bi-info-circle fs-4 text-info"></i>
+                    <p class="text-muted mt-2 mb-2">Proposals can only be submitted by service providers.</p>
+                    <p class="small text-muted mb-0">Looking to hire? <a href="/jobs/create">Post your own job</a> to receive proposals from workers.</p>
+                </div>
+            <% } else if (typeof currentUser === 'undefined' || !currentUser) { %>
+                <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
+                    <i class="bi bi-lock fs-4 text-muted"></i>
+                    <p class="text-muted mt-2 mb-2">Want to submit a proposal?</p>
+                    <a href="/auth/login" class="btn btn-ek-primary">Log in to apply</a>
+                </div>
             <% } %>
 
             <!-- Proposals list (job owner or admin) -->
@@ -127,6 +139,7 @@
                 </div>
             </div>
 
+            <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'worker' && currentUser.id !== job.customer_id) { %>
             <div class="ek-card mt-3" style="padding:1.5rem;background:var(--ek-gradient-subtle)">
                 <h6 class="fw-semibold mb-2">Tips for a winning proposal</h6>
                 <ul class="small text-muted ps-3 mb-0">
@@ -135,14 +148,18 @@
                     <li class="mb-1">Be transparent about pricing</li>
                     <li>Reply within 24 hours</li>
                 </ul>
-                
-                <% if (currentUser && currentUser.role === 'worker' && currentUser.id !== job.customer_id) { %>
-                    <hr style="border-color:var(--ek-border)">
-                    <form action="/messages/start/<%= job.customer_id %>" method="POST">
-                        <button type="submit" class="btn btn-ek-outline w-100"><i class="bi bi-chat-dots me-2"></i>Contact Client</button>
-                    </form>
-                <% } %>
+                <hr style="border-color:var(--ek-border)">
+                <form action="/messages/start/<%= job.customer_id %>" method="POST">
+                    <button type="submit" class="btn btn-ek-outline w-100"><i class="bi bi-chat-dots me-2"></i>Contact Client</button>
+                </form>
             </div>
+            <% } else if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'customer' && currentUser.id !== job.customer_id) { %>
+            <div class="ek-card mt-3" style="padding:1.5rem;background:var(--ek-gradient-subtle)">
+                <h6 class="fw-semibold mb-2">Looking for similar help?</h6>
+                <p class="small text-muted mb-0">Post your own job and receive proposals from verified service providers.</p>
+                <a href="/jobs/create" class="btn btn-ek-outline w-100 mt-3"><i class="bi bi-plus-lg me-2"></i>Post a Job</a>
+            </div>
+            <% } %>
         </div>
     </div>
 </section>

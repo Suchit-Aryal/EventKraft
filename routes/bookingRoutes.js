@@ -29,8 +29,8 @@ async function ensureBookingCustomer(req, res, next) {
 // GET  /bookings       – List user's bookings
 router.get('/', ensureAuthenticated, bookingCtrl.index);
 
-// POST /bookings       – Create a new booking
-router.post('/', ensureAuthenticated, bookingCtrl.store);
+// POST /bookings       – Create a new booking (customers only)
+router.post('/', ensureAuthenticated, ensureRole('customer'), bookingCtrl.store);
 
 // GET  /bookings/:id   – View booking details
 router.get('/:id', ensureAuthenticated, bookingCtrl.show);

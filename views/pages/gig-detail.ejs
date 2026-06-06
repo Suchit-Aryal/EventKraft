@@ -148,6 +148,11 @@
         <div class="col-lg-4">
             <div class="ek-sidebar-sticky">
                 <div class="ek-card mb-3">
+                    <% var isOwner = typeof currentUser !== 'undefined' && currentUser && currentUser.id === gig.worker_id; %>
+                    <% var isWorker = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'worker'; %>
+                    <% var isCustomer = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'customer'; %>
+                    <% var isGuest = typeof currentUser === 'undefined' || !currentUser; %>
+
                     <% if (typeof packages !== 'undefined' && packages.length > 0) { %>
                         <ul class="nav ek-package-tabs" role="tablist">
                             <% packages.forEach(function(pkg, i) { %>
@@ -172,7 +177,18 @@
                                             </li>
                                         <% }); %>
                                     </ul>
-                                    <% if (alreadyBooked) { %>
+                                    <% if (isOwner) { %>
+                                        <div class="alert alert-secondary mb-0">
+                                            <i class="bi bi-pencil-square me-1"></i> This is your service.
+                                            <a href="/gigs/mine" class="alert-link d-block mt-1">Manage your services</a>
+                                        </div>
+                                    <% } else if (isWorker) { %>
+                                        <div class="alert alert-info mb-0">
+                                            <i class="bi bi-info-circle me-1"></i> Only customers can book services. <a href="/jobs" class="alert-link">Browse jobs to find work</a>.
+                                        </div>
+                                    <% } else if (isGuest) { %>
+                                        <a href="/auth/login" class="btn btn-ek-primary w-100">Log in to book</a>
+                                    <% } else if (alreadyBooked) { %>
                                         <div class="alert alert-info mt-3 mb-0">You already have an active booking for this service.</div>
                                     <% } else { %>
                                     <form action="/bookings" method="POST">
@@ -210,11 +226,7 @@
                                             placeholder="Any questions or notes for the worker..."
                                           ></textarea>
                                         </div>
-                                        <% if (locals.alreadyBooked) { %>
-                                            <button class="btn btn-secondary w-100 mt-3" disabled>Already Booked</button>
-                                        <% } else { %>
-                                            <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book <%= pkg.tier || pkg.title %></button>
-                                        <% } %>
+                                        <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book <%= pkg.tier || pkg.title %></button>
                                     </form>
                                 <% } %>
                                 </div>
@@ -224,6 +236,20 @@
                         <div style="padding:1.5rem">
                             <p class="font-display fs-3 fw-semibold mb-1">NPR <%= Number(gig.starting_price || 0).toLocaleString('en-IN') %></p>
                             <p class="text-muted small mb-3">Starting price</p>
+                            <% if (isOwner) { %>
+                                <div class="alert alert-secondary mb-0">
+                                    <i class="bi bi-pencil-square me-1"></i> This is your service.
+                                    <a href="/gigs/mine" class="alert-link d-block mt-1">Manage your services</a>
+                                </div>
+                            <% } else if (isWorker) { %>
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle me-1"></i> Only customers can book services. <a href="/jobs" class="alert-link">Browse jobs to find work</a>.
+                                </div>
+                            <% } else if (isGuest) { %>
+                                <a href="/auth/login" class="btn btn-ek-primary w-100">Log in to book</a>
+                            <% } else if (locals.alreadyBooked) { %>
+                                <div class="alert alert-info mt-3 mb-0">You already have an active booking for this service.</div>
+                            <% } else { %>
                             <form action="/bookings" method="POST">
                                 <input type="hidden" name="worker_id" value="<%= gig.worker_id %>">
                                 <input type="hidden" name="gig_id" value="<%= gig.id %>">
@@ -258,12 +284,9 @@
                                     placeholder="Any questions or notes for the worker..."
                                   ></textarea>
                                 </div>
-                                <% if (locals.alreadyBooked) { %>
-                                    <button class="btn btn-secondary w-100 mt-3" disabled>Already Booked</button>
-                                <% } else { %>
-                                    <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book Now</button>
-                                <% } %>
+                                <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book Now</button>
                             </form>
+                            <% } %>
                         </div>
                     <% } %>
                     <div class="text-center pb-3">

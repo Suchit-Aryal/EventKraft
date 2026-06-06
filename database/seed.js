@@ -155,8 +155,8 @@ async function seed() {
 
 async function createUser(email, hash, role, firstName, lastName, city) {
     const user = await pool.query(
-        `INSERT INTO users (email, password_hash, role, is_verified, is_active)
-         VALUES ($1, $2, $3, true, true)
+        `INSERT INTO users (email, password_hash, role, is_verified, is_active, profile_complete)
+         VALUES ($1, $2, $3, true, true, true)
          ON CONFLICT (email) DO UPDATE SET email = $1
          RETURNING id`,
         [email, hash, role]

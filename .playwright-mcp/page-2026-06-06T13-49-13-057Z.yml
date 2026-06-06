@@ -1,0 +1,223 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - button "Toggle navigation" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: 
+      - text: 
+  - alert [ref=e9]:
+    - generic [ref=e10]: 
+    - text: Logged out successfully
+    - button [ref=e11] [cursor=pointer]
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: 
+        - text: Verified event professionals across Nepal
+      - heading "Book premium event talent with confidence." [level=1] [ref=e19]
+      - paragraph [ref=e20]: Compare portfolios, message providers, accept agreements, and keep payments tracked from one clean workspace.
+      - generic [ref=e21]:
+        - link "Create your account" [ref=e22] [cursor=pointer]:
+          - /url: /auth/register
+        - link "Browse services" [ref=e23] [cursor=pointer]:
+          - /url: /gigs
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]: Find the right match
+        - link "Explore all" [ref=e27] [cursor=pointer]:
+          - /url: /gigs
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e31]: 
+          - textbox "Search" [ref=e32]:
+            - /placeholder: Search wedding photography
+        - button "Search" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - link "Photography" [ref=e35] [cursor=pointer]:
+          - /url: /gigs?keyword=Photography
+        - link "Decoration" [ref=e36] [cursor=pointer]:
+          - /url: /gigs?keyword=Decoration
+        - link "Makeup" [ref=e37] [cursor=pointer]:
+          - /url: /gigs?keyword=Makeup
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - paragraph [ref=e42]: Service categories
+        - heading "Everything you need for the perfect day" [level=2] [ref=e43]
+      - link "View all services →" [ref=e44] [cursor=pointer]:
+        - /url: /gigs
+    - generic [ref=e45]:
+      - link "Photography Photography Premium event services" [ref=e47] [cursor=pointer]:
+        - /url: /gigs?category=87900e87-3cdc-486f-ae44-02031cadc5f7
+        - img "Photography" [ref=e48]
+        - generic [ref=e50]:
+          - heading "Photography" [level=3] [ref=e51]
+          - paragraph [ref=e52]: Premium event services
+      - link "Videography Videography Premium event services" [ref=e54] [cursor=pointer]:
+        - /url: /gigs?category=64e49d44-5de4-4710-8671-a2aa0bddc45f
+        - img "Videography" [ref=e55]
+        - generic [ref=e57]:
+          - heading "Videography" [level=3] [ref=e58]
+          - paragraph [ref=e59]: Premium event services
+      - link "Painting & Art Painting & Art Premium event services" [ref=e61] [cursor=pointer]:
+        - /url: /gigs?category=6d2689ca-34f3-4ff5-afa4-a2d1afd59aee
+        - img "Painting & Art" [ref=e62]
+        - generic [ref=e64]:
+          - heading "Painting & Art" [level=3] [ref=e65]
+          - paragraph [ref=e66]: Premium event services
+      - link "Decoration Decoration Premium event services" [ref=e68] [cursor=pointer]:
+        - /url: /gigs?category=d5b541a1-96f4-4e2c-a6a6-464821257563
+        - img "Decoration" [ref=e69]
+        - generic [ref=e71]:
+          - heading "Decoration" [level=3] [ref=e72]
+          - paragraph [ref=e73]: Premium event services
+  - generic [ref=e75]:
+    - generic [ref=e76]:
+      - paragraph [ref=e77]: How it works
+      - heading "Two simple ways to find the perfect match" [level=2] [ref=e78]
+    - generic [ref=e79]:
+      - generic [ref=e81]:
+        - generic [ref=e83]: 
+        - heading "Browse & Book" [level=3] [ref=e84]
+        - paragraph [ref=e85]: Explore portfolios, compare packages and book directly. Like Fiverr, but for weddings.
+        - list [ref=e86]:
+          - listitem [ref=e87]: Browse providers by category
+          - listitem [ref=e88]: Compare packages, reviews & portfolio
+          - listitem [ref=e89]: Book the package that fits your event
+        - link "Browse services →" [ref=e90] [cursor=pointer]:
+          - /url: /gigs
+      - generic [ref=e92]:
+        - generic [ref=e94]: 
+        - heading "Post & Hire" [level=3] [ref=e95]
+        - paragraph [ref=e96]: Describe your event and budget — workers send you proposals. Pick the best one.
+        - list [ref=e97]:
+          - listitem [ref=e98]: Post your event requirements
+          - listitem [ref=e99]: Receive proposals from qualified workers
+          - listitem [ref=e100]: Shortlist and hire the perfect fit
+        - link "Post a job →" [ref=e101] [cursor=pointer]:
+          - /url: /auth/login
+  - generic [ref=e103]:
+    - generic [ref=e104]:
+      - generic [ref=e105]:
+        - paragraph [ref=e106]: Featured talent
+        - heading "Top-rated professionals this season" [level=2] [ref=e107]
+      - link "See all →" [ref=e108] [cursor=pointer]:
+        - /url: /gigs
+    - generic [ref=e109]:
+      - link "Premium Wedding Photography Ram Maharjan Premium Wedding Photography  0.00 Photography From NPR 25,000" [ref=e111] [cursor=pointer]:
+        - /url: /gigs/8674cb79-1eb9-4ff6-a846-8a40aed9b571
+        - img "Premium Wedding Photography" [ref=e113]
+        - generic [ref=e114]:
+          - heading "Ram Maharjan" [level=4] [ref=e115]
+          - paragraph [ref=e116]: Premium Wedding Photography
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - generic [ref=e119]: 
+              - text: "0.00"
+            - generic [ref=e120]: Photography
+          - paragraph [ref=e121]: From NPR 25,000
+      - link "Cinematic Wedding Videography Bikash Tamang Cinematic Wedding Videography  0.00 Videography From NPR 35,000" [ref=e123] [cursor=pointer]:
+        - /url: /gigs/6a009a9d-c808-4d6e-9cd8-d4c6d585db8d
+        - img "Cinematic Wedding Videography" [ref=e125]
+        - generic [ref=e126]:
+          - heading "Bikash Tamang" [level=4] [ref=e127]
+          - paragraph [ref=e128]: Cinematic Wedding Videography
+          - generic [ref=e129]:
+            - generic [ref=e130]:
+              - generic [ref=e131]: 
+              - text: "0.00"
+            - generic [ref=e132]: Videography
+          - paragraph [ref=e133]: From NPR 35,000
+      - link "Luxury Wedding Decoration & Mandap Setup Priya Shrestha Luxury Wedding Decoration & Mandap Setup  0.00 Decoration From NPR 50,000" [ref=e135] [cursor=pointer]:
+        - /url: /gigs/6be782e2-03e0-4791-85e5-8537c8b618b7
+        - img "Luxury Wedding Decoration & Mandap Setup" [ref=e137]
+        - generic [ref=e138]:
+          - heading "Priya Shrestha" [level=4] [ref=e139]
+          - paragraph [ref=e140]: Luxury Wedding Decoration & Mandap Setup
+          - generic [ref=e141]:
+            - generic [ref=e142]:
+              - generic [ref=e143]: 
+              - text: "0.00"
+            - generic [ref=e144]: Decoration
+          - paragraph [ref=e145]: From NPR 50,000
+      - link "Traditional & Modern Mehendi Art Anita Gurung Traditional & Modern Mehendi Art  0.00 Mehendi From NPR 5,000" [ref=e147] [cursor=pointer]:
+        - /url: /gigs/1f5952ab-e70e-4cc9-85ee-829dac20cc24
+        - img "Traditional & Modern Mehendi Art" [ref=e149]
+        - generic [ref=e150]:
+          - heading "Anita Gurung" [level=4] [ref=e151]
+          - paragraph [ref=e152]: Traditional & Modern Mehendi Art
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: 
+              - text: "0.00"
+            - generic [ref=e156]: Mehendi
+          - paragraph [ref=e157]: From NPR 5,000
+  - generic [ref=e160]:
+    - generic [ref=e162]: 
+    - blockquote [ref=e163]: "\"EventKraft made finding our wedding photographer effortless. We compared 5 portfolios in an evening, booked Aarav, and the results were beyond our dreams.\""
+    - generic [ref=e164]:
+      - generic [ref=e165]: R
+      - generic [ref=e166]:
+        - paragraph [ref=e167]: Riya & Manish Karki
+        - paragraph [ref=e168]: Married December 2024 · Kathmandu
+  - generic [ref=e170]:
+    - heading "Ready to plan an unforgettable event?" [level=2] [ref=e171]
+    - paragraph [ref=e172]: Join hundreds of couples and event planners trusting EventKraft for their most important moments.
+    - generic [ref=e173]:
+      - link "Create your account" [ref=e174] [cursor=pointer]:
+        - /url: /auth/register
+      - link "Explore services" [ref=e175] [cursor=pointer]:
+        - /url: /gigs
+  - contentinfo [ref=e176]:
+    - generic [ref=e177]:
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - generic [ref=e181]: 
+            - text: EventKraft
+          - paragraph [ref=e182]: Nepal's premium marketplace for wedding & event professionals. Connecting talent with unforgettable moments.
+        - generic [ref=e183]:
+          - heading "Platform" [level=6] [ref=e184]
+          - list [ref=e185]:
+            - listitem [ref=e186]:
+              - link "Browse Services" [ref=e187] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e188]:
+              - link "Browse Jobs" [ref=e189] [cursor=pointer]:
+                - /url: /jobs
+            - listitem [ref=e190]:
+              - link "Get Started" [ref=e191] [cursor=pointer]:
+                - /url: /auth/register
+        - generic [ref=e192]:
+          - heading "Categories" [level=6] [ref=e193]
+          - list [ref=e194]:
+            - listitem [ref=e195]:
+              - link "Photography" [ref=e196] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e197]:
+              - link "Videography" [ref=e198] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e199]:
+              - link "Decoration" [ref=e200] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e201]:
+              - link "Mehendi" [ref=e202] [cursor=pointer]:
+                - /url: /gigs
+        - generic [ref=e203]:
+          - heading "Stay connected" [level=6] [ref=e204]
+          - paragraph [ref=e205]: Follow us for wedding inspiration and marketplace updates.
+          - generic [ref=e206]:
+            - link "" [ref=e207] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e208]: 
+            - link "" [ref=e209] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e210]: 
+            - link "" [ref=e211] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e212]: 
+      - separator [ref=e213]
+      - paragraph [ref=e214]: © 2026 EventKraft. Where Premium Talent Meets Grand Events.
