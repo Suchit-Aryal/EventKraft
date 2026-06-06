@@ -710,6 +710,12 @@ a:hover { color: var(--ek-maroon-light); }
 }
 :root[data-theme="dark"] .profile-completion-task:hover { background: #261d25; }
 
+.profile-completion-card--compact { padding: 16px 20px; }
+.profile-completion-card--compact .profile-completion-card__summary { gap: 16px; }
+.profile-completion-card--compact .profile-completion-card__track { margin: 0; height: 6px; }
+.profile-completion-grid--compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.profile-completion-grid--compact .profile-completion-task { padding: 8px 10px; }
+
 /* ── Admin Sidebar ──────────────────────────────────── */
 .admin-sidebar { background: var(--ek-text); min-height: calc(100vh - 66px); padding: 20px 0; }
 .admin-sidebar .nav-link { color: rgba(255,255,255,.7); padding: 10px 24px; font-size: .9rem; border-left: 3px solid transparent; transition: all .2s; }
@@ -881,6 +887,7 @@ a:hover { color: var(--ek-maroon-light); }
     flex-direction: column;
   }
   .profile-completion-grid { grid-template-columns: 1fr; }
+  .profile-completion-grid--compact { grid-template-columns: 1fr; }
 }
 
 /* ── Animations ─────────────────────────────────────── */

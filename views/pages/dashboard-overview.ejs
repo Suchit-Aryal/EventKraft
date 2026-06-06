@@ -9,45 +9,50 @@
 <% const pcPercentage = Math.max(0, Math.min(100, Math.round(Number(pc.percentage) || 0))); %>
 <% if (pcPercentage < 100) { %>
     <% const incompleteSteps = (pc.steps || []).filter(step => !step.done); %>
-    <div class="profile-completion-card mb-4">
+    <div class="profile-completion-card profile-completion-card--compact mb-4" id="profileCompletionCard">
         <div class="profile-completion-card__summary">
-            <div>
-                <p class="profile-completion-card__eyebrow">Profile strength</p>
-                <h2>Complete your profile to unlock more trust signals</h2>
-                <p>Each task below adds a specific score. Finish the high-value items first to look more credible in search, proposals, and booking conversations.</p>
+            <div style="flex:1;min-width:0">
+                <p class="profile-completion-card__eyebrow">Profile strength — <%= pcPercentage %>%</p>
+                <div class="profile-completion-card__track" style="margin:8px 0 0">
+                    <div style="width:<%= pcPercentage %>%"></div>
+                </div>
             </div>
-            <div class="profile-completion-ring" style="--completion:<%= pcPercentage %>">
-                <span><%= pcPercentage %>%</span>
+            <div class="d-flex align-items-center gap-2">
+                <% if (incompleteSteps.length > 0) { %>
+                    <a href="<%= incompleteSteps[0].href %>" class="btn btn-ek-primary btn-sm">Complete profile</a>
+                <% } %>
+                <button type="button" class="btn btn-sm btn-outline-secondary" style="padding:2px 8px;line-height:1;font-size:1rem;border-radius:8px" onclick="dismissProfileCard()" title="Dismiss">&times;</button>
             </div>
         </div>
 
-        <div class="profile-completion-card__track">
-            <div style="width:<%= pcPercentage %>%"></div>
-        </div>
-
-        <div class="profile-completion-grid">
-            <% (pc.steps || []).forEach(function(step) { %>
-                <a href="<%= step.href %>" class="profile-completion-task <%= step.done ? 'is-done' : '' %>">
+        <div class="profile-completion-grid profile-completion-grid--compact mt-3">
+            <% incompleteSteps.slice(0, 3).forEach(function(step) { %>
+                <a href="<%= step.href %>" class="profile-completion-task">
                     <span class="profile-completion-task__check">
-                        <% if (step.done) { %>
-                            <i class="bi bi-check-lg"></i>
-                        <% } else { %>
-                            <i class="bi bi-circle"></i>
-                        <% } %>
+                        <i class="bi bi-circle"></i>
                     </span>
                     <div>
                         <strong><%= step.label %></strong>
-                        <% if (step.detail) { %><small><%= step.detail %></small><% } %>
                     </div>
                     <em>+<%= step.impact ?? step.points ?? 0 %>%</em>
                 </a>
             <% }); %>
         </div>
-
-        <% if (incompleteSteps.length > 0) { %>
-            <a href="<%= incompleteSteps[0].href %>" class="btn btn-ek-primary btn-sm mt-3">Next: <%= incompleteSteps[0].label %></a>
-        <% } %>
     </div>
+
+    <script>
+    (function() {
+        if (sessionStorage.getItem('ek-dismiss-profile-card')) {
+            var el = document.getElementById('profileCompletionCard');
+            if (el) el.style.display = 'none';
+        }
+    })();
+    function dismissProfileCard() {
+        var el = document.getElementById('profileCompletionCard');
+        if (el) el.style.display = 'none';
+        sessionStorage.setItem('ek-dismiss-profile-card', '1');
+    }
+    </script>
 <% } %>
 
 <% if (currentUser.role === 'customer') { %>
