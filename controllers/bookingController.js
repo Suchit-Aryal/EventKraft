@@ -153,6 +153,12 @@ module.exports = {
 
     async accept(req, res) {
         try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
+            if (booking.worker_id !== req.user.id) {
+                req.flash('error', 'Only the assigned worker can accept this booking');
+                return res.redirect('/bookings');
+            }
             await Booking.accept(req.params.id);
             req.flash('success', 'Booking accepted!');
             res.redirect(`/bookings/${req.params.id}`);
@@ -165,6 +171,12 @@ module.exports = {
 
     async complete(req, res) {
         try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
+            if (booking.worker_id !== req.user.id) {
+                req.flash('error', 'Only the assigned worker can complete this booking');
+                return res.redirect('/bookings');
+            }
             await Booking.complete(req.params.id);
             req.flash('success', 'Booking marked as completed!');
             res.redirect(`/bookings/${req.params.id}`);
@@ -177,6 +189,12 @@ module.exports = {
 
     async cancel(req, res) {
         try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
+            if (booking.customer_id !== req.user.id && booking.worker_id !== req.user.id) {
+                req.flash('error', 'You are not authorized to cancel this booking');
+                return res.redirect('/bookings');
+            }
             await Booking.cancel(req.params.id);
             req.flash('success', 'Booking cancelled');
             res.redirect(`/bookings/${req.params.id}`);
