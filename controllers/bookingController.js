@@ -27,8 +27,35 @@ module.exports = {
 
     async store(req, res) {
         try {
-            const { customer_note, ...rest } = req.body;
-            const booking = await Booking.create({ ...rest, customer_id: req.user.id, customer_note: customer_note || null });
+            const { customer_note, event_date, event_location, requirements, ...rest } = req.body;
+
+            // Validate required booking details
+            if (!event_date) {
+                req.flash('error', 'Please select an event date');
+                return res.redirect('back');
+            }
+            if (!event_location || !event_location.trim()) {
+                req.flash('error', 'Please enter the event location');
+                return res.redirect('back');
+            }
+
+            // Server-side concurrency check
+            if (rest.gig_id) {
+                const alreadyBooked = await Booking.hasActiveBooking(rest.gig_id, req.user.id);
+                if (alreadyBooked) {
+                    req.flash('error', 'You already have an active booking for this service. Please cancel it before making a new one.');
+                    return res.redirect('back');
+                }
+            }
+
+            const booking = await Booking.create({
+                ...rest,
+                customer_id: req.user.id,
+                customer_note: customer_note || null,
+                event_date,
+                event_location: event_location.trim(),
+                requirements: (requirements || '').trim() || null,
+            });
 
             // Emit booking card to worker via chat (non-fatal)
             try {

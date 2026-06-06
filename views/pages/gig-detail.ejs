@@ -184,6 +184,20 @@
                                         <input type="hidden" name="commission_amount" value="<%= (pkg.price * 0.1).toFixed(2) %>">
                                         <input type="hidden" name="worker_earning" value="<%= (pkg.price * 0.9).toFixed(2) %>">
                                         <div class="form-group mt-3">
+                                          <label for="event_date_<%= i %>" class="form-label">Event date</label>
+                                          <input type="date" id="event_date_<%= i %>" name="event_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+                                        </div>
+                                        <div class="form-group mt-3">
+                                          <label for="event_location_<%= i %>" class="form-label">Event location</label>
+                                          <input type="text" id="event_location_<%= i %>" name="event_location" class="form-control" required placeholder="e.g. Kathmandu, Bhaktapur">
+                                        </div>
+                                        <div class="form-group mt-3">
+                                          <label for="requirements_<%= i %>" class="form-label">
+                                            Requirements <span class="text-muted">(optional)</span>
+                                          </label>
+                                          <textarea id="requirements_<%= i %>" name="requirements" class="form-control" rows="2" maxlength="1000" placeholder="Describe what you need for this event..."></textarea>
+                                        </div>
+                                        <div class="form-group mt-3">
                                           <label for="customer_note_<%= i %>" class="form-label">
                                             Message to worker <span class="text-muted">(optional)</span>
                                           </label>
@@ -191,16 +205,15 @@
                                             id="customer_note_<%= i %>"
                                             name="customer_note"
                                             class="form-control"
-                                            rows="3"
+                                            rows="2"
                                             maxlength="500"
-                                            placeholder="Any special requirements, questions, or notes for the worker..."
+                                            placeholder="Any questions or notes for the worker..."
                                           ></textarea>
-                                          <small class="text-muted"><span class="note-char-count">0</span>/500</small>
                                         </div>
                                         <% if (locals.alreadyBooked) { %>
-                                            <button class="btn btn-secondary w-100" disabled>Already Booked</button>
+                                            <button class="btn btn-secondary w-100 mt-3" disabled>Already Booked</button>
                                         <% } else { %>
-                                            <button type="submit" class="btn btn-ek-primary w-100">Book <%= pkg.tier || pkg.title %></button>
+                                            <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book <%= pkg.tier || pkg.title %></button>
                                         <% } %>
                                     </form>
                                 <% } %>
@@ -219,6 +232,20 @@
                                 <input type="hidden" name="commission_amount" value="<%= (gig.starting_price * 0.1).toFixed(2) %>">
                                 <input type="hidden" name="worker_earning" value="<%= (gig.starting_price * 0.9).toFixed(2) %>">
                                 <div class="form-group mt-3">
+                                  <label for="event_date" class="form-label">Event date</label>
+                                  <input type="date" id="event_date" name="event_date" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+                                </div>
+                                <div class="form-group mt-3">
+                                  <label for="event_location" class="form-label">Event location</label>
+                                  <input type="text" id="event_location" name="event_location" class="form-control" required placeholder="e.g. Kathmandu, Bhaktapur">
+                                </div>
+                                <div class="form-group mt-3">
+                                  <label for="requirements" class="form-label">
+                                    Requirements <span class="text-muted">(optional)</span>
+                                  </label>
+                                  <textarea id="requirements" name="requirements" class="form-control" rows="2" maxlength="1000" placeholder="Describe what you need for this event..."></textarea>
+                                </div>
+                                <div class="form-group mt-3">
                                   <label for="customer_note" class="form-label">
                                     Message to worker <span class="text-muted">(optional)</span>
                                   </label>
@@ -226,16 +253,15 @@
                                     id="customer_note"
                                     name="customer_note"
                                     class="form-control"
-                                    rows="3"
+                                    rows="2"
                                     maxlength="500"
-                                    placeholder="Any special requirements, questions, or notes for the worker..."
+                                    placeholder="Any questions or notes for the worker..."
                                   ></textarea>
-                                  <small class="text-muted"><span class="note-char-count">0</span>/500</small>
                                 </div>
                                 <% if (locals.alreadyBooked) { %>
-                                    <button class="btn btn-secondary w-100" disabled>Already Booked</button>
+                                    <button class="btn btn-secondary w-100 mt-3" disabled>Already Booked</button>
                                 <% } else { %>
-                                    <button type="submit" class="btn btn-ek-primary w-100">Book Now</button>
+                                    <button type="submit" class="btn btn-ek-primary w-100 mt-3">Book Now</button>
                                 <% } %>
                             </form>
                         </div>
