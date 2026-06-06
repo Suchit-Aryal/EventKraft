@@ -120,11 +120,16 @@ module.exports = {
                 imageUrls = await Promise.all(uploads);
             }
 
-            // Create the gig with images
+            // Whitelist allowed fields
+            const { title, description, category_id, starting_price,
+                    delivery_time, tags, faq, status } = req.body;
+
             const gig = await Gig.create({
-                ...req.body,
+                title, description, category_id, starting_price,
+                delivery_time, tags, faq,
+                status: status === 'draft' ? 'draft' : 'active',
                 worker_id: req.user.id,
-                portfolio_images: imageUrls
+                portfolio_images: imageUrls,
             });
 
             // Handle tier/package creation if tiers were provided
@@ -213,13 +218,24 @@ module.exports = {
 
     async update(req, res) {
         try {
-            // If new images uploaded, upload to Cloudinary
-            if (req.files && req.files.length > 0) {
-                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
-                req.body.portfolio_images = await Promise.all(uploads);
+            const gig = await Gig.findById(req.params.id);
+            if (!gig) return res.status(404).render('pages/404', { title: 'Service Not Found' });
+            if (gig.worker_id !== req.user.id) {
+                req.flash('error', 'You can only edit your own services');
+                return res.redirect('/gigs');
             }
 
-            await Gig.update(req.params.id, req.body);
+            const { title, description, category_id, starting_price,
+                    delivery_time, tags, faq } = req.body;
+            const updates = { title, description, category_id, starting_price,
+                              delivery_time, tags, faq };
+
+            if (req.files && req.files.length > 0) {
+                const uploads = req.files.map(f => uploadToCloudinary(f.buffer, f.mimetype));
+                updates.portfolio_images = await Promise.all(uploads);
+            }
+
+            await Gig.update(req.params.id, updates);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
         } catch (err) {

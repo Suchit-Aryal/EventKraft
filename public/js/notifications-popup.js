@@ -2,6 +2,12 @@
  * Notifications & Messages Navbar Popups - DEFINITIVE LOGIC (V3 - Click based)
  */
 (function() {
+  function esc(str) {
+    var d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
   const notifWrapper = document.getElementById('notif-wrapper');
   const msgWrapper   = document.getElementById('msg-wrapper');
   const userMenu     = document.getElementById('user-menu');
@@ -38,10 +44,10 @@
       return;
     }
     notifList.innerHTML = items.map(n => `
-      <a href="${n.link || '#'}" class="topnav__dropdown-item-link ${n.is_read ? '' : 'is-unread'}">
-        <span class="notif-item__title">${n.title}</span>
-        <span class="notif-item__msg">${n.message || ''}</span>
-        <span class="notif-item__time">${formatDate(n.created_at)}</span>
+      <a href="${esc(n.link || '#')}" class="topnav__dropdown-item-link ${n.is_read ? '' : 'is-unread'}">
+        <span class="notif-item__title">${esc(n.title)}</span>
+        <span class="notif-item__msg">${esc(n.message)}</span>
+        <span class="notif-item__time">${esc(formatDate(n.created_at))}</span>
       </a>
     `).join('');
   }
@@ -73,12 +79,12 @@
       const otherName = String(c.participant_1) === currentUserId ? c.p2_name : c.p1_name;
       const otherAvatar = String(c.participant_1) === currentUserId ? c.p2_avatar : c.p1_avatar;
       return `
-        <a href="/messages/${c.id}" class="topnav__dropdown-item-link">
+        <a href="/messages/${esc(c.id)}" class="topnav__dropdown-item-link">
           <div class="msg-item">
-            <img src="${otherAvatar || '/images/default-avatar.png'}" class="msg-item__avatar">
+            <img src="${esc(otherAvatar || '/images/default-avatar.png')}" class="msg-item__avatar">
             <div class="msg-item__info">
-              <span class="msg-item__name">${otherName || 'User'}</span>
-              <span class="msg-item__snippet">${c.last_message || 'New conversation'}</span>
+              <span class="msg-item__name">${esc(otherName || 'User')}</span>
+              <span class="msg-item__snippet">${esc(c.last_message || 'New conversation')}</span>
             </div>
           </div>
         </a>
