@@ -15,7 +15,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
 const cors = require('cors');
-const rateLimit = require('express-rate-limit');
 
 // Import config
 const pool = require('./config/db');
@@ -53,6 +52,7 @@ app.use(helmet({
             fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://ui-avatars.com"],
             connectSrc: ["'self'", "ws:", "wss:"],
+            upgradeInsecureRequests: null,
         },
     },
 }));
@@ -60,14 +60,6 @@ app.use(cors({
     origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : false,
     credentials: true,
 }));
-
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 20,
-    message: { error: 'Too many attempts, please try again after 15 minutes' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
 
 // ─── Middleware ─────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
@@ -143,7 +135,7 @@ app.get('/', async (req, res) => {
 });
 
 // Mount route modules
-app.use('/auth', authLimiter, authRoutes);
+app.use('/auth', authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/gigs', gigRoutes);
 app.use('/bookings', bookingRoutes);

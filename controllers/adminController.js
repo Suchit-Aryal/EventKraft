@@ -456,7 +456,7 @@ module.exports.legalAction = async function(req, res) {
         await flagOverdueBookings();
         const bookings = await getLegalActionBookings();
         res.render('pages/admin-legal', {
-            title: 'Legal Action Panel — EventKraft',
+            title: 'Legal Action Panel',
             layout: 'dashboard',
             activePage: 'admin-legal',
             bookings,

@@ -34,6 +34,13 @@ module.exports = {
                 req.flash('error', 'Please select an event date');
                 return res.redirect('back');
             }
+            const eventDateObj = new Date(event_date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (Number.isNaN(eventDateObj.getTime()) || eventDateObj < today) {
+                req.flash('error', 'Event date must be today or later');
+                return res.redirect('back');
+            }
             if (!event_location || !event_location.trim()) {
                 req.flash('error', 'Please enter the event location');
                 return res.redirect('back');
