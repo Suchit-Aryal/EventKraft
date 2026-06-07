@@ -3,6 +3,7 @@
 // ============================================================
 
 const pool = require('../config/db');
+const { filterContent } = require('../utils/contentFilter');
 
 const Message = {
 
@@ -68,6 +69,7 @@ const Message = {
     // ─── MESSAGES — CREATE ──────────────────────────────────
 
     async send({ conversationId, senderId, receiverId, content, attachments, replyTo, fileUrl, fileName, fileType, messageType }) {
+        const filteredContent = messageType === 'text' || !messageType ? filterContent(content) : content;
         // Single round-trip: INSERT message + UPDATE conversation timestamp via CTE
         const result = await pool.query(
             `WITH new_msg AS (
@@ -78,7 +80,7 @@ const Message = {
                UPDATE conversations SET last_message_at = NOW() WHERE id = $1
              )
              SELECT * FROM new_msg`,
-            [conversationId, senderId, receiverId, content, JSON.stringify(attachments || []), replyTo || null, fileUrl || null, fileName || null, fileType || null, messageType || 'text']
+            [conversationId, senderId, receiverId, filteredContent, JSON.stringify(attachments || []), replyTo || null, fileUrl || null, fileName || null, fileType || null, messageType || 'text']
         );
 
         return result.rows[0];
