@@ -228,6 +228,8 @@ CREATE TABLE bookings (
     event_location    VARCHAR(255),
     requirements      TEXT,
     status            booking_status DEFAULT 'pending',
+    customer_note     TEXT,
+    advance_amount    DECIMAL(12,2),
     advance_deadline  TIMESTAMPTZ,
     advance_paid_at   TIMESTAMPTZ,
     final_deadline    TIMESTAMPTZ,

@@ -281,7 +281,7 @@
         if (msg.content) {
             html += '<p class="mb-0" style="font-size:.9rem">' + escapeHtml(msg.content) + '</p>';
         }
-        html += '<small class="msg-time" style="opacity:.5;font-size:.7rem">' + formatTime(msg.created_at) + (msg.pending ? ' · Sending…' : '') + '</small>';
+        html += '<small class="msg-time" style="opacity:.5;font-size:.7rem">' + formatTime(msg.created_at) + '</small>';
         html += '</div>';
 
         // Actions
