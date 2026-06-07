@@ -36,6 +36,11 @@
         <span class="rounded-circle bg-secondary" style="width:8px;height:8px;opacity:.3"></span>
         <span class="rounded-circle bg-secondary" style="width:8px;height:8px;opacity:.3"></span>
     </div>
+
+    <form method="POST" action="/onboarding/cancel" class="text-center mt-3"
+          onsubmit="return confirm('This will discard your signup and remove the account data. Continue?')">
+        <button type="submit" class="btn btn-link btn-sm text-muted">Don't create account</button>
+    </form>
 </div>
 
 <script>

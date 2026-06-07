@@ -87,8 +87,29 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Global variables for templates
+// Abandon onboarding when an incomplete-profile user navigates elsewhere:
+// log them out so the destination page renders as a guest.
+app.use((req, res, next) => {
+    if (req.method === 'GET'
+        && req.isAuthenticated()
+        && req.user.profile_complete === false
+        && !req.path.startsWith('/onboarding')
+        && !req.path.startsWith('/auth')) {
+        return req.logout((err) => {
+            if (err) return next(err);
+            const dest = req.originalUrl || '/';
+            if (req.session) {
+                return req.session.destroy(() => res.redirect(dest));
+            }
+            res.redirect(dest);
+        });
+    }
+    next();
+});
+
 app.use(async (req, res, next) => {
     res.locals.currentUser = req.user || null;
+    res.locals.isOnboarding = req.path.startsWith('/onboarding');
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
@@ -96,16 +117,6 @@ app.use(async (req, res, next) => {
 
 // Dashboard nav data (icons, unread counts, profile completion)
 app.use(require('./middleware/injectNavData'));
-
-// Force incomplete profiles (e.g. Google OAuth signups) through onboarding
-app.use((req, res, next) => {
-    if (req.isAuthenticated() && req.user.profile_complete === false
-        && !req.path.startsWith('/onboarding')
-        && !req.path.startsWith('/auth')) {
-        return res.redirect('/onboarding/step1');
-    }
-    next();
-});
 
 // ─── Routes ─────────────────────────────────────────────────
 

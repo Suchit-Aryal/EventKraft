@@ -31,7 +31,10 @@
     expand: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
     close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
     send: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>',
-    x: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    x: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    plus: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    image: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    paperclip: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>'
   };
 
   // ─── PUBLIC API ────────────────────────────────────────────
@@ -94,7 +97,18 @@
         </div>
       </div>
       <div class="chat-box__body"></div>
+      <div class="chat-box__file-bar is-hidden">
+        <span class="chat-box__file-bar-name"></span>
+        <button type="button" class="chat-box__file-bar-clear" title="Remove">${ICONS.x}</button>
+      </div>
       <div class="chat-box__footer">
+        <div class="chat-box__attach">
+          <button type="button" class="chat-box__attach-btn" title="Attach">${ICONS.plus}</button>
+          <div class="chat-box__attach-menu is-hidden">
+            <button type="button" class="chat-box__attach-option" data-type="image">${ICONS.image}<span>Photo</span></button>
+            <button type="button" class="chat-box__attach-option" data-type="file">${ICONS.paperclip}<span>File</span></button>
+          </div>
+        </div>
         <input type="text" class="chat-box__input" placeholder="Type a message..." autocomplete="off">
         <button class="chat-box__send" title="Send">${ICONS.send}</button>
       </div>
@@ -120,10 +134,62 @@
     const input = div.querySelector('.chat-box__input');
     const sendBtn = div.querySelector('.chat-box__send');
 
+    // Per-chat pending file state
+    const pending = { file: null };
+
+    const fileBar = div.querySelector('.chat-box__file-bar');
+    const fileBarName = div.querySelector('.chat-box__file-bar-name');
+    const fileBarClear = div.querySelector('.chat-box__file-bar-clear');
+    const attachBtn = div.querySelector('.chat-box__attach-btn');
+    const attachMenu = div.querySelector('.chat-box__attach-menu');
+
+    const showPendingFile = (file) => {
+      pending.file = file;
+      fileBarName.textContent = file.name;
+      fileBar.classList.remove('is-hidden');
+    };
+    const clearPendingFile = () => {
+      pending.file = null;
+      fileBarName.textContent = '';
+      fileBar.classList.add('is-hidden');
+    };
+    fileBarClear.onclick = (e) => { e.stopPropagation(); clearPendingFile(); };
+
+    attachBtn.onclick = (e) => {
+      e.stopPropagation();
+      attachMenu.classList.toggle('is-hidden');
+    };
+    document.addEventListener('click', (e) => {
+      if (!div.isConnected) return;
+      if (!attachMenu.contains(e.target) && e.target !== attachBtn) {
+        attachMenu.classList.add('is-hidden');
+      }
+    });
+
+    div.querySelectorAll('.chat-box__attach-option').forEach((opt) => {
+      opt.onclick = (e) => {
+        e.stopPropagation();
+        attachMenu.classList.add('is-hidden');
+        const type = opt.dataset.type;
+        const picker = document.createElement('input');
+        picker.type = 'file';
+        if (type === 'image') picker.accept = 'image/*';
+        picker.onchange = () => {
+          if (picker.files && picker.files[0]) showPendingFile(picker.files[0]);
+        };
+        picker.click();
+      };
+    });
+
     const doSend = () => {
       const content = input.value.trim();
-      if (!content) return;
-      performSend(id, content, div);
+      if (!content && !pending.file) return;
+      if (pending.file) {
+        performSendFile(id, content, pending.file, div);
+        clearPendingFile();
+      } else {
+        performSend(id, content, div);
+      }
       input.value = '';
       input.focus();
     };
@@ -243,7 +309,47 @@
     const isSent = String(m.sender_id) === String(window.CURRENT_USER_ID);
     bubble.className = `chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}`;
     if (m.id) bubble.dataset.msgId = m.id;
-    bubble.textContent = m.content;
+
+    let hasAttachment = false;
+    if (m.file_url) {
+      hasAttachment = true;
+      if (m.file_type && m.file_type.startsWith('image/')) {
+        const link = document.createElement('a');
+        link.href = m.file_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        const img = document.createElement('img');
+        img.src = m.file_url;
+        img.alt = m.file_name || 'Image';
+        img.className = 'chat-bubble__image';
+        link.appendChild(img);
+        bubble.appendChild(link);
+      } else {
+        const link = document.createElement('a');
+        link.href = m.file_url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'chat-bubble__file';
+        link.innerHTML = `${ICONS.paperclip}<span></span>`;
+        link.querySelector('span').textContent = m.file_name || 'File';
+        bubble.appendChild(link);
+      }
+    } else if (m.file_name && m.pending) {
+      hasAttachment = true;
+      const ph = document.createElement('div');
+      ph.className = 'chat-bubble__file';
+      ph.innerHTML = `${ICONS.paperclip}<span></span>`;
+      ph.querySelector('span').textContent = `${m.file_name} (uploading…)`;
+      bubble.appendChild(ph);
+    }
+
+    if (m.content) {
+      const text = document.createElement('div');
+      text.textContent = m.content;
+      if (hasAttachment) text.style.marginTop = '6px';
+      bubble.appendChild(text);
+    }
+
     body.appendChild(bubble);
   }
 
@@ -354,6 +460,49 @@
           tempEl.remove();
           performSend(id, content, chatBox);
         };
+      }
+    }
+  }
+
+  async function performSendFile(id, content, file, chatBox) {
+    const body = chatBox.querySelector('.chat-box__body');
+    const tempId = 'temp-' + Date.now();
+
+    appendMessage(body, {
+      id: tempId,
+      sender_id: window.CURRENT_USER_ID,
+      content,
+      file_name: file.name,
+      file_type: file.type,
+      pending: true
+    });
+    scrollToBottom(chatBox);
+
+    try {
+      const formData = new FormData();
+      formData.append('chatFile', file);
+      formData.append('content', content || '');
+
+      const res = await fetch(`/messages/${id}/send-file`, { method: 'POST', body: formData });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+
+      const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
+      if (tempEl) tempEl.remove();
+      appendMessage(body, {
+        id: data.id,
+        sender_id: window.CURRENT_USER_ID,
+        content,
+        file_url: data.file_url,
+        file_name: data.file_name,
+        file_type: data.file_type
+      });
+      scrollToBottom(chatBox);
+    } catch (err) {
+      const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
+      if (tempEl) {
+        tempEl.style.opacity = '0.5';
+        tempEl.title = 'Failed to upload — ' + err.message;
       }
     }
   }

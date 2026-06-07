@@ -83,4 +83,27 @@ router.post('/step3', ensureAuthenticated, async (req, res) => {
     }
 });
 
+// POST /onboarding/cancel — Abandon signup: delete the half-created Google OAuth
+// account and log the user out, then redirect home.
+router.post('/cancel', ensureAuthenticated, async (req, res) => {
+    const userId = req.user.id;
+    const isIncomplete = req.user.profile_complete === false;
+
+    try {
+        if (isIncomplete) {
+            await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+        }
+    } catch (err) {
+        console.error('Cancel onboarding cleanup failed:', err);
+    }
+
+    req.logout((err) => {
+        if (err) console.error('Logout after cancel failed:', err);
+        if (req.session) {
+            return req.session.destroy(() => res.redirect('/'));
+        }
+        res.redirect('/');
+    });
+});
+
 module.exports = router;

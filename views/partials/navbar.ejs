@@ -4,6 +4,12 @@
             <span class="brand-icon"><i class="bi bi-stars"></i></span>
             EventKraft
         </a>
+        <% if (locals.isOnboarding) { %>
+            <ul class="navbar-nav ms-auto flex-row gap-3 align-items-center">
+                <li class="nav-item"><a class="nav-link" href="/gigs">Browse Services</a></li>
+                <li class="nav-item"><a class="nav-link" href="/jobs">Browse Gigs</a></li>
+            </ul>
+        <% } else { %>
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
             aria-label="Toggle navigation">
             <i class="bi bi-list fs-4" style="color:var(--ek-text)"></i>
@@ -109,5 +115,6 @@
                         <% } %>
             </ul>
         </div>
+        <% } %>
     </div>
 </nav>
