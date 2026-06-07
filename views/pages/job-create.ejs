@@ -3,10 +3,10 @@
 <section class="container py-5" style="max-width:720px">
     <div class="text-center mb-4">
         <% if (typeof job !== 'undefined' && job) { %>
-            <h1 class="font-display fs-2 fw-semibold">Edit Job</h1>
-            <p class="text-muted">Update your job posting and publish when ready.</p>
+            <h1 class="font-display fs-2 fw-semibold">Edit Gig</h1>
+            <p class="text-muted">Update your gig posting and publish when ready.</p>
         <% } else { %>
-            <h1 class="font-display fs-2 fw-semibold">Hire</h1>
+            <h1 class="font-display fs-2 fw-semibold">Post a Gig</h1>
             <p class="text-muted">Tell us what you need — workers will reach out within hours.</p>
         <% } %>
     </div>
@@ -157,7 +157,7 @@
                     <% if (isEditing) { %>
                         <% if (job.status === 'draft') { %>
                             <button type="submit" class="btn btn-success btn-lg flex-grow-1" onclick="document.getElementById('statusInput').value='published'">
-                                <i class="bi bi-check-circle me-1"></i> Publish Job
+                                <i class="bi bi-check-circle me-1"></i> Publish Gig
                             </button>
                             <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1">
                                 <i class="bi bi-save me-1"></i> Update Draft
@@ -169,7 +169,7 @@
                         <% } %>
                     <% } else { %>
                         <button type="submit" class="btn btn-ek-primary btn-lg flex-grow-1" id="publishBtn">
-                            <i class="bi bi-rocket-takeoff me-1"></i> Publish Job
+                            <i class="bi bi-rocket-takeoff me-1"></i> Publish Gig
                         </button>
                         <button type="submit" class="btn btn-outline-secondary btn-lg" onclick="document.getElementById('statusInput').value='draft'">
                             <i class="bi bi-save me-1"></i> Save Draft
@@ -177,7 +177,7 @@
                     <% } %>
                 </div>
 
-                <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you hire.</p>
+                <p class="text-muted small mt-3 pt-2" style="border-top:1px solid var(--ek-border)">Posting is free. EventKraft charges a small service fee only when you book.</p>
             </div>
         </form>
     </div>
@@ -203,6 +203,18 @@
     var pd = document.getElementById('proposal_deadline');
     if (ed) ed.setAttribute('min', minStr);
     if (pd) pd.setAttribute('min', minStr);
+    if (ed && pd) {
+        ed.addEventListener('change', function() {
+            if (ed.value) {
+                var dayBefore = new Date(ed.value);
+                dayBefore.setDate(dayBefore.getDate() - 1);
+                var maxStr = dayBefore.toISOString().split('T')[0];
+                pd.setAttribute('max', maxStr);
+                if (pd.value && pd.value >= ed.value) pd.value = '';
+            }
+        });
+        if (ed.value) ed.dispatchEvent(new Event('change'));
+    }
 })();
 
 function goStep(step) {
@@ -244,6 +256,9 @@ function goStep(step) {
             var deadlineDate = new Date(deadline);
             if (deadlineDate < today) {
                 return alert('Proposal deadline cannot be in the past.');
+            }
+            if (deadlineDate >= eventDate) {
+                return alert('Proposal deadline must be before the event date.');
             }
         }
     }

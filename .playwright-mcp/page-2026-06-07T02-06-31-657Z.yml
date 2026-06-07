@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - button "Toggle navigation" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: 
+      - text:        
+  - generic [ref=e10]:
+    - heading "404" [level=1] [ref=e11]
+    - paragraph [ref=e12]: Page not found
+    - paragraph [ref=e13]: The page you're looking for doesn't exist or has been moved.
+    - link "Go home" [ref=e14] [cursor=pointer]:
+      - /url: /
+  - contentinfo [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - generic [ref=e20]: 
+            - text: EventKraft
+          - paragraph [ref=e21]: Nepal's premium marketplace for wedding & event professionals. Connecting talent with unforgettable moments.
+        - generic [ref=e22]:
+          - heading "Platform" [level=6] [ref=e23]
+          - list [ref=e24]:
+            - listitem [ref=e25]:
+              - link "Browse Services" [ref=e26] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e27]:
+              - link "Browse Jobs" [ref=e28] [cursor=pointer]:
+                - /url: /jobs
+            - listitem [ref=e29]:
+              - link "Get Started" [ref=e30] [cursor=pointer]:
+                - /url: /auth/register
+        - generic [ref=e31]:
+          - heading "Categories" [level=6] [ref=e32]
+          - list [ref=e33]:
+            - listitem [ref=e34]:
+              - link "Photography" [ref=e35] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e36]:
+              - link "Videography" [ref=e37] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e38]:
+              - link "Decoration" [ref=e39] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e40]:
+              - link "Mehendi" [ref=e41] [cursor=pointer]:
+                - /url: /gigs
+        - generic [ref=e42]:
+          - heading "Stay connected" [level=6] [ref=e43]
+          - paragraph [ref=e44]: Follow us for wedding inspiration and marketplace updates.
+          - generic [ref=e45]:
+            - link "" [ref=e46] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e47]: 
+            - link "" [ref=e48] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e49]: 
+            - link "" [ref=e50] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e51]: 
+      - separator [ref=e52]
+      - paragraph [ref=e53]: © 2026 EventKraft. Where Premium Talent Meets Grand Events.

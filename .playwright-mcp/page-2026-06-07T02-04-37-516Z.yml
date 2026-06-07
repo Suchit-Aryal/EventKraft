@@ -1,0 +1,94 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link " EventKraft" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: 
+        - text: EventKraft
+      - button "Toggle navigation" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8]: 
+      - text: 
+  - generic [ref=e9]:
+    - text: 
+    - generic [ref=e11]:
+      - link " EventKraft" [ref=e12] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e13]: 
+        - generic [ref=e14]: EventKraft
+      - heading "Log in" [level=1] [ref=e15]
+      - paragraph [ref=e16]: Welcome back — let's get you signed in.
+      - link "Continue with Google" [ref=e17] [cursor=pointer]:
+        - /url: /auth/google
+        - img [ref=e18]
+        - text: Continue with Google
+      - generic [ref=e23]:
+        - separator [ref=e24]
+        - generic [ref=e25]: or
+        - separator [ref=e26]
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Email
+          - textbox "Email" [ref=e30]:
+            - /placeholder: you@example.com
+        - generic [ref=e31]:
+          - generic [ref=e32]: Password
+          - generic [ref=e33]:
+            - textbox "Password" [ref=e34]:
+              - /placeholder: ••••••••
+            - button "" [ref=e35] [cursor=pointer]:
+              - generic [ref=e36]: 
+        - button "Log in" [ref=e37] [cursor=pointer]
+      - paragraph [ref=e38]:
+        - text: New to EventKraft?
+        - link "Create an account" [ref=e39] [cursor=pointer]:
+          - /url: /auth/register
+  - contentinfo [ref=e40]:
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: 
+            - text: EventKraft
+          - paragraph [ref=e46]: Nepal's premium marketplace for wedding & event professionals. Connecting talent with unforgettable moments.
+        - generic [ref=e47]:
+          - heading "Platform" [level=6] [ref=e48]
+          - list [ref=e49]:
+            - listitem [ref=e50]:
+              - link "Browse Services" [ref=e51] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e52]:
+              - link "Browse Jobs" [ref=e53] [cursor=pointer]:
+                - /url: /jobs
+            - listitem [ref=e54]:
+              - link "Get Started" [ref=e55] [cursor=pointer]:
+                - /url: /auth/register
+        - generic [ref=e56]:
+          - heading "Categories" [level=6] [ref=e57]
+          - list [ref=e58]:
+            - listitem [ref=e59]:
+              - link "Photography" [ref=e60] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e61]:
+              - link "Videography" [ref=e62] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e63]:
+              - link "Decoration" [ref=e64] [cursor=pointer]:
+                - /url: /gigs
+            - listitem [ref=e65]:
+              - link "Mehendi" [ref=e66] [cursor=pointer]:
+                - /url: /gigs
+        - generic [ref=e67]:
+          - heading "Stay connected" [level=6] [ref=e68]
+          - paragraph [ref=e69]: Follow us for wedding inspiration and marketplace updates.
+          - generic [ref=e70]:
+            - link "" [ref=e71] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e72]: 
+            - link "" [ref=e73] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e74]: 
+            - link "" [ref=e75] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=e76]: 
+      - separator [ref=e77]
+      - paragraph [ref=e78]: © 2026 EventKraft. Where Premium Talent Meets Grand Events.

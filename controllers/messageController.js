@@ -18,6 +18,8 @@ module.exports = {
                  FROM users u
                  LEFT JOIN profiles p ON u.id = p.user_id
                  WHERE u.id != $1
+                   AND u.is_active = true
+                   AND u.role != 'admin'
                    AND (p.first_name ILIKE $2 OR p.last_name ILIKE $2
                         OR CONCAT(p.first_name, ' ', p.last_name) ILIKE $2)
                  ORDER BY p.first_name ASC
@@ -84,6 +86,15 @@ module.exports = {
             const messages = normalizeBookingRequestMessages(await Message.getByConversation(req.params.conversationId));
             await Message.markAsRead(req.params.conversationId, req.user.id);
 
+            // Update badge count in real-time
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const unread = await Message.getTotalUnread(req.user.id);
+                    io.to(`user_${req.user.id}`).emit('update-msg-badge', { count: unread });
+                }
+            } catch (e) {}
+
             // Determine the other participant's info
             const isP1 = conversation.participant_1 === req.user.id;
             const otherName = isP1 ? conversation.p2_name : conversation.p1_name;
@@ -115,6 +126,15 @@ module.exports = {
 
             const messages = normalizeBookingRequestMessages(await Message.getByConversation(req.params.conversationId));
             await Message.markAsRead(req.params.conversationId, req.user.id);
+
+            try {
+                const io = req.app.get('io');
+                if (io) {
+                    const unread = await Message.getTotalUnread(req.user.id);
+                    io.to(`user_${req.user.id}`).emit('update-msg-badge', { count: unread });
+                }
+            } catch (e) {}
+
             res.json(messages);
         } catch (err) {
             console.error('History API error:', err);
@@ -177,6 +197,7 @@ module.exports = {
                         created_at: msg.created_at
                     };
                     io.to(`conversation_${conversationId}`).emit('new-message', socketData);
+                    io.to(`user_${receiver_id}`).emit('new-message', socketData);
                     io.to(`user_${receiver_id}`).emit('new-message-badge', socketData);
                 }
             } catch (emitErr) {
@@ -211,9 +232,10 @@ module.exports = {
             const receiverId = isP1 ? conversation.participant_2 : conversation.participant_1;
 
             const cloudinary = require('../config/cloudinary');
+            const isImage = req.file.mimetype.startsWith('image/');
             const result = await new Promise((resolve, reject) => {
                 const stream = cloudinary.uploader.upload_stream(
-                    { folder: 'eventkraft/chat', resource_type: 'auto' },
+                    { folder: 'eventkraft/chat', resource_type: isImage ? 'image' : 'raw' },
                     (err, r) => err ? reject(err) : resolve(r)
                 );
                 stream.end(req.file.buffer);
@@ -248,6 +270,7 @@ module.exports = {
                         created_at: msg.created_at
                     };
                     io.to(`conversation_${req.params.conversationId}`).emit('new-message', socketData);
+                    io.to(`user_${receiverId}`).emit('new-message', socketData);
                     io.to(`user_${receiverId}`).emit('new-message-badge', socketData);
                 }
             } catch (emitErr) {

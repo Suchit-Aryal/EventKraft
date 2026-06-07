@@ -76,7 +76,7 @@
                 <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
                     <i class="bi bi-info-circle fs-4 text-info"></i>
                     <p class="text-muted mt-2 mb-2">Proposals can only be submitted by service providers.</p>
-                    <p class="small text-muted mb-0">Looking to hire? <a href="/jobs/create">Post your own job</a> to receive proposals from workers.</p>
+                    <p class="small text-muted mb-0">Need something similar? <a href="/jobs/create">Post your own gig</a> to receive proposals from workers.</p>
                 </div>
             <% } else if (typeof currentUser === 'undefined' || !currentUser) { %>
                 <div class="ek-card mt-4" style="padding:1.5rem 2rem; text-align:center">
@@ -156,8 +156,8 @@
             <% } else if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'customer' && currentUser.id !== job.customer_id) { %>
             <div class="ek-card mt-3" style="padding:1.5rem;background:var(--ek-gradient-subtle)">
                 <h6 class="fw-semibold mb-2">Looking for similar help?</h6>
-                <p class="small text-muted mb-0">Post your own job and receive proposals from verified service providers.</p>
-                <a href="/jobs/create" class="btn btn-ek-outline w-100 mt-3"><i class="bi bi-plus-lg me-2"></i>Post a Job</a>
+                <p class="small text-muted mb-0">Post your own gig and receive proposals from verified service providers.</p>
+                <a href="/jobs/create" class="btn btn-ek-outline w-100 mt-3"><i class="bi bi-plus-lg me-2"></i>Post a Gig</a>
             </div>
             <% } %>
         </div>

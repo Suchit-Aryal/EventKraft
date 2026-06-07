@@ -483,3 +483,13 @@ CREATE TRIGGER trg_bookings_updated_at
 
 CREATE TRIGGER trg_commission_settings_updated_at
     BEFORE UPDATE ON commission_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- SESSION STORE (connect-pg-simple)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS session (
+    sid   VARCHAR NOT NULL PRIMARY KEY,
+    sess  JSON    NOT NULL,
+    expire TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session_expire ON session (expire);

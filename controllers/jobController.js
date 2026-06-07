@@ -28,7 +28,7 @@ module.exports = {
             );
 
             res.render('pages/jobs', {
-                title: 'Browse Jobs',
+                title: 'Browse Gigs',
                 layout: req.user ? 'dashboard' : 'public',
                 activePage: 'browse-jobs',
                 jobs,
@@ -47,7 +47,7 @@ module.exports = {
         try {
             const jobs = await Job.findByCustomer(req.user.id);
             res.render('pages/my-jobs', {
-                title: 'My Jobs',
+                title: 'My Gigs',
                 layout: 'dashboard',
                 activePage: 'my-jobs',
                 jobs
@@ -80,14 +80,14 @@ module.exports = {
     async edit(req, res) {
         try {
             const job = await Job.findById(req.params.id);
-            if (!job) return res.status(404).render('pages/404', { title: 'Job Not Found' });
+            if (!job) return res.status(404).render('pages/404', { title: 'Gig Not Found' });
             if (job.customer_id !== req.user.id) {
-                req.flash('error', 'You can only edit your own jobs.');
+                req.flash('error', 'You can only edit your own gigs.');
                 return res.redirect('/dashboard');
             }
             const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
             res.render('pages/job-create', {
-                title: 'Edit Job',
+                title: 'Edit Gig',
                 layout: 'dashboard',
                 activePage: 'create-job',
                 categories: categories.rows,
@@ -128,7 +128,7 @@ module.exports = {
     // GET /jobs/create
     async create(req, res) {
         const categories = await pool.query('SELECT * FROM categories WHERE is_active = true ORDER BY sort_order');
-        res.render('pages/job-create', { title: 'Post a Job', layout: 'dashboard', activePage: 'create-job', categories: categories.rows, nepalCities: NEPAL_CITIES });
+        res.render('pages/job-create', { title: 'Post a Gig', layout: 'dashboard', activePage: 'create-job', categories: categories.rows, nepalCities: NEPAL_CITIES });
     },
 
     // POST /jobs
@@ -210,6 +210,16 @@ module.exports = {
     // POST /jobs/:id/proposals — Worker submits a proposal
     async submitProposal(req, res) {
         try {
+            const job = await Job.findById(req.params.id);
+            if (!job || job.status !== 'published') {
+                req.flash('error', 'This gig is no longer accepting proposals');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+            if (job.proposal_deadline && new Date(job.proposal_deadline) < new Date()) {
+                req.flash('error', 'The proposal deadline for this gig has passed');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+
             const already = await Proposal.hasActiveProposal(req.params.id, req.user.id);
             if (already) {
                 req.flash('error', 'You already submitted a proposal for this job');
@@ -250,8 +260,16 @@ module.exports = {
     // DELETE /jobs/:id
     async destroy(req, res) {
         try {
+            const activeBookings = await pool.query(
+                `SELECT id FROM bookings WHERE job_id = $1 AND status NOT IN ('cancelled', 'completed', 'paid_final')`,
+                [req.params.id]
+            );
+            if (activeBookings.rows.length > 0) {
+                req.flash('error', 'Cannot cancel this gig — there are active bookings associated with it.');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
             await Job.updateStatus(req.params.id, 'cancelled');
-            req.flash('success', 'Job cancelled');
+            req.flash('success', 'Gig cancelled');
             res.redirect('/jobs');
         } catch (err) {
             console.error(err);

@@ -7,6 +7,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const flash = require('express-flash');
 const methodOverride = require('method-override');
 const passport = require('passport');
@@ -47,9 +48,10 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdn.socket.io"],
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://ui-avatars.com"],
             connectSrc: ["'self'", "ws:", "wss:"],
         },
     },
@@ -74,12 +76,15 @@ app.use(express.json());
 app.use(methodOverride('_method'));
 
 // Session
-app.use(session({
+const sessionMiddleware = session({
+    store: new pgSession({ pool, tableName: 'session' }),
     secret: process.env.SESSION_SECRET || 'eventkraft-secret',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 days
-}));
+});
+app.use(sessionMiddleware);
+io.engine.use(sessionMiddleware);
 
 // Flash messages
 app.use(flash());
@@ -153,6 +158,8 @@ app.use('/dashboard', require('./routes/dashboardRoutes'));
 io.on('connection', (socket) => {
     // Join a personal room for real-time badges/notifications
     socket.on('join-user', (userId) => {
+        const sessionUser = socket.request.session && socket.request.session.passport && socket.request.session.passport.user;
+        if (sessionUser && String(sessionUser) !== String(userId)) return;
         socket.data.userId = userId;
         socket.join(`user_${userId}`);
     });

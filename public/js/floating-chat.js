@@ -479,12 +479,14 @@
 
     socket.on('new-message', (data) => {
       const id = data.conversation_id;
-      
+
       // If sender is current user, skip (we already rendered optimistically)
       if (String(data.sender_id) === String(window.CURRENT_USER_ID)) return;
 
       if (activeChats.has(id)) {
         const chatBox = activeChats.get(id);
+        // Deduplicate — skip if already rendered
+        if (data.id && chatBox.querySelector(`[data-msg-id="${data.id}"]`)) return;
         appendMessage(chatBox.querySelector('.chat-box__body'), data);
         scrollToBottom(chatBox);
       } else if (minimizedChats.has(id)) {

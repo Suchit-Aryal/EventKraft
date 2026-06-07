@@ -143,7 +143,10 @@
                         method: 'POST',
                         body: formData
                     });
-                    if (!res.ok) throw new Error('Server returned ' + res.status);
+                    if (!res.ok) {
+                        var errData = await res.json().catch(function() { return {}; });
+                        throw new Error(errData.error || 'Upload failed');
+                    }
                     saved = await res.json();
                     clearFile();
                 } else {
@@ -174,6 +177,9 @@
                     if (saved.file_url) {
                         var bubble = tempEl.querySelector('.chat-sent,.chat-received');
                         if (bubble) {
+                            // Remove the optimistic "uploading…" preview
+                            var oldPreview = bubble.querySelector('.msg-file-preview');
+                            if (oldPreview) oldPreview.remove();
                             var fileHtml = buildFileHtml(saved.file_url, saved.file_name, saved.file_type);
                             bubble.insertAdjacentHTML('afterbegin', fileHtml);
                         }
@@ -220,6 +226,8 @@
     // ── RECEIVING ────────────────────────────────────
     socket.on('new-message', function (msg) {
         if (msg.sender_id === currentUserId) return;
+        if (msg.conversation_id !== conversationId) return;
+        if (document.getElementById('msg-' + msg.id)) return;
         appendMessage(msg);
         scrollToBottom();
     });
@@ -300,12 +308,12 @@
 
     function buildFileHtml(url, name, type) {
         if (type && type.startsWith('image/')) {
-            return '<a href="' + url + '" target="_blank" rel="noopener noreferrer"><img src="' + url + '" alt="' + escapeHtml(name || 'Image') + '" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>';
+            return '<div class="msg-image-wrap"><a href="' + url + '" target="_blank" rel="noopener noreferrer"><img src="' + url + '" alt="' + escapeHtml(name || 'Image') + '" style="max-width:100%;border-radius:8px;max-height:200px"></a><a href="' + url + '" download class="msg-download-btn"><i class="bi bi-download"></i></a></div>';
         }
         var icon = 'bi-file-earmark';
         if (type === 'application/pdf') icon = 'bi-file-earmark-pdf-fill';
         else if (type && (type.includes('zip') || type.includes('rar'))) icon = 'bi-file-earmark-zip-fill';
-        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="msg-file-preview"><i class="bi ' + icon + '"></i><span style="font-size:.8rem">' + escapeHtml(name || 'File') + '</span></a>';
+        return '<div class="msg-file-wrap"><a href="' + url + '" target="_blank" rel="noopener noreferrer" class="msg-file-preview"><i class="bi ' + icon + '"></i><span style="font-size:.8rem">' + escapeHtml(name || 'File') + '</span></a><a href="' + url + '" download class="msg-download-btn"><i class="bi bi-download"></i></a></div>';
     }
 
     function bookingCardInnerHtml(data) {

@@ -1036,8 +1036,14 @@ a:hover { color: var(--ek-maroon-light); }
 .msg-pending { opacity:.6; }
 .msg-unsent { opacity:.4; font-style:italic; }
 .msg-reply-preview { font-size:.75rem; padding:4px 8px; border-left:3px solid var(--chat-sent-bg,#6b1d2a); margin-bottom:4px; border-radius:4px; background:rgba(0,0,0,.05); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.msg-file-preview { display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; background:rgba(255,255,255,.1); margin-bottom:4px; text-decoration:none; color:inherit; }
+.msg-file-preview { display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; background:rgba(255,255,255,.1); margin-bottom:4px; text-decoration:none; color:inherit; flex:1; }
 .msg-file-preview i { font-size:1.2rem; }
+.msg-image-wrap, .msg-file-wrap { position:relative; margin-bottom:4px; }
+.msg-file-wrap { display:flex; align-items:center; gap:4px; }
+.msg-download-btn { display:none; position:absolute; top:6px; right:6px; width:28px; height:28px; border-radius:50%; background:rgba(0,0,0,.55); color:#fff; align-items:center; justify-content:center; text-decoration:none; font-size:.8rem; transition:background .15s; }
+.msg-file-wrap .msg-download-btn { position:static; width:28px; height:28px; min-width:28px; border-radius:50%; background:rgba(255,255,255,.15); color:inherit; align-items:center; justify-content:center; text-decoration:none; font-size:.8rem; display:none; }
+.msg-image-wrap:hover .msg-download-btn, .msg-file-wrap:hover .msg-download-btn { display:flex; }
+.msg-download-btn:hover { background:rgba(0,0,0,.75); color:#fff; }
 .msg-actions { display:none; position:absolute; top:-8px; right:-4px; }
 .msg-wrap:hover .msg-actions { display:flex; gap:2px; }
 .msg-action-btn { background:var(--chat-surface,#fff); border:1px solid var(--chat-border,#eee); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.7rem; color:var(--chat-muted); transition:all .15s; }

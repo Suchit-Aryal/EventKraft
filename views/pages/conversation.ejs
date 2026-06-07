@@ -81,12 +81,18 @@
                             <% } %>
                             <% if (m.file_url && !m.is_unsent) { %>
                                 <% if (m.file_type && m.file_type.startsWith('image/')) { %>
-                                    <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer"><img src="<%= m.file_url %>" alt="<%= m.file_name %>" style="max-width:100%;border-radius:8px;margin-bottom:4px;max-height:200px"></a>
+                                    <div class="msg-image-wrap">
+                                        <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer"><img src="<%= m.file_url %>" alt="<%= m.file_name %>" style="max-width:100%;border-radius:8px;max-height:200px"></a>
+                                        <a href="<%= m.file_url %>" download class="msg-download-btn"><i class="bi bi-download"></i></a>
+                                    </div>
                                 <% } else { %>
-                                    <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer" class="msg-file-preview">
-                                        <i class="bi bi-file-earmark-<%= m.file_type === 'application/pdf' ? 'pdf' : 'zip' %>-fill"></i>
-                                        <span style="font-size:.8rem"><%= m.file_name || 'File' %></span>
-                                    </a>
+                                    <div class="msg-file-wrap">
+                                        <a href="<%= m.file_url %>" target="_blank" rel="noopener noreferrer" class="msg-file-preview">
+                                            <i class="bi bi-file-earmark-<%= m.file_type === 'application/pdf' ? 'pdf' : 'zip' %>-fill"></i>
+                                            <span style="font-size:.8rem"><%= m.file_name || 'File' %></span>
+                                        </a>
+                                        <a href="<%= m.file_url %>" download class="msg-download-btn"><i class="bi bi-download"></i></a>
+                                    </div>
                                 <% } %>
                             <% } %>
                             <% if (m.is_unsent) { %>
@@ -133,7 +139,7 @@
         <div class="ek-chat-footer" style="padding:10px 16px">
             <form id="messageForm" class="d-flex align-items-center gap-2">
                 <!-- File attach -->
-                <input type="file" id="chatFileInput" accept="image/*,.pdf,.zip,.rar" style="display:none">
+                <input type="file" id="chatFileInput" accept="image/*,.pdf,.zip,.rar,.doc,.docx" style="display:none">
                 <button type="button" class="btn btn-sm" onclick="document.getElementById('chatFileInput').click()" style="border:none;background:transparent;color:var(--chat-muted);font-size:1.2rem" title="Attach file">
                     <i class="bi bi-paperclip"></i>
                 </button>

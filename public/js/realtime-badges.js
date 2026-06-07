@@ -38,6 +38,28 @@
         msgBadge.classList.remove('d-none');
       }
     });
+
+    socket.on('update-msg-badge', function (data) {
+      if (msgBadge) {
+        const count = data.count || 0;
+        msgBadge.textContent = count > 9 ? '9+' : count;
+        if (count === 0) {
+          msgBadge.classList.add('d-none');
+        } else {
+          msgBadge.classList.remove('d-none');
+        }
+      }
+      // Also update sidebar badge if present
+      var sidebarBadge = document.querySelector('.sidebar__badge');
+      if (sidebarBadge) {
+        var count = data.count || 0;
+        if (count === 0) {
+          sidebarBadge.remove();
+        } else {
+          sidebarBadge.textContent = count;
+        }
+      }
+    });
   } catch (err) {
     console.error('realtime-badges socket error:', err);
   }

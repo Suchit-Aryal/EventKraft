@@ -30,7 +30,14 @@ router.get('/:conversationId/api/history', ensureAuthenticated, msgCtrl.getHisto
 router.post('/:conversationId/send', ensureAuthenticated, msgCtrl.send);
 
 // POST /messages/:conversationId/send-file – Send a file/photo
-router.post('/:conversationId/send-file', ensureAuthenticated, upload.single('chatFile'), msgCtrl.sendFile);
+router.post('/:conversationId/send-file', ensureAuthenticated, (req, res, next) => {
+    upload.single('chatFile')(req, res, (err) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        next();
+    });
+}, msgCtrl.sendFile);
 
 // POST /messages/:messageId/unsend     – Unsend a message
 router.post('/:messageId/unsend', ensureAuthenticated, msgCtrl.unsend);

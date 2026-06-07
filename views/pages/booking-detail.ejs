@@ -110,13 +110,13 @@
                         <h5 class="card-title">Payment Summary</h5>
                         <hr>
                         <div class="d-flex justify-content-between mb-2"><span>Total Amount</span><strong>NPR <%=
-                                    Number(booking.total_amount).toLocaleString() %></strong></div>
-                        <div class="d-flex justify-content-between mb-2"><span>Commission (<%= booking.commission_rate
-                                    %>%)</span><span>NPR <%= Number(booking.commission_amount).toLocaleString() %>
+                                    Number(booking.total_amount || 0).toLocaleString() %></strong></div>
+                        <div class="d-flex justify-content-between mb-2"><span>Commission (<%= booking.commission_rate || 0
+                                    %>%)</span><span>NPR <%= Number(booking.commission_amount || 0).toLocaleString() %>
                                     </span></div>
                         <hr>
                         <div class="d-flex justify-content-between"><strong>Worker Earning</strong><strong
-                                class="text-success">NPR <%= Number(booking.worker_earning).toLocaleString() %></strong>
+                                class="text-success">NPR <%= Number(booking.worker_earning || 0).toLocaleString() %></strong>
                         </div>
                     </div>
                 </div>

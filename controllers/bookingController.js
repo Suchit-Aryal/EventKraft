@@ -132,6 +132,10 @@ module.exports = {
         try {
             const booking = await Booking.findById(req.params.id);
             if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
+            if (req.user.role !== 'admin' && booking.customer_id !== req.user.id && booking.worker_id !== req.user.id) {
+                req.flash('error', 'You are not authorized to view this booking');
+                return res.redirect('/bookings');
+            }
             res.render('pages/booking-detail', { title: 'Booking Details', layout: 'dashboard', activePage: 'bookings', booking });
         } catch (err) {
             console.error(err);
@@ -141,6 +145,12 @@ module.exports = {
 
     async update(req, res) {
         try {
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) return res.status(404).render('pages/404', { title: 'Booking Not Found' });
+            if (req.user.role !== 'admin' && booking.customer_id !== req.user.id && booking.worker_id !== req.user.id) {
+                req.flash('error', 'You are not authorized to update this booking');
+                return res.redirect('/bookings');
+            }
             await Booking.updateStatus(req.params.id, req.body.status);
             req.flash('success', 'Booking updated');
             res.redirect(`/bookings/${req.params.id}`);
