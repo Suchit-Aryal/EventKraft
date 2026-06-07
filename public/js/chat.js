@@ -184,6 +184,14 @@
                             bubble.insertAdjacentHTML('afterbegin', fileHtml);
                         }
                     }
+                    // Optimistic render skipped the action buttons; add them now so Unsend/Reply work without a page refresh.
+                    if (!tempEl.querySelector('.msg-actions')) {
+                        var actionsHtml = '<div class="msg-actions">'
+                            + '<button class="msg-action-btn" title="Reply" onclick="setReply(\'' + saved.id + '\',\'' + escapeHtml(currentUserName) + '\',\'' + escapeHtml((content || '').substring(0, 50)) + '\')"><i class="bi bi-reply-fill"></i></button>'
+                            + '<button class="msg-action-btn" title="Unsend" onclick="unsendMsg(\'' + saved.id + '\')"><i class="bi bi-x-circle"></i></button>'
+                            + '</div>';
+                        tempEl.insertAdjacentHTML('beforeend', actionsHtml);
+                    }
                 }
             } catch (err) {
                 console.error('Send failed:', err);
