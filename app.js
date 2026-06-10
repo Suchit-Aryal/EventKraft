@@ -15,6 +15,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 // Import config
 const pool = require('./config/db');
@@ -50,9 +51,8 @@ app.use(helmet({
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://ui-avatars.com"],
+            imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://ui-avatars.com", "https://images.unsplash.com"],
             connectSrc: ["'self'", "ws:", "wss:"],
-            upgradeInsecureRequests: null,
         },
     },
 }));
@@ -60,6 +60,14 @@ app.use(cors({
     origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : false,
     credentials: true,
 }));
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Too many attempts, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // ─── Middleware ─────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, 'public')));
@@ -87,29 +95,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Global variables for templates
-// Abandon onboarding when an incomplete-profile user navigates elsewhere:
-// log them out so the destination page renders as a guest.
-app.use((req, res, next) => {
-    if (req.method === 'GET'
-        && req.isAuthenticated()
-        && req.user.profile_complete === false
-        && !req.path.startsWith('/onboarding')
-        && !req.path.startsWith('/auth')) {
-        return req.logout((err) => {
-            if (err) return next(err);
-            const dest = req.originalUrl || '/';
-            if (req.session) {
-                return req.session.destroy(() => res.redirect(dest));
-            }
-            res.redirect(dest);
-        });
-    }
-    next();
-});
-
 app.use(async (req, res, next) => {
     res.locals.currentUser = req.user || null;
-    res.locals.isOnboarding = req.path.startsWith('/onboarding');
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
@@ -117,6 +104,16 @@ app.use(async (req, res, next) => {
 
 // Dashboard nav data (icons, unread counts, profile completion)
 app.use(require('./middleware/injectNavData'));
+
+// Force incomplete profiles (e.g. Google OAuth signups) through onboarding
+app.use((req, res, next) => {
+    if (req.isAuthenticated() && req.user.profile_complete === false
+        && !req.path.startsWith('/onboarding')
+        && !req.path.startsWith('/auth')) {
+        return res.redirect('/onboarding/step1');
+    }
+    next();
+});
 
 // ─── Routes ─────────────────────────────────────────────────
 
@@ -146,7 +143,7 @@ app.get('/', async (req, res) => {
 });
 
 // Mount route modules
-app.use('/auth', authRoutes);
+app.use('/auth', authLimiter, authRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/gigs', gigRoutes);
 app.use('/bookings', bookingRoutes);
@@ -167,8 +164,20 @@ io.on('connection', (socket) => {
         socket.join(`user_${userId}`);
     });
 
-    socket.on('join-conversation', (conversationId) => {
-        socket.join(`conversation_${conversationId}`);
+    socket.on('join-conversation', async (conversationId) => {
+        try {
+            const sessionUser = socket.request.session?.passport?.user;
+            if (!sessionUser || !conversationId) return;
+            const result = await pool.query(
+                'SELECT 1 FROM conversations WHERE id = $1 AND (participant_1 = $2 OR participant_2 = $2)',
+                [conversationId, sessionUser]
+            );
+            if (result.rows.length > 0) {
+                socket.join(`conversation_${conversationId}`);
+            }
+        } catch (err) {
+            // Invalid UUID or DB error — silently refuse to join
+        }
     });
 
     socket.on('send-message', (data) => {

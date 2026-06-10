@@ -1,0 +1,75 @@
+<%- include('../partials/dashboard-wrapper-start') %>
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <a href="/admin" class="text-decoration-none text-muted"><i class="bi bi-arrow-left"></i></a>
+        <h1 class="font-display fs-3 fw-semibold mb-0">Transactions</h1>
+        <span class="text-muted">(latest <%= transactions.length %>)</span>
+    </div>
+
+    <!-- Revenue stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue"><i class="bi bi-receipt"></i></div>
+                <p class="stat-value"><%= revenue.total_transactions %></p>
+                <p class="stat-label">Payment Transactions</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-green"><i class="bi bi-cash-stack"></i></div>
+                <p class="stat-value">NPR <%= Number(revenue.total_volume || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Total Volume</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-purple"><i class="bi bi-percent"></i></div>
+                <p class="stat-value">NPR <%= Number(revenue.total_commission || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Total Commission</p>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-orange"><i class="bi bi-safe"></i></div>
+                <p class="stat-value">NPR <%= Number(revenue.collected_commission || 0).toLocaleString('en-IN') %></p>
+                <p class="stat-label">Collected Commission</p>
+            </div>
+        </div>
+    </div>
+
+    <% if (transactions.length > 0) { %>
+        <div class="crm-table">
+            <table class="table align-middle">
+                <thead><tr><th>Date</th><th>Type</th><th>Payer</th><th>Payee</th><th>Amount</th><th>Commission</th><th>Net</th><th>Method</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    <% transactions.forEach(function(t) { %>
+                        <tr>
+                            <td class="text-muted small"><%= new Date(t.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></td>
+                            <td><span class="ek-badge ek-badge-category"><%= t.type %></span></td>
+                            <td>
+                                <div class="fw-semibold small"><%= (t.payer_first_name || '') %> <%= (t.payer_last_name || '') %></div>
+                                <div class="text-muted" style="font-size:.75rem"><%= t.payer_email %></div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold small"><%= (t.payee_first_name || '') %> <%= (t.payee_last_name || '') %></div>
+                                <div class="text-muted" style="font-size:.75rem"><%= t.payee_email %></div>
+                            </td>
+                            <td class="fw-semibold">NPR <%= Number(t.amount || 0).toLocaleString('en-IN') %></td>
+                            <td class="text-muted">NPR <%= Number(t.commission || 0).toLocaleString('en-IN') %></td>
+                            <td>NPR <%= Number(t.net_amount || 0).toLocaleString('en-IN') %></td>
+                            <td class="text-muted small"><%= t.payment_method || '-' %></td>
+                            <td><span class="badge-status badge-<%= t.status %>"><%= t.status %></span></td>
+                            <td><a href="/bookings/<%= t.booking_id %>" class="btn btn-sm btn-ek-outline" title="View booking"><i class="bi bi-box-arrow-up-right"></i></a></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <div class="empty-state"><i class="bi bi-receipt"></i><p>No transactions yet.</p></div>
+    <% } %>
+</div>
+
+<%- include('../partials/dashboard-wrapper-end') %>

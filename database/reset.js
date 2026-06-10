@@ -16,6 +16,10 @@ async function reset() {
         console.log('🗑️  Dropping all tables...');
 
         await pool.query(`
+            DROP TABLE IF EXISTS booking_agreements CASCADE;
+            DROP TABLE IF EXISTS kyc_submissions CASCADE;
+            DROP TABLE IF EXISTS portfolio_items CASCADE;
+            DROP TABLE IF EXISTS session CASCADE;
             DROP TABLE IF EXISTS commission_settings CASCADE;
             DROP TABLE IF EXISTS disputes CASCADE;
             DROP TABLE IF EXISTS notifications CASCADE;

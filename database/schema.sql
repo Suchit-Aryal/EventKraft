@@ -39,7 +39,8 @@ CREATE TYPE booking_status AS ENUM (
 --       Both are intentionally kept for backward compatibility.
 
 CREATE TYPE transaction_type AS ENUM (
-    'payment', 'refund', 'payout'
+    'payment', 'refund', 'payout',
+    'advance_payment', 'final_payment', 'commission_deduction', 'worker_payout'
 );
 
 CREATE TYPE transaction_status AS ENUM (
@@ -67,6 +68,8 @@ CREATE TABLE users (
     google_id           VARCHAR(255) UNIQUE,
     totp_enabled        BOOLEAN      DEFAULT false,
     totp_secret         VARCHAR(255),
+    verification_token  VARCHAR(10),
+    verification_expires TIMESTAMP,
     kyc_status          VARCHAR(20)  DEFAULT 'none', -- 'none' | 'pending' | 'approved' | 'rejected'
     tagline             VARCHAR(120),
     skills              TEXT[],
@@ -228,20 +231,43 @@ CREATE TABLE bookings (
     event_location    VARCHAR(255),
     requirements      TEXT,
     status            booking_status DEFAULT 'pending',
-    customer_note     TEXT,
+    customer_note     TEXT          CONSTRAINT bookings_customer_note_max_length_chk
+                                    CHECK (customer_note IS NULL OR char_length(customer_note) <= 500),
+    accepted_at       TIMESTAMP,
+    legal_agreed_at   TIMESTAMP,
+    legal_agreed_ip   VARCHAR(45),
+    legal_agreed_user_agent TEXT,
     advance_amount    DECIMAL(12,2),
     advance_deadline  TIMESTAMPTZ,
     advance_paid_at   TIMESTAMPTZ,
+    advance_transaction_uuid VARCHAR(100),
+    advance_esewa_ref_id     VARCHAR(100),
     final_deadline    TIMESTAMPTZ,
     final_paid_at     TIMESTAMPTZ,
     final_amount      DECIMAL(12,2),
+    final_transaction_uuid   VARCHAR(100),
+    final_esewa_ref_id       VARCHAR(100),
     dispute_raised_at TIMESTAMPTZ,
+    dispute_window_expires_at TIMESTAMP,
     overdue_flagged_at TIMESTAMPTZ,
-    completion_proof  JSONB         DEFAULT '[]'::jsonb,
+    completion_proof  JSONB         NOT NULL DEFAULT '[]'::jsonb
+                                    CONSTRAINT completion_proof_is_array_check
+                                    CHECK (jsonb_typeof(completion_proof) = 'array'),
+    completion_note   TEXT,
     completed_at      TIMESTAMP,
     created_at        TIMESTAMP     DEFAULT NOW(),
     updated_at        TIMESTAMP     DEFAULT NOW()
 );
+
+-- Unique partial indexes on eSewa transaction identifiers (match migration 003)
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_advance_transaction_uuid_uq
+  ON bookings (advance_transaction_uuid) WHERE advance_transaction_uuid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_advance_esewa_ref_id_uq
+  ON bookings (advance_esewa_ref_id) WHERE advance_esewa_ref_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_final_transaction_uuid_uq
+  ON bookings (final_transaction_uuid) WHERE final_transaction_uuid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_final_esewa_ref_id_uq
+  ON bookings (final_esewa_ref_id) WHERE final_esewa_ref_id IS NOT NULL;
 
 
 -- ============================================================
@@ -293,6 +319,9 @@ CREATE TABLE messages (
     sender_id       UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     receiver_id     UUID      NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content         TEXT      NOT NULL,
+    message_type    VARCHAR(30) NOT NULL DEFAULT 'text'
+                    CONSTRAINT messages_message_type_check
+                    CHECK (message_type IN ('text', 'image', 'system', 'booking_request')),
     attachments     JSONB,
     is_read         BOOLEAN   DEFAULT false,
     is_unsent       BOOLEAN   DEFAULT false,
@@ -405,6 +434,28 @@ CREATE TABLE portfolio_items (
     caption     VARCHAR(200),
     sort_order  INTEGER      DEFAULT 0,
     created_at  TIMESTAMP    DEFAULT NOW()
+);
+
+
+-- ============================================================
+-- 18. BOOKING_AGREEMENTS — Legal agreement acceptance records
+--     (matches migration 002_add_legal_fields.sql)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS booking_agreements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  booking_id UUID NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id),
+  agreement_version VARCHAR(20) NOT NULL DEFAULT 'v1.0',
+  agreement_text_hash VARCHAR(64) NOT NULL,
+  agreed_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  ip_address VARCHAR(45) NOT NULL,
+  user_agent TEXT,
+  advance_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_advance_amount_nonnegative_chk CHECK (advance_amount >= 0),
+  final_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_final_amount_nonnegative_chk CHECK (final_amount >= 0),
+  total_amount DECIMAL(12,2) NOT NULL CONSTRAINT booking_agreements_total_amount_nonnegative_chk CHECK (total_amount >= 0),
+  CONSTRAINT booking_agreements_amounts_sum_chk CHECK (advance_amount + final_amount = total_amount),
+  UNIQUE(booking_id, user_id)
 );
 
 

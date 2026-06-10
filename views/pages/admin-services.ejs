@@ -58,16 +58,26 @@
                             <td><span class="badge-status badge-<%= g.status %>"><%= g.status %></span></td>
                             <td class="text-muted small"><%= new Date(g.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) %></td>
                             <td>
-                                <form action="/admin/services/<%= g.id %>?_method=PUT" method="POST" class="d-flex gap-1">
-                                    <input type="hidden" name="_method" value="PUT">
-                                    <% if (g.status === 'active') { %>
-                                        <input type="hidden" name="status" value="paused">
-                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Pause this service"><i class="bi bi-pause-circle"></i></button>
-                                    <% } else { %>
-                                        <input type="hidden" name="status" value="active">
-                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Activate this service"><i class="bi bi-play-circle"></i></button>
+                                <div class="d-flex gap-1">
+                                    <form action="/admin/services/<%= g.id %>?_method=PUT" method="POST" class="d-flex gap-1">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <% if (g.status === 'active') { %>
+                                            <input type="hidden" name="status" value="paused">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Pause this service"><i class="bi bi-pause-circle"></i></button>
+                                        <% } else { %>
+                                            <input type="hidden" name="status" value="active">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Activate this service"><i class="bi bi-play-circle"></i></button>
+                                        <% } %>
+                                    </form>
+                                    <% if (g.status !== 'deleted') { %>
+                                        <form action="/admin/services/<%= g.id %>?_method=PUT" method="POST"
+                                              onsubmit="return confirm('Remove this listing from the marketplace?');">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            <input type="hidden" name="status" value="deleted">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove this service"><i class="bi bi-trash"></i></button>
+                                        </form>
                                     <% } %>
-                                </form>
+                                </div>
                             </td>
                         </tr>
                     <% }); %>

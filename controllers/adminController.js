@@ -4,7 +4,15 @@
 
 const User = require('../models/User');
 const Booking = require('../models/Booking');
+const Review = require('../models/Review');
+const Transaction = require('../models/Transaction');
 const pool = require('../config/db');
+
+const BOOKING_STATUSES = [
+    'pending', 'accepted', 'awaiting_agreement', 'paid_advance', 'work_done',
+    'dispute_raised', 'paid_final', 'completed', 'cancelled', 'overdue_final',
+    'legal_action', 'in_progress',
+];
 
 module.exports = {
 
@@ -85,13 +93,38 @@ module.exports = {
     // GET /admin/users
     async users(req, res) {
         try {
+            const { keyword } = req.query;
+            const role = ['customer', 'worker', 'admin'].includes(req.query.role) ? req.query.role : '';
+            const status = ['active', 'inactive'].includes(req.query.status) ? req.query.status : '';
+
+            const params = [];
+            let whereClause = '';
+            if (keyword) {
+                params.push(`%${keyword}%`);
+                whereClause += ` AND (u.email ILIKE $${params.length} OR p.first_name ILIKE $${params.length} OR p.last_name ILIKE $${params.length} OR u.phone ILIKE $${params.length})`;
+            }
+            if (role) {
+                params.push(role);
+                whereClause += ` AND u.role = $${params.length}`;
+            }
+            if (status) {
+                whereClause += ` AND u.is_active = ${status === 'active' ? 'true' : 'false'}`;
+            }
+
             const users = await pool.query(`
-                SELECT u.id, u.email, u.phone, u.role, u.is_verified, u.is_active, u.created_at,
+                SELECT u.id, u.email, u.phone, u.role, u.is_verified, u.is_active, u.kyc_status, u.created_at,
                     p.first_name, p.last_name, p.avg_rating, p.total_completed, p.city
                 FROM users u LEFT JOIN profiles p ON u.id = p.user_id
+                WHERE 1=1 ${whereClause}
                 ORDER BY u.created_at DESC
-            `);
-            res.render('pages/admin-users', { title: 'Manage Users', layout: 'dashboard', activePage: 'admin-users', users: users.rows });
+            `, params);
+            res.render('pages/admin-users', {
+                title: 'Manage Users',
+                layout: 'dashboard',
+                activePage: 'admin-users',
+                users: users.rows,
+                filters: { keyword: keyword || '', role, status }
+            });
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to load users');
@@ -103,7 +136,22 @@ module.exports = {
     async updateUser(req, res) {
         try {
             const { is_active, is_verified } = req.body;
-            if (is_active !== undefined) await User.setActive(req.params.id, is_active === 'true');
+            const target = await User.findById(req.params.id);
+            if (!target) {
+                req.flash('error', 'User not found');
+                return res.redirect('/admin/users');
+            }
+            if (is_active !== undefined) {
+                if (target.id === req.user.id) {
+                    req.flash('error', 'You cannot deactivate your own account');
+                    return res.redirect('/admin/users');
+                }
+                if (target.role === 'admin') {
+                    req.flash('error', 'Admin accounts cannot be deactivated from this panel');
+                    return res.redirect('/admin/users');
+                }
+                await User.setActive(req.params.id, is_active === 'true');
+            }
             if (is_verified !== undefined) await User.setVerified(req.params.id, is_verified === 'true');
             req.flash('success', 'User updated');
             res.redirect('/admin/users');
@@ -114,20 +162,315 @@ module.exports = {
         }
     },
 
+    // PUT /admin/users/:id/role
+    async updateUserRole(req, res) {
+        try {
+            const { role } = req.body;
+            if (!['customer', 'worker', 'admin'].includes(role)) {
+                req.flash('error', 'Invalid role');
+                return res.redirect('/admin/users');
+            }
+            if (req.params.id === req.user.id) {
+                req.flash('error', 'You cannot change your own role');
+                return res.redirect('/admin/users');
+            }
+            const target = await User.findById(req.params.id);
+            if (!target) {
+                req.flash('error', 'User not found');
+                return res.redirect('/admin/users');
+            }
+            if (target.role === 'admin') {
+                req.flash('error', 'Other admin accounts cannot be modified');
+                return res.redirect('/admin/users');
+            }
+            await User.updateRole(req.params.id, role);
+            req.flash('success', `User role changed to ${role}`);
+            res.redirect('/admin/users');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to change user role');
+            res.redirect('/admin/users');
+        }
+    },
+
+    // POST /admin/users/:id/reset-password
+    async resetUserPassword(req, res) {
+        try {
+            const { new_password } = req.body;
+            if (!new_password || new_password.length < 8) {
+                req.flash('error', 'Password must be at least 8 characters long');
+                return res.redirect('/admin/users');
+            }
+            const target = await User.findById(req.params.id);
+            if (!target) {
+                req.flash('error', 'User not found');
+                return res.redirect('/admin/users');
+            }
+            if (target.role === 'admin' && target.id !== req.user.id) {
+                req.flash('error', 'You cannot reset another admin\'s password');
+                return res.redirect('/admin/users');
+            }
+            await User.updatePassword(req.params.id, new_password);
+            req.flash('success', `Password reset for ${target.email}`);
+            res.redirect('/admin/users');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to reset password');
+            res.redirect('/admin/users');
+        }
+    },
+
+    // DELETE /admin/users/:id
+    async deleteUser(req, res) {
+        try {
+            const target = await User.findById(req.params.id);
+            if (!target) {
+                req.flash('error', 'User not found');
+                return res.redirect('/admin/users');
+            }
+            if (target.role === 'admin') {
+                req.flash('error', 'Admin accounts cannot be deleted');
+                return res.redirect('/admin/users');
+            }
+            await User.delete(req.params.id);
+            req.flash('success', `User ${target.email} permanently deleted`);
+            res.redirect('/admin/users');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to delete user');
+            res.redirect('/admin/users');
+        }
+    },
+
     // GET /admin/bookings
     async bookings(req, res) {
         try {
+            const status = BOOKING_STATUSES.includes(req.query.status) ? req.query.status : '';
+            const params = [];
+            let whereClause = '';
+            if (status) {
+                params.push(status);
+                whereClause = ` WHERE b.status = $1`;
+            }
             const result = await pool.query(`
-                SELECT b.*, cp.first_name AS customer_name, wp.first_name AS worker_name
+                SELECT b.*, cp.first_name AS customer_name, wp.first_name AS worker_name,
+                    sg.title AS gig_title, jp.title AS job_title
                 FROM bookings b
                 LEFT JOIN profiles cp ON b.customer_id = cp.user_id
                 LEFT JOIN profiles wp ON b.worker_id = wp.user_id
+                LEFT JOIN service_gigs sg ON b.gig_id = sg.id
+                LEFT JOIN job_postings jp ON b.job_id = jp.id
+                ${whereClause}
                 ORDER BY b.created_at DESC
-            `);
-            res.render('pages/admin-bookings', { title: 'All Bookings', layout: 'dashboard', activePage: 'admin-bookings', bookings: result.rows });
+            `, params);
+            res.render('pages/admin-bookings', {
+                title: 'All Bookings',
+                layout: 'dashboard',
+                activePage: 'admin-bookings',
+                bookings: result.rows,
+                bookingStatuses: BOOKING_STATUSES,
+                filters: { status }
+            });
         } catch (err) {
             console.error(err);
             res.redirect('/admin');
+        }
+    },
+
+    // PUT /admin/bookings/:id/status — full lifecycle override
+    async updateBookingStatus(req, res) {
+        try {
+            const { status } = req.body;
+            if (!BOOKING_STATUSES.includes(status)) {
+                req.flash('error', 'Invalid booking status');
+                return res.redirect('/admin/bookings');
+            }
+            const booking = await Booking.findById(req.params.id);
+            if (!booking) {
+                req.flash('error', 'Booking not found');
+                return res.redirect('/admin/bookings');
+            }
+            await Booking.updateStatus(req.params.id, status);
+            req.flash('success', `Booking status set to "${status}"`);
+            res.redirect('/admin/bookings');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to update booking status');
+            res.redirect('/admin/bookings');
+        }
+    },
+
+    // GET /admin/transactions — financial ledger
+    async transactions(req, res) {
+        try {
+            const revenue = await Transaction.getPlatformRevenue();
+            const result = await pool.query(`
+                SELECT t.*,
+                    payer_p.first_name AS payer_first_name, payer_p.last_name AS payer_last_name,
+                    payer_u.email AS payer_email,
+                    payee_p.first_name AS payee_first_name, payee_p.last_name AS payee_last_name,
+                    payee_u.email AS payee_email
+                FROM transactions t
+                JOIN users payer_u ON t.payer_id = payer_u.id
+                LEFT JOIN profiles payer_p ON t.payer_id = payer_p.user_id
+                JOIN users payee_u ON t.payee_id = payee_u.id
+                LEFT JOIN profiles payee_p ON t.payee_id = payee_p.user_id
+                ORDER BY t.created_at DESC
+                LIMIT 200
+            `);
+            res.render('pages/admin-transactions', {
+                title: 'Transactions',
+                layout: 'dashboard',
+                activePage: 'admin-transactions',
+                revenue,
+                transactions: result.rows
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load transactions');
+            res.redirect('/admin');
+        }
+    },
+
+    // ─── Category Management ─────────────────────────────────────
+
+    // GET /admin/categories
+    async categories(req, res) {
+        try {
+            const result = await pool.query(`
+                SELECT c.*,
+                    (SELECT COUNT(*) FROM service_gigs sg WHERE sg.category_id = c.id) AS gig_count,
+                    (SELECT COUNT(*) FROM job_postings jp WHERE jp.category_id = c.id) AS job_count
+                FROM categories c
+                ORDER BY c.sort_order, c.name
+            `);
+            res.render('pages/admin-categories', {
+                title: 'Categories',
+                layout: 'dashboard',
+                activePage: 'admin-categories',
+                categories: result.rows
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load categories');
+            res.redirect('/admin');
+        }
+    },
+
+    // POST /admin/categories
+    async createCategory(req, res) {
+        try {
+            const { name, description, sort_order } = req.body;
+            if (!name || !name.trim()) {
+                req.flash('error', 'Category name is required');
+                return res.redirect('/admin/categories');
+            }
+            const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            if (!slug) {
+                req.flash('error', 'Category name must contain letters or numbers');
+                return res.redirect('/admin/categories');
+            }
+            const result = await pool.query(
+                `INSERT INTO categories (name, slug, description, sort_order)
+                 VALUES ($1, $2, $3, $4)
+                 ON CONFLICT (slug) DO NOTHING
+                 RETURNING id`,
+                [name.trim(), slug, (description || '').trim() || null, Number(sort_order) || 0]
+            );
+            if (result.rows.length === 0) {
+                req.flash('error', 'A category with that name already exists');
+            } else {
+                req.flash('success', `Category "${name.trim()}" created`);
+            }
+            res.redirect('/admin/categories');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to create category');
+            res.redirect('/admin/categories');
+        }
+    },
+
+    // PUT /admin/categories/:id — partial update
+    async updateCategory(req, res) {
+        try {
+            const { name, description, sort_order, is_active } = req.body;
+            await pool.query(
+                `UPDATE categories SET
+                    name = COALESCE(NULLIF($2, ''), name),
+                    description = COALESCE(NULLIF($3, ''), description),
+                    sort_order = COALESCE($4, sort_order),
+                    is_active = COALESCE($5, is_active)
+                 WHERE id = $1`,
+                [
+                    req.params.id,
+                    (name || '').trim(),
+                    (description || '').trim(),
+                    sort_order === undefined || sort_order === '' ? null : Number(sort_order),
+                    is_active === undefined ? null : is_active === 'true',
+                ]
+            );
+            req.flash('success', 'Category updated');
+            res.redirect('/admin/categories');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to update category');
+            res.redirect('/admin/categories');
+        }
+    },
+
+    // ─── Review Moderation ───────────────────────────────────────
+
+    // GET /admin/reviews
+    async reviews(req, res) {
+        try {
+            const result = await pool.query(`
+                SELECT r.*,
+                    rp.first_name AS reviewer_first_name, rp.last_name AS reviewer_last_name,
+                    ru.email AS reviewer_email,
+                    ep.first_name AS reviewee_first_name, ep.last_name AS reviewee_last_name
+                FROM reviews r
+                JOIN users ru ON r.reviewer_id = ru.id
+                LEFT JOIN profiles rp ON r.reviewer_id = rp.user_id
+                LEFT JOIN profiles ep ON r.reviewee_id = ep.user_id
+                ORDER BY r.created_at DESC
+                LIMIT 200
+            `);
+            res.render('pages/admin-reviews', {
+                title: 'Review Moderation',
+                layout: 'dashboard',
+                activePage: 'admin-reviews',
+                reviews: result.rows
+            });
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to load reviews');
+            res.redirect('/admin');
+        }
+    },
+
+    // PUT /admin/reviews/:id — show/hide a review
+    async toggleReview(req, res) {
+        try {
+            await Review.setVisibility(req.params.id, req.body.is_public === 'true');
+            req.flash('success', 'Review visibility updated');
+            res.redirect('/admin/reviews');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to update review');
+            res.redirect('/admin/reviews');
+        }
+    },
+
+    // DELETE /admin/reviews/:id — delete + recalc ratings
+    async deleteReview(req, res) {
+        try {
+            await Review.delete(req.params.id);
+            req.flash('success', 'Review deleted and ratings recalculated');
+            res.redirect('/admin/reviews');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to delete review');
+            res.redirect('/admin/reviews');
         }
     },
 
@@ -238,7 +581,7 @@ module.exports = {
     async updateService(req, res) {
         try {
             const { status } = req.body;
-            const allowed = ['active', 'paused', 'draft'];
+            const allowed = ['active', 'paused', 'draft', 'deleted'];
             if (!allowed.includes(status)) {
                 req.flash('error', 'Invalid status');
                 return res.redirect('/admin/services');

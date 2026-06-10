@@ -69,7 +69,7 @@ const Transaction = {
                 COALESCE(SUM(CASE WHEN status = 'completed' THEN net_amount ELSE 0 END), 0) AS paid_out,
                 COALESCE(SUM(CASE WHEN status = 'pending' THEN net_amount ELSE 0 END), 0) AS pending
              FROM transactions
-             WHERE payee_id = $1 AND type = 'payment'`,
+             WHERE payee_id = $1 AND type IN ('payment', 'advance_payment', 'final_payment')`,
             [workerId]
         );
         return result.rows[0];
@@ -84,7 +84,7 @@ const Transaction = {
                 COALESCE(SUM(commission), 0) AS total_commission,
                 COALESCE(SUM(CASE WHEN status = 'completed' THEN commission ELSE 0 END), 0) AS collected_commission
              FROM transactions
-             WHERE type = 'payment'`
+             WHERE type IN ('payment', 'advance_payment', 'final_payment')`
         );
         return result.rows[0];
     },

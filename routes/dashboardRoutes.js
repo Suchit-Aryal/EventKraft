@@ -25,16 +25,17 @@ router.get('/', async (req, res) => {
       const statsQ = await pool.query(
         `SELECT
           (SELECT COUNT(*) FROM job_postings WHERE customer_id = $1 AND status = 'published') AS active_jobs,
-          (SELECT COUNT(*) FROM bookings WHERE customer_id = $1 AND status = 'pending') AS pending_proposals,
+          (SELECT COUNT(*) FROM proposals pr JOIN job_postings jp ON pr.job_id = jp.id
+            WHERE jp.customer_id = $1 AND pr.status = 'pending') AS pending_proposals,
           (SELECT COUNT(*) FROM bookings WHERE customer_id = $1) AS total_bookings,
-          (SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE customer_id = $1 AND status = 'completed') AS total_spent`,
+          (SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE customer_id = $1 AND status IN ('completed', 'paid_final')) AS total_spent`,
         [userId]
       );
       stats = statsQ.rows[0] || {};
 
       const jobsQ = await pool.query(
         `SELECT jp.*, c.name AS category_name,
-                (SELECT COUNT(*) FROM bookings WHERE job_id = jp.id) AS proposal_count
+                (SELECT COUNT(*) FROM proposals WHERE job_id = jp.id) AS proposal_count
          FROM job_postings jp
          LEFT JOIN categories c ON jp.category_id = c.id
          WHERE jp.customer_id = $1 ORDER BY jp.created_at DESC LIMIT 5`,
@@ -58,8 +59,8 @@ router.get('/', async (req, res) => {
         `SELECT
           (SELECT COUNT(*) FROM service_gigs WHERE worker_id = $1 AND status = 'active') AS active_gigs,
           (SELECT COUNT(*) FROM bookings WHERE worker_id = $1 AND status = 'pending') AS pending_bookings,
-          (SELECT COUNT(*) FROM bookings WHERE worker_id = $1 AND status = 'completed') AS completed,
-          (SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE worker_id = $1 AND status = 'completed') AS total_earned`,
+          (SELECT COUNT(*) FROM bookings WHERE worker_id = $1 AND status IN ('completed', 'paid_final')) AS completed,
+          (SELECT COALESCE(SUM(worker_earning), 0) FROM bookings WHERE worker_id = $1 AND status IN ('completed', 'paid_final')) AS total_earned`,
         [userId]
       );
       stats = statsQ.rows[0] || {};

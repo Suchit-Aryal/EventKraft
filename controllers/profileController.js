@@ -227,7 +227,31 @@ exports.settingsPage = (req, res) => {
 exports.saveContact = async (req, res) => {
   try {
     const { email, phone, address } = req.body;
-    const fullPhone = phone ? '+977' + phone.replace(/^\+977/, '') : null;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      req.flash('error', 'Please enter a valid email address.');
+      return res.redirect('/dashboard/settings?tab=contact');
+    }
+    const existing = await pool.query(
+      'SELECT id FROM users WHERE email = $1 AND id != $2',
+      [email.toLowerCase(), req.user.id]
+    );
+    if (existing.rows.length > 0) {
+      req.flash('error', 'That email address is already in use by another account.');
+      return res.redirect('/dashboard/settings?tab=contact');
+    }
+
+    // Normalize Nepali mobile numbers to +977XXXXXXXXXX
+    let fullPhone = null;
+    if (phone && phone.trim()) {
+      const digits = phone.replace(/[\s-]/g, '').replace(/^\+?977/, '');
+      if (!/^9[78]\d{8}$/.test(digits)) {
+        req.flash('error', 'Please enter a valid Nepali mobile number (98XXXXXXXX or 97XXXXXXXX).');
+        return res.redirect('/dashboard/settings?tab=contact');
+      }
+      fullPhone = '+977' + digits;
+    }
+
     await pool.query(
       'UPDATE users SET email = $1, phone = $2 WHERE id = $3',
       [email.toLowerCase(), fullPhone, req.user.id]
@@ -251,6 +275,10 @@ exports.saveContact = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const { current_password, new_password, confirm_password } = req.body;
+    if (!new_password || new_password.length < 8) {
+      req.flash('error', 'New password must be at least 8 characters long.');
+      return res.redirect('/dashboard/settings?tab=security');
+    }
     if (new_password !== confirm_password) {
       req.flash('error', 'Passwords do not match.');
       return res.redirect('/dashboard/settings?tab=security');
@@ -376,7 +404,7 @@ exports.markAllAsReadApi = async (req, res) => {
 exports.deactivateAccount = async (req, res) => {
   try {
     await pool.query('UPDATE users SET is_active = false WHERE id = $1', [req.user.id]);
-    req.flash('success', 'Account deactivated. You can reactivate by logging in again.');
+    req.flash('success', 'Account deactivated. Contact support@eventkraft.com if you want to reactivate it.');
     req.logout(() => {
       res.redirect('/');
     });

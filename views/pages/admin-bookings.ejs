@@ -7,27 +7,57 @@
         <span class="text-muted">(<%= bookings.length %> total)</span>
     </div>
 
+    <form action="/admin/bookings" method="GET" class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <% bookingStatuses.forEach(function(s) { %>
+                        <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+                    <% }); %>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="/admin/bookings" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </div>
+    </form>
+
     <% if (bookings.length > 0) { %>
         <div class="crm-table">
-            <table class="table">
-                <thead><tr><th>#</th><th>Customer</th><th>Worker</th><th>Amount</th><th>Commission</th><th>Status</th><th>Date</th></tr></thead>
+            <table class="table align-middle">
+                <thead><tr><th>Service</th><th>Customer</th><th>Worker</th><th>Amount</th><th>Commission</th><th>Status</th><th>Date</th><th>Override</th></tr></thead>
                 <tbody>
                     <% bookings.forEach(function(b) { %>
                         <tr>
-                            <td><a href="/bookings/<%= b.id %>">#<%= b.id %></a></td>
+                            <td><a href="/bookings/<%= b.id %>" class="fw-semibold text-decoration-none"><%= b.gig_title || b.job_title || ('#' + String(b.id).slice(0, 8)) %></a></td>
                             <td><%= b.customer_name || '-' %></td>
                             <td><%= b.worker_name || '-' %></td>
                             <td class="fw-semibold">NPR <%= Number(b.total_amount||0).toLocaleString('en-IN') %></td>
                             <td class="text-muted">NPR <%= Number(b.commission_amount||0).toLocaleString('en-IN') %></td>
                             <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
                             <td class="text-muted small"><%= new Date(b.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></td>
+                            <td>
+                                <form action="/admin/bookings/<%= b.id %>/status?_method=PUT" method="POST" class="d-flex gap-1"
+                                      onsubmit="return confirm('Override this booking\'s status? This bypasses the normal lifecycle (payments, agreements, deadlines).');">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <select name="status" class="form-select form-select-sm">
+                                        <% bookingStatuses.forEach(function(s) { %>
+                                            <option value="<%= s %>" <%= b.status === s ? 'selected' : '' %>><%= s %></option>
+                                        <% }); %>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-ek-outline" title="Set status"><i class="bi bi-arrow-repeat"></i></button>
+                                </form>
+                            </td>
                         </tr>
                     <% }); %>
                 </tbody>
             </table>
         </div>
     <% } else { %>
-        <div class="empty-state"><i class="bi bi-calendar-check"></i><p>No bookings yet.</p></div>
+        <div class="empty-state"><i class="bi bi-calendar-check"></i><p>No bookings found.</p></div>
     <% } %>
 </div>
 

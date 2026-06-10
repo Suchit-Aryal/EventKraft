@@ -53,6 +53,10 @@ router.get('/step3', ensureAuthenticated, (req, res) => {
 router.post('/step3', ensureAuthenticated, async (req, res) => {
     try {
         const { password, confirm_password } = req.body;
+        if (!password || password.length < 8) {
+            req.flash('error', 'Password must be at least 8 characters long');
+            return res.redirect('/onboarding/step3');
+        }
         if (password !== confirm_password) {
             req.flash('error', "Passwords don't match");
             return res.redirect('/onboarding/step3');
@@ -61,10 +65,13 @@ router.post('/step3', ensureAuthenticated, async (req, res) => {
         const hashed = await bcrypt.hash(password, 12);
         const draft = req.session.onboardingDraft || {};
 
+        // Never allow privileged roles from the session draft
+        const role = ['customer', 'worker'].includes(draft.role) ? draft.role : 'customer';
+
         // Update user role + password
         await pool.query(
             `UPDATE users SET role = $1, phone = $2, password_hash = $3, profile_complete = true WHERE id = $4`,
-            [draft.role || 'customer', draft.phone || null, hashed, req.user.id]
+            [role, draft.phone || null, hashed, req.user.id]
         );
 
         // Update profile

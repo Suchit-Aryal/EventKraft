@@ -179,6 +179,24 @@
         <span>Jobs</span>
       </a>
 
+      <a href="/admin/transactions"
+         class="sidebar__item <%= locals.activePage === 'admin-transactions' ? 'sidebar__item--active' : '' %>">
+        <%- icons.dollar %>
+        <span>Transactions</span>
+      </a>
+
+      <a href="/admin/categories"
+         class="sidebar__item <%= locals.activePage === 'admin-categories' ? 'sidebar__item--active' : '' %>">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <span>Categories</span>
+      </a>
+
+      <a href="/admin/reviews"
+         class="sidebar__item <%= locals.activePage === 'admin-reviews' ? 'sidebar__item--active' : '' %>">
+        <%- icons.star %>
+        <span>Reviews</span>
+      </a>
+
       <a href="/admin/kyc"
          class="sidebar__item <%= locals.activePage === 'admin-kyc' ? 'sidebar__item--active' : '' %>">
         <%- icons.settings %>

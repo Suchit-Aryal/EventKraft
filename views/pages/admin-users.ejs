@@ -7,30 +7,99 @@
         <span class="text-muted">(<%= users.length %> total)</span>
     </div>
 
+    <form action="/admin/users" method="GET" class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Search</label>
+                <input type="text" name="keyword" class="form-control form-control-sm" placeholder="Email, name or phone..." value="<%= filters.keyword %>">
+            </div>
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Role</label>
+                <select name="role" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="customer" <%= filters.role === 'customer' ? 'selected' : '' %>>Customer</option>
+                    <option value="worker" <%= filters.role === 'worker' ? 'selected' : '' %>>Worker</option>
+                    <option value="admin" <%= filters.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="active" <%= filters.status === 'active' ? 'selected' : '' %>>Active</option>
+                    <option value="inactive" <%= filters.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="/admin/users" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </div>
+    </form>
+
     <div class="crm-table">
-        <table class="table">
-            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Verified</th><th>Active</th><th>Joined</th><th></th></tr></thead>
+        <table class="table align-middle">
+            <thead><tr><th>Name</th><th>Contact</th><th>Role</th><th>KYC</th><th>Verified</th><th>Active</th><th>Joined</th><th>Actions</th></tr></thead>
             <tbody>
                 <% users.forEach(function(u) { %>
+                    <% const isSelf = currentUser && u.id === currentUser.id; %>
                     <tr>
-                        <td class="fw-semibold"><%= u.first_name || '' %> <%= u.last_name || '' %></td>
-                        <td class="text-muted small"><%= u.email %></td>
+                        <td class="fw-semibold">
+                            <a href="/profile/<%= u.id %>" class="text-decoration-none"><%= u.first_name || '' %> <%= u.last_name || '' %></a>
+                            <% if (isSelf) { %><span class="badge bg-secondary ms-1">you</span><% } %>
+                        </td>
+                        <td>
+                            <div class="text-muted small"><%= u.email %></div>
+                            <% if (u.phone) { %><div class="text-muted small"><%= u.phone %></div><% } %>
+                        </td>
                         <td><span class="ek-badge ek-badge-category"><%= u.role %></span></td>
+                        <td>
+                            <% if (u.kyc_status === 'approved') { %><span class="badge-status badge-active">approved</span>
+                            <% } else if (u.kyc_status === 'pending') { %><span class="badge-status badge-pending">pending</span>
+                            <% } else if (u.kyc_status === 'rejected') { %><span class="badge-status badge-cancelled">rejected</span>
+                            <% } else { %><span class="text-muted small">—</span><% } %>
+                        </td>
                         <td><% if (u.is_verified) { %><i class="bi bi-patch-check-fill" style="color:var(--ek-success)"></i><% } else { %><i class="bi bi-x-circle text-muted"></i><% } %></td>
                         <td><% if (u.is_active) { %><span class="badge-status badge-active">Active</span><% } else { %><span class="badge-status badge-cancelled">Inactive</span><% } %></td>
                         <td class="text-muted small"><%= new Date(u.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) %></td>
                         <td>
-                            <div class="d-flex gap-1">
-                                <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST">
-                                    <input type="hidden" name="_method" value="PUT">
-                                    <input type="hidden" name="is_verified" value="<%= !u.is_verified %>">
-                                    <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle verified"><i class="bi bi-patch-check"></i></button>
-                                </form>
-                                <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST">
-                                    <input type="hidden" name="_method" value="PUT">
-                                    <input type="hidden" name="is_active" value="<%= !u.is_active %>">
-                                    <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle active"><i class="bi bi-toggle-on"></i></button>
-                                </form>
+                            <div class="d-flex flex-column gap-1" style="min-width:230px">
+                                <div class="d-flex gap-1">
+                                    <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <input type="hidden" name="is_verified" value="<%= !u.is_verified %>">
+                                        <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle verified"><i class="bi bi-patch-check"></i></button>
+                                    </form>
+                                    <% if (!isSelf && u.role !== 'admin') { %>
+                                        <form action="/admin/users/<%= u.id %>?_method=PUT" method="POST"
+                                              onsubmit="return confirm('<%= u.is_active ? 'Deactivate' : 'Reactivate' %> this account?');">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            <input type="hidden" name="is_active" value="<%= !u.is_active %>">
+                                            <button type="submit" class="btn btn-sm btn-ek-outline" title="Toggle active"><i class="bi bi-toggle-on"></i></button>
+                                        </form>
+                                        <form action="/admin/users/<%= u.id %>?_method=DELETE" method="POST"
+                                              onsubmit="return confirm('PERMANENTLY DELETE <%= u.email %>? This removes their profile, gigs, bookings and messages. This cannot be undone.');">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete user"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    <% } %>
+                                </div>
+                                <% if (u.role !== 'admin') { %>
+                                    <form action="/admin/users/<%= u.id %>/role?_method=PUT" method="POST" class="d-flex gap-1"
+                                          onsubmit="return confirm('Change this user\'s role?');">
+                                        <input type="hidden" name="_method" value="PUT">
+                                        <select name="role" class="form-select form-select-sm">
+                                            <option value="customer" <%= u.role === 'customer' ? 'selected' : '' %>>customer</option>
+                                            <option value="worker" <%= u.role === 'worker' ? 'selected' : '' %>>worker</option>
+                                            <option value="admin">admin</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-ek-outline" title="Change role"><i class="bi bi-person-gear"></i></button>
+                                    </form>
+                                    <form action="/admin/users/<%= u.id %>/reset-password" method="POST" class="d-flex gap-1">
+                                        <input type="password" name="new_password" class="form-control form-control-sm" placeholder="New password" minlength="8" required>
+                                        <button type="submit" class="btn btn-sm btn-ek-outline" title="Reset password"><i class="bi bi-key"></i></button>
+                                    </form>
+                                <% } %>
                             </div>
                         </td>
                     </tr>

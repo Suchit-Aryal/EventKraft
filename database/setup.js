@@ -16,19 +16,24 @@ async function setup() {
 
     try {
         // ── Step 1: Run schema.sql ──────────────────────────
-        console.log('📦 Step 1/3 — Creating tables, enums, indexes, triggers...');
+        console.log('📦 Step 1/4 — Creating tables, enums, indexes, triggers...');
         const schemaPath = path.join(__dirname, 'schema.sql');
         const schemaSql = fs.readFileSync(schemaPath, 'utf8');
         await pool.query(schemaSql);
-        console.log('   ✅ All 15 tables created successfully\n');
+        console.log('   ✅ All 18 tables created successfully\n');
 
-        // ── Step 2: Create admin account ────────────────────
-        console.log('👤 Step 2/3 — Creating admin account...');
+        // ── Step 2: Apply migrations ────────────────────────
+        console.log('🧱 Step 2/4 — Applying migrations...');
+        await runMigrations();
+        console.log('   ✅ Migrations applied\n');
+
+        // ── Step 3: Create admin account ────────────────────
+        console.log('👤 Step 3/4 — Creating admin account...');
         await createAdmin();
         console.log('   ✅ Admin account created\n');
 
-        // ── Step 3: Seed commission settings ────────────────
-        console.log('💰 Step 3/3 — Seeding commission tiers...');
+        // ── Step 4: Seed commission settings ────────────────
+        console.log('💰 Step 4/4 — Seeding commission tiers...');
         await seedCommissions();
         console.log('   ✅ Commission tiers seeded\n');
 
@@ -48,6 +53,34 @@ async function setup() {
     } finally {
         await pool.end();
         process.exit();
+    }
+}
+
+// ── Apply migrations in order ───────────────────────────────
+// The base schema already matches migrations 001–008, so on a fresh
+// install these all no-op (IF NOT EXISTS / matching constraint names).
+// On an older database they bring the structure up to date.
+async function runMigrations() {
+    const migrationsDir = path.join(__dirname, 'migrations');
+    if (!fs.existsSync(migrationsDir)) return;
+
+    const files = fs.readdirSync(migrationsDir)
+        .filter(f => f.endsWith('.sql'))
+        .sort();
+
+    for (const file of files) {
+        const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+        try {
+            await pool.query(sql);
+            console.log(`   ✓ ${file}`);
+        } catch (err) {
+            if (/already exists|duplicate/i.test(err.message)) {
+                console.log(`   ⏭  ${file} (already applied)`);
+            } else {
+                err.message = `${file}: ${err.message}`;
+                throw err;
+            }
+        }
     }
 }
 

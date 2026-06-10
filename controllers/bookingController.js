@@ -3,6 +3,9 @@
 // ============================================================
 
 const Booking = require('../models/Booking');
+const Gig = require('../models/Gig');
+const Profile = require('../models/Profile');
+const CommissionSetting = require('../models/CommissionSetting');
 const pool = require('../config/db');
 const Message = require('../models/Message');
 const { createNotification } = require('../utils/notify');
@@ -27,7 +30,9 @@ module.exports = {
 
     async store(req, res) {
         try {
-            const { customer_note, event_date, event_location, requirements, ...rest } = req.body;
+            // Only these client fields are trusted. Price, commission and
+            // worker are always resolved server-side from the gig/package.
+            const { customer_note, event_date, event_location, requirements, gig_id, package_id } = req.body;
 
             // Validate required booking details
             if (!event_date) {
@@ -46,18 +51,61 @@ module.exports = {
                 return res.redirect('back');
             }
 
-            // Server-side concurrency check
-            if (rest.gig_id) {
-                const alreadyBooked = await Booking.hasActiveBooking(rest.gig_id, req.user.id);
-                if (alreadyBooked) {
-                    req.flash('error', 'You already have an active booking for this service. Please cancel it before making a new one.');
-                    return res.redirect('back');
-                }
+            if (!gig_id) {
+                req.flash('error', 'Invalid booking request: no service selected');
+                return res.redirect('back');
             }
 
+            const gig = await Gig.findById(gig_id);
+            if (!gig || gig.status !== 'active') {
+                req.flash('error', 'This service is not available for booking');
+                return res.redirect('back');
+            }
+            if (gig.worker_id === req.user.id) {
+                req.flash('error', 'You cannot book your own service');
+                return res.redirect('back');
+            }
+
+            // Server-side concurrency check
+            const alreadyBooked = await Booking.hasActiveBooking(gig_id, req.user.id);
+            if (alreadyBooked) {
+                req.flash('error', 'You already have an active booking for this service. Please cancel it before making a new one.');
+                return res.redirect('back');
+            }
+
+            // Resolve price server-side (never trust the form)
+            let totalAmount;
+            let resolvedPackageId = null;
+            if (package_id) {
+                const pkgResult = await pool.query(
+                    'SELECT * FROM gig_packages WHERE id = $1 AND gig_id = $2',
+                    [package_id, gig_id]
+                );
+                if (pkgResult.rows.length === 0) {
+                    req.flash('error', 'Invalid package selected');
+                    return res.redirect('back');
+                }
+                totalAmount = Number(pkgResult.rows[0].price);
+                resolvedPackageId = pkgResult.rows[0].id;
+            } else {
+                totalAmount = Number(gig.starting_price);
+            }
+            if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+                req.flash('error', 'Invalid service price');
+                return res.redirect('back');
+            }
+
+            const money = await CommissionSetting.calculateCommission(totalAmount);
+
             const booking = await Booking.create({
-                ...rest,
                 customer_id: req.user.id,
+                worker_id: gig.worker_id,
+                gig_id,
+                package_id: resolvedPackageId,
+                total_amount: money.total_amount,
+                commission_rate: money.commission_rate,
+                commission_amount: money.commission_amount,
+                worker_earning: money.worker_earning,
                 customer_note: customer_note || null,
                 event_date,
                 event_location: event_location.trim(),
@@ -158,6 +206,22 @@ module.exports = {
                 req.flash('error', 'You are not authorized to update this booking');
                 return res.redirect('/bookings');
             }
+
+            // Per-role status whitelist. Payment statuses (paid_advance,
+            // paid_final, ...) are only reachable through the payment flow.
+            let allowedStatuses;
+            if (req.user.role === 'admin') {
+                allowedStatuses = ['pending', 'accepted', 'in_progress', 'completed', 'cancelled'];
+            } else if (booking.worker_id === req.user.id) {
+                allowedStatuses = ['in_progress', 'cancelled'];
+            } else {
+                allowedStatuses = ['cancelled'];
+            }
+            if (!allowedStatuses.includes(req.body.status)) {
+                req.flash('error', 'You are not allowed to set this booking status');
+                return res.redirect(`/bookings/${req.params.id}`);
+            }
+
             await Booking.updateStatus(req.params.id, req.body.status);
             req.flash('success', 'Booking updated');
             res.redirect(`/bookings/${req.params.id}`);
@@ -176,7 +240,38 @@ module.exports = {
                 req.flash('error', 'Only the assigned worker can accept this booking');
                 return res.redirect('/bookings');
             }
-            await Booking.accept(req.params.id);
+            if (booking.status !== 'pending') {
+                req.flash('error', 'This booking has already been decided');
+                return res.redirect(`/bookings/${req.params.id}`);
+            }
+
+            // Mirror the chat-card decide() accept flow so the agreement and
+            // advance-payment pages work for bookings accepted via this route.
+            const acceptedAt = new Date();
+            const advanceDeadline = new Date(acceptedAt.getTime() + 24 * 60 * 60 * 1000);
+            const advanceAmount = parseFloat((Number(booking.total_amount) * 0.30).toFixed(2));
+            const finalAmount = parseFloat((Number(booking.total_amount) * 0.70).toFixed(2));
+
+            const updatedBooking = await Booking.updateFieldsIfStatus(booking.id, 'pending', {
+                status: 'accepted',
+                accepted_at: acceptedAt,
+                advance_deadline: advanceDeadline,
+                advance_amount: advanceAmount,
+                final_amount: finalAmount,
+            });
+            if (!updatedBooking) {
+                req.flash('error', 'This booking has already been decided');
+                return res.redirect(`/bookings/${req.params.id}`);
+            }
+
+            await createNotification(pool, req.app.get('io'), {
+                userId: booking.customer_id,
+                type: 'booking_accepted',
+                title: 'Booking Accepted — Action Required',
+                message: `Your booking for "${booking.gig_title || 'the service'}" was accepted. Pay the advance of NPR ${Math.round(advanceAmount).toLocaleString()} within 24 hours to confirm.`,
+                link: `/bookings/${booking.id}/agreement`,
+            });
+
             req.flash('success', 'Booking accepted!');
             res.redirect(`/bookings/${req.params.id}`);
         } catch (err) {
@@ -194,7 +289,12 @@ module.exports = {
                 req.flash('error', 'Only the assigned worker can complete this booking');
                 return res.redirect('/bookings');
             }
+            if (!['in_progress', 'paid_final'].includes(booking.status)) {
+                req.flash('error', 'This booking cannot be completed at its current stage.');
+                return res.redirect(`/bookings/${req.params.id}`);
+            }
             await Booking.complete(req.params.id);
+            await Profile.incrementCompleted(booking.worker_id);
             req.flash('success', 'Booking marked as completed!');
             res.redirect(`/bookings/${req.params.id}`);
         } catch (err) {
@@ -211,6 +311,11 @@ module.exports = {
             if (booking.customer_id !== req.user.id && booking.worker_id !== req.user.id) {
                 req.flash('error', 'You are not authorized to cancel this booking');
                 return res.redirect('/bookings');
+            }
+            // Once money has moved, cancellation must go through support/disputes
+            if (req.user.role !== 'admin' && !['pending', 'accepted', 'awaiting_agreement'].includes(booking.status)) {
+                req.flash('error', 'This booking can no longer be cancelled directly. Please raise a dispute or contact support.');
+                return res.redirect(`/bookings/${req.params.id}`);
             }
             await Booking.cancel(req.params.id);
             req.flash('success', 'Booking cancelled');
@@ -485,6 +590,14 @@ module.exports = {
                 req.flash('success', 'Advance payment already processed.');
                 return res.redirect(`/bookings/${booking.id}`);
             }
+            if (booking.advance_paid_at) {
+                req.flash('success', 'Advance payment already processed.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+            if (!['accepted', 'awaiting_agreement'].includes(booking.status)) {
+                req.flash('error', 'This booking is not awaiting an advance payment.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
 
             const { verifyEsewaPayment } = require('../utils/esewa');
             const encodedData = req.query.data;
@@ -625,6 +738,11 @@ module.exports = {
             let transactionUuid = booking.final_transaction_uuid;
             const finalAmount = parseFloat(booking.final_amount || (booking.total_amount * 0.70)).toFixed(2);
             const productCode = process.env.ESEWA_MERCHANT_CODE;
+            if (!productCode || !process.env.ESEWA_SECRET_KEY) {
+                req.flash('error', 'eSewa payment gateway is not configured.');
+                return res.redirect(`/bookings/${booking.id}`);
+            }
+            const appUrl = process.env.APP_URL || `${req.protocol}://${req.get('host')}`;
             if (!transactionUuid) {
                 transactionUuid = generateTransactionUUID();
                 await Booking.updateFields(booking.id, { final_transaction_uuid: transactionUuid });
@@ -649,8 +767,8 @@ module.exports = {
                     product_code: productCode,
                     product_service_charge: '0',
                     product_delivery_charge: '0',
-                    success_url: `${process.env.APP_URL}/bookings/${booking.id}/payment/final/success`,
-                    failure_url: `${process.env.APP_URL}/bookings/${booking.id}/payment/final/failure`,
+                    success_url: `${appUrl}/bookings/${booking.id}/payment/final/success`,
+                    failure_url: `${appUrl}/bookings/${booking.id}/payment/final/failure`,
                     signed_field_names: 'total_amount,transaction_uuid,product_code',
                     signature,
                 },

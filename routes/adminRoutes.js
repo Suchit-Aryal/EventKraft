@@ -20,8 +20,33 @@ router.get('/users', adminCtrl.users);
 // PUT  /admin/users/:id   – Update user (verify, activate/deactivate)
 router.put('/users/:id', adminCtrl.updateUser);
 
+// PUT  /admin/users/:id/role – Change a user's role
+router.put('/users/:id/role', adminCtrl.updateUserRole);
+
+// POST /admin/users/:id/reset-password – Reset a user's password
+router.post('/users/:id/reset-password', adminCtrl.resetUserPassword);
+
+// DELETE /admin/users/:id – Permanently delete a user
+router.delete('/users/:id', adminCtrl.deleteUser);
+
 // GET  /admin/bookings    – View all bookings
 router.get('/bookings', adminCtrl.bookings);
+
+// PUT  /admin/bookings/:id/status – Override booking status
+router.put('/bookings/:id/status', adminCtrl.updateBookingStatus);
+
+// GET  /admin/transactions – Financial ledger
+router.get('/transactions', adminCtrl.transactions);
+
+// ─── Categories ───────────────────────────────────────────────
+router.get('/categories', adminCtrl.categories);
+router.post('/categories', adminCtrl.createCategory);
+router.put('/categories/:id', adminCtrl.updateCategory);
+
+// ─── Review Moderation ────────────────────────────────────────
+router.get('/reviews', adminCtrl.reviews);
+router.put('/reviews/:id', adminCtrl.toggleReview);
+router.delete('/reviews/:id', adminCtrl.deleteReview);
 
 // GET  /admin/services    – Manage all gigs/services
 router.get('/services', adminCtrl.services);

@@ -247,6 +247,12 @@ module.exports = {
     // PUT /jobs/:id
     async update(req, res) {
         try {
+            const job = await Job.findById(req.params.id);
+            if (!job) return res.status(404).render('pages/404', { title: 'Job Not Found' });
+            if (job.customer_id !== req.user.id && req.user.role !== 'admin') {
+                req.flash('error', 'You can only edit your own gigs');
+                return res.redirect('/jobs');
+            }
             await Job.update(req.params.id, req.body);
             req.flash('success', 'Job updated');
             res.redirect(`/jobs/${req.params.id}`);
@@ -260,6 +266,12 @@ module.exports = {
     // DELETE /jobs/:id
     async destroy(req, res) {
         try {
+            const job = await Job.findById(req.params.id);
+            if (!job) return res.status(404).render('pages/404', { title: 'Job Not Found' });
+            if (job.customer_id !== req.user.id && req.user.role !== 'admin') {
+                req.flash('error', 'You can only cancel your own gigs');
+                return res.redirect('/jobs');
+            }
             const activeBookings = await pool.query(
                 `SELECT id FROM bookings WHERE job_id = $1 AND status NOT IN ('cancelled', 'completed', 'paid_final')`,
                 [req.params.id]
@@ -283,6 +295,10 @@ module.exports = {
         try {
             const job = await Job.findById(req.params.id);
             if (!job) { req.flash('error', 'Job not found'); return res.redirect('/dashboard'); }
+            if (job.customer_id !== req.user.id) {
+                req.flash('error', 'You can only publish your own gigs');
+                return res.redirect('/dashboard');
+            }
 
             // Limit: max 3 active jobs
             const activeCount = await Job.countActiveByCustomer(req.user.id);

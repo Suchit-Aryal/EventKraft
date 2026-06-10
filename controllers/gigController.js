@@ -124,6 +124,16 @@ module.exports = {
             const { title, description, category_id, starting_price,
                     delivery_time, tags, faq, status } = req.body;
 
+            if (!title || !title.trim() || !description || !description.trim()) {
+                req.flash('error', 'Title and description are required');
+                return res.redirect('/gigs/create');
+            }
+            const price = Number(starting_price);
+            if (!Number.isFinite(price) || price <= 0) {
+                req.flash('error', 'Starting price must be a positive number');
+                return res.redirect('/gigs/create');
+            }
+
             const gig = await Gig.create({
                 title, description, category_id, starting_price,
                 delivery_time, tags, faq,
@@ -247,6 +257,12 @@ module.exports = {
 
     async destroy(req, res) {
         try {
+            const gig = await Gig.findById(req.params.id);
+            if (!gig) { req.flash('error', 'Service not found'); return res.redirect('/gigs/mine'); }
+            if (gig.worker_id !== req.user.id && req.user.role !== 'admin') {
+                req.flash('error', 'You can only delete your own services');
+                return res.redirect('/gigs');
+            }
             await Gig.softDelete(req.params.id);
             req.flash('success', 'Service deleted');
             res.redirect('/gigs/mine');
@@ -261,6 +277,10 @@ module.exports = {
         try {
             const gig = await Gig.findById(req.params.id);
             if (!gig) { req.flash('error', 'Service not found'); return res.redirect('/gigs/mine'); }
+            if (gig.worker_id !== req.user.id) {
+                req.flash('error', 'You can only publish your own services');
+                return res.redirect('/gigs/mine');
+            }
 
             if (gig.status !== 'active') {
                 const activeCount = await Gig.countActiveByWorker(req.user.id);

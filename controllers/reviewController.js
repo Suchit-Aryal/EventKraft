@@ -26,6 +26,22 @@ module.exports = {
                 req.flash('error', 'You can only review bookings you are part of');
                 return res.redirect('back');
             }
+            if (!['completed', 'paid_final'].includes(booking.status)) {
+                req.flash('error', 'You can only review a booking after it is completed');
+                return res.redirect('back');
+            }
+
+            const ratingNum = Number(rating);
+            if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+                req.flash('error', 'Rating must be a whole number between 1 and 5');
+                return res.redirect('back');
+            }
+
+            const alreadyReviewed = await Review.hasReviewed(booking_id, req.user.id);
+            if (alreadyReviewed) {
+                req.flash('error', 'You have already reviewed this booking');
+                return res.redirect('back');
+            }
 
             const reviewee_id = req.user.id === booking.customer_id
                 ? booking.worker_id
@@ -35,7 +51,7 @@ module.exports = {
                 booking_id,
                 reviewer_id: req.user.id,
                 reviewee_id,
-                rating: Number(rating),
+                rating: ratingNum,
                 quality_rating: quality_rating ? Number(quality_rating) : null,
                 professionalism_rating: professionalism_rating ? Number(professionalism_rating) : null,
                 communication_rating: communication_rating ? Number(communication_rating) : null,
