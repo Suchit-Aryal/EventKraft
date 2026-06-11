@@ -112,14 +112,30 @@ async function approveWorkerKyc(userId, adminId, documentType) {
 
 // ─── Gigs & packages ────────────────────────────────────────
 
-async function createGig({ workerId, categoryId, title, description, startingPrice, deliveryTime, tags, images, packages }) {
+async function createGig({ workerId, categoryId, title, description, startingPrice, deliveryTime, tags, images, packages, legacyTitles = [] }) {
+    // Match the new title or titles used by older seed versions so re-runs
+    // upgrade existing demo gigs in place instead of duplicating them.
+    const titles = [title, ...legacyTitles];
     const existing = await pool.query(
-        'SELECT id FROM service_gigs WHERE worker_id = $1 AND title = $2',
-        [workerId, title]
+        'SELECT id FROM service_gigs WHERE worker_id = $1 AND title = ANY($2) ORDER BY created_at',
+        [workerId, titles]
     );
     let gigId;
     if (existing.rows.length > 0) {
         gigId = existing.rows[0].id;
+        await pool.query(
+            `UPDATE service_gigs SET
+                category_id = $2, title = $3, description = $4, tags = $5,
+                portfolio_images = $6, delivery_time = $7, starting_price = $8, status = 'active'
+             WHERE id = $1`,
+            [gigId, categoryId, title, description, JSON.stringify(tags), JSON.stringify(images), deliveryTime, startingPrice]
+        );
+        // Duplicates left behind by the old non-idempotent seed: pause them
+        // (kept in the database, hidden from the marketplace).
+        const dupIds = existing.rows.slice(1).map(r => r.id);
+        if (dupIds.length > 0) {
+            await pool.query(`UPDATE service_gigs SET status = 'paused' WHERE id = ANY($1)`, [dupIds]);
+        }
     } else {
         const result = await pool.query(
             `INSERT INTO service_gigs
@@ -149,12 +165,28 @@ async function createGig({ workerId, categoryId, title, description, startingPri
 
 // ─── Jobs & proposals ───────────────────────────────────────
 
-async function createJob({ customerId, categoryId, title, description, eventType, eventDate, location, budgetMin, budgetMax, deadline }) {
+async function createJob({ customerId, categoryId, title, description, eventType, eventDate, location, budgetMin, budgetMax, deadline, legacyTitles = [] }) {
+    const titles = [title, ...legacyTitles];
     const existing = await pool.query(
-        'SELECT id FROM job_postings WHERE customer_id = $1 AND title = $2',
-        [customerId, title]
+        'SELECT id FROM job_postings WHERE customer_id = $1 AND title = ANY($2) ORDER BY created_at',
+        [customerId, titles]
     );
-    if (existing.rows.length > 0) return existing.rows[0].id;
+    if (existing.rows.length > 0) {
+        const jobId = existing.rows[0].id;
+        await pool.query(
+            `UPDATE job_postings SET
+                category_id = $2, title = $3, description = $4, event_type = $5, event_date = $6,
+                event_location = $7, budget_min = $8, budget_max = $9, proposal_deadline = $10, status = 'published'
+             WHERE id = $1`,
+            [jobId, categoryId, title, description, eventType, eventDate, location, budgetMin, budgetMax, deadline]
+        );
+        // Close duplicates left behind by the old non-idempotent seed
+        const dupIds = existing.rows.slice(1).map(r => r.id);
+        if (dupIds.length > 0) {
+            await pool.query(`UPDATE job_postings SET status = 'closed' WHERE id = ANY($1)`, [dupIds]);
+        }
+        return jobId;
+    }
     const result = await pool.query(
         `INSERT INTO job_postings
             (customer_id, category_id, title, description, event_type, event_date, event_location, budget_min, budget_max, proposal_deadline, status)
@@ -177,12 +209,6 @@ async function createProposal({ jobId, workerId, coverLetter, price, duration })
 // ─── Bookings & transactions ────────────────────────────────
 
 async function createBooking({ customerId, workerId, gigId, packageId, totalAmount, eventDate, eventLocation, requirements, stage }) {
-    const existing = await pool.query(
-        'SELECT id FROM bookings WHERE customer_id = $1 AND worker_id = $2 AND gig_id = $3 AND total_amount = $4',
-        [customerId, workerId, gigId, totalAmount]
-    );
-    if (existing.rows.length > 0) return { id: existing.rows[0].id, created: false };
-
     const m = await getCommission(totalAmount);
     const now = new Date();
     const fields = {
@@ -213,42 +239,81 @@ async function createBooking({ customerId, workerId, gigId, packageId, totalAmou
         fields.completed_at = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
     }
 
-    const result = await pool.query(
-        `INSERT INTO bookings
-            (customer_id, worker_id, gig_id, package_id, total_amount,
-             commission_rate, commission_amount, worker_earning,
-             event_date, event_location, requirements, status,
-             accepted_at, advance_deadline, advance_amount, final_amount,
-             advance_paid_at, advance_esewa_ref_id,
-             final_paid_at, final_esewa_ref_id, completed_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
-         RETURNING id`,
-        [customerId, workerId, gigId, packageId || null, totalAmount,
-         m.rate, m.commission, m.workerEarning,
-         eventDate, eventLocation, requirements || null, fields.status,
-         fields.accepted_at, fields.advance_deadline, fields.advance_amount, fields.final_amount,
-         fields.advance_paid_at, fields.advance_esewa_ref_id,
-         fields.final_paid_at, fields.final_esewa_ref_id, fields.completed_at]
+    // Reuse a matching demo booking from a previous run and converge it to
+    // the intended lifecycle stage; otherwise insert a new one.
+    const existing = await pool.query(
+        'SELECT id FROM bookings WHERE customer_id = $1 AND worker_id = $2 AND gig_id = $3 AND total_amount = $4 ORDER BY created_at',
+        [customerId, workerId, gigId, totalAmount]
     );
-    const bookingId = result.rows[0].id;
+    let bookingId;
+    let created = false;
+    if (existing.rows.length > 0) {
+        bookingId = existing.rows[0].id;
+        // Cancel duplicates left behind by the old non-idempotent seed
+        const dupIds = existing.rows.slice(1).map(r => r.id);
+        if (dupIds.length > 0) {
+            await pool.query(`UPDATE bookings SET status = 'cancelled' WHERE id = ANY($1)`, [dupIds]);
+        }
+        await pool.query(
+            `UPDATE bookings SET
+                package_id = COALESCE(package_id, $2),
+                commission_rate = $3, commission_amount = $4, worker_earning = $5,
+                event_date = $6, event_location = $7, requirements = $8, status = $9,
+                accepted_at = $10, advance_deadline = $11, advance_amount = $12, final_amount = $13,
+                advance_paid_at = $14, advance_esewa_ref_id = COALESCE(advance_esewa_ref_id, $15),
+                final_paid_at = $16, final_esewa_ref_id = COALESCE(final_esewa_ref_id, $17),
+                completed_at = $18
+             WHERE id = $1`,
+            [bookingId, packageId || null,
+             m.rate, m.commission, m.workerEarning,
+             eventDate, eventLocation, requirements || null, fields.status,
+             fields.accepted_at, fields.advance_deadline, fields.advance_amount, fields.final_amount,
+             fields.advance_paid_at, fields.advance_esewa_ref_id,
+             fields.final_paid_at, fields.final_esewa_ref_id, fields.completed_at]
+        );
+    } else {
+        const result = await pool.query(
+            `INSERT INTO bookings
+                (customer_id, worker_id, gig_id, package_id, total_amount,
+                 commission_rate, commission_amount, worker_earning,
+                 event_date, event_location, requirements, status,
+                 accepted_at, advance_deadline, advance_amount, final_amount,
+                 advance_paid_at, advance_esewa_ref_id,
+                 final_paid_at, final_esewa_ref_id, completed_at)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+             RETURNING id`,
+            [customerId, workerId, gigId, packageId || null, totalAmount,
+             m.rate, m.commission, m.workerEarning,
+             eventDate, eventLocation, requirements || null, fields.status,
+             fields.accepted_at, fields.advance_deadline, fields.advance_amount, fields.final_amount,
+             fields.advance_paid_at, fields.advance_esewa_ref_id,
+             fields.final_paid_at, fields.final_esewa_ref_id, fields.completed_at]
+        );
+        bookingId = result.rows[0].id;
+        created = true;
+    }
 
     // Matching ledger entries: advance carries no commission, the final
-    // payment carries the full commission.
-    if (['paid_advance', 'completed'].includes(stage)) {
+    // payment carries the full commission. Guarded so re-runs don't double-post.
+    const hasTxn = async (type) => {
+        const r = await pool.query('SELECT 1 FROM transactions WHERE booking_id = $1 AND type = $2', [bookingId, type]);
+        return r.rows.length > 0;
+    };
+    if (['paid_advance', 'completed'].includes(stage) && !(await hasTxn('advance_payment'))) {
         await pool.query(
             `INSERT INTO transactions (booking_id, payer_id, payee_id, amount, commission, net_amount, type, status, payment_method)
              VALUES ($1, $2, $3, $4, 0, $4, 'advance_payment', 'completed', 'esewa')`,
             [bookingId, customerId, workerId, m.advance]
         );
     }
-    if (stage === 'completed') {
+    if (stage === 'completed' && !(await hasTxn('final_payment'))) {
         await pool.query(
             `INSERT INTO transactions (booking_id, payer_id, payee_id, amount, commission, net_amount, type, status, payment_method)
              VALUES ($1, $2, $3, $4, $5, $6, 'final_payment', 'completed', 'esewa')`,
             [bookingId, customerId, workerId, m.final, m.commission, money(m.final - m.commission)]
         );
     }
-    return { id: bookingId, created: true };
+    return { id: bookingId, created };
 }
 
 // ─── Reviews & notifications ────────────────────────────────
@@ -398,6 +463,7 @@ async function seed() {
         const gigVideo = await createGig({
             workerId: bikash, categoryId: catMap['videography'],
             title: 'Cinematic Wedding Videography in 4K',
+            legacyTitles: ['Cinematic Wedding Videography'],
             description: 'Your wedding deserves more than a recording — it deserves a film. I shoot in true 4K with gimbal-stabilised cinema cameras, capture licensed drone aerials of your venue, and record crisp audio of your vows and speeches. You receive a colour-graded cinematic highlight film plus a full-length documentary edit of the entire day. Premium packages include a same-day edit screened at your reception and a one-minute social media teaser delivered within 48 hours.',
             startingPrice: 35000, deliveryTime: '21 days',
             tags: ['videography', '4k', 'wedding film', 'drone'],
@@ -412,6 +478,7 @@ async function seed() {
         const gigMehendi = await createGig({
             workerId: anita, categoryId: catMap['mehendi'],
             title: 'Bridal Mehendi — Intricate Traditional & Modern Designs',
+            legacyTitles: ['Traditional & Modern Mehendi Art'],
             description: 'Make your hands part of the celebration with intricate bridal mehendi that photographs beautifully and stains deeply. I specialise in full bridal designs that weave your love story into traditional motifs, alongside modern minimalist and Arabic styles. I use only natural henna that I source and grind myself — no chemical dyes, completely safe for skin, with a rich stain that lasts up to three weeks. Guest mehendi packages keep the whole family included on mehendi night.',
             startingPrice: 5000, deliveryTime: '1 day',
             tags: ['mehendi', 'henna', 'bridal', 'pokhara'],
@@ -457,6 +524,7 @@ async function seed() {
         const job1 = await createJob({
             customerId: aarav, categoryId: catMap['photography'],
             title: 'Wedding Photographer Wanted for 3-Day Kathmandu Wedding',
+            legacyTitles: ['Looking for Wedding Photographer — Kathmandu'],
             description: 'We are getting married in June and looking for an experienced photographer to cover three days of events: mehendi night, the main wedding ceremony and the evening reception. We want a mix of candid coverage and traditional family portraits, and we would love drone shots of the venue if possible. Please share your portfolio and a package that covers all three days with edited photos delivered within a month.',
             eventType: 'Wedding', eventDate: '2026-06-15', location: 'Kathmandu',
             budgetMin: 30000, budgetMax: 80000, deadline: '2026-06-13',
@@ -464,6 +532,7 @@ async function seed() {
         const job2 = await createJob({
             customerId: sita, categoryId: catMap['decoration'],
             title: 'Full Venue Decoration for Lakeside Wedding in Pokhara',
+            legacyTitles: ['Full Wedding Decoration Needed — Pokhara'],
             description: 'Seeking a decoration team for a 300-guest wedding at a lakeside venue in Pokhara. We need a traditional mandap with fresh flowers, an elegant entrance gate, stage decoration for the reception, table centrepieces and coordinated lighting throughout the venue. The theme is ivory and marigold with traditional Nepali touches. Please include setup and teardown in your proposal — the venue gives us access from 6 AM on the event day.',
             eventType: 'Wedding', eventDate: '2026-07-20', location: 'Pokhara',
             budgetMin: 100000, budgetMax: 200000, deadline: '2026-07-15',
@@ -471,6 +540,7 @@ async function seed() {
         const job3 = await createJob({
             customerId: rajan, categoryId: catMap['music-dj'],
             title: 'Reception DJ Needed for Corporate Anniversary Party',
+            legacyTitles: ['DJ for Reception Party — Bhaktapur'],
             description: 'Our company is celebrating its 10th anniversary with an evening reception in Bhaktapur for around 150 guests. We need a DJ with a professional sound system and lighting who can handle background music during dinner and then run a high-energy dance segment afterwards. A wireless mic setup for speeches is essential. The event runs from 6 PM to 11 PM. Please quote including all equipment and setup time.',
             eventType: 'Corporate Event', eventDate: '2026-08-10', location: 'Bhaktapur',
             budgetMin: 15000, budgetMax: 30000, deadline: '2026-08-05',

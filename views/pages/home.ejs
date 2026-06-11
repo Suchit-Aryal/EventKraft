@@ -143,7 +143,8 @@
                     <div class="col-sm-6 col-lg-3">
                         <a href="/gigs/<%= gig.id %>" class="ek-provider-card ek-card d-block">
                             <div class="cover">
-                                <img src="<%= gig.worker_avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(gig.worker_first_name || 'User') + '&size=400&background=random' %>" alt="<%= gig.title %>">
+                                <% const coverImg = (Array.isArray(gig.portfolio_images) && gig.portfolio_images.length > 0) ? gig.portfolio_images[0] : (gig.worker_avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(gig.worker_first_name || 'User') + '&size=400&background=random'); %>
+                                <img src="<%= coverImg %>" alt="<%= gig.title %>">
                             </div>
                             <div class="info">
                                 <img src="<%= gig.worker_avatar || 'https://ui-avatars.com/api/?name=' + (gig.worker_first_name || 'U') %>" alt="" class="avatar">
