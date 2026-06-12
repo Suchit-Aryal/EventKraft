@@ -247,7 +247,14 @@
 :root[data-theme="dark"] .topnav__dropdown-foot:hover { background: #2a1e27; }
 
 @media (max-width: 640px) {
-  .topnav__dashboard-btn span { display: none; }
+  .topnav__dashboard-btn { display: none; }
   .topnav__link { display: none; }
   .topnav__theme-toggle span { display: none; }
+  .topnav__inner { padding: 0 12px; }
+  .topnav__right { gap: 4px; }
+}
+
+@media (max-width: 480px) {
+  .topnav__logo-text { display: none; }
+  .topnav__chevron { display: none; }
 }
