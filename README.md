@@ -365,6 +365,26 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 
 ## Changelog
 
+### 2026-06-12 — AI Assistant, Recommendations, Dashboard Upgrades & UI Fixes
+
+**Branch:** `bug-fixes/anuj`
+
+**AI Assistant (new)**
+- Floating **EventKraft Assistant** chat widget (bottom-left) on all pages for logged-in users. Ask about budgets, event types, or services and it answers with clickable service cards (image, price, rating) that link to the gig page.
+- Provider fallback chain in `utils/aiService.js`: **Gemini 2.5 Flash → Gemini 2.5 Flash-Lite → Grok (xAI)**. If one provider hits a rate limit or fails, the next is tried automatically. Keys: `GEMINI_API_KEY`, `XAI_API_KEY` in `.env`.
+- `POST /api/ai/chat` (auth required, 10 req/min/user). The live gig catalog is injected into the prompt; the model references gigs via `[[gig:ID]]` tokens which the server resolves into card data. Chat history persists across pages via `sessionStorage`.
+
+**Recommendations (new)**
+- `utils/recommendationService.js` — pure SQL, no AI quota used. Customers see a **"Recommended for you"** slider of gigs from categories they've booked before (top-rated first, already-booked gigs excluded, popular gigs as backfill). Workers see **"Jobs you might like"** — published jobs in their gig categories, excluding ones they already proposed to.
+
+**Dashboard**
+- Recommendations slider added for both roles (horizontal scroll-snap cards).
+- Workers now have a **Recent Orders** box (latest 5 bookings with status and customer name) — previously workers had no order history on the overview.
+
+**UI fixes**
+- `.crm-table` used `overflow: hidden`, clipping wide tables — the admin **Manage Users** Actions column was cut off and its buttons unreachable. Tables now scroll horizontally inside the card.
+- Mobile topnav overflowed the screen (~154px) on phones: the Dashboard pill hides ≤640px (still in the avatar menu), logo text and avatar chevron hide ≤480px, tighter paddings. Pages no longer scroll sideways at 375px.
+
 ### 2026-06-11 — Security Hardening, Bug Fixes, Full Admin Panel & Rich Demo Data
 
 **Branch:** `bug-fixes/anuj`
