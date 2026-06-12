@@ -1430,3 +1430,58 @@ a:hover { color: var(--ek-maroon-light); }
 :root[data-theme="dark"] .booking-detail-row {
   border-bottom-color: var(--ek-border) !important;
 }
+
+/* ─── Recommendations slider (dashboard) ───────────────────── */
+.ek-rec-row {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+.ek-rec-row::-webkit-scrollbar { height: 6px; }
+.ek-rec-row::-webkit-scrollbar-thumb { background: var(--ek-border); border-radius: 3px; }
+
+.ek-rec-card {
+  flex: 0 0 240px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  background: var(--ek-surface);
+  border: 1px solid var(--ek-border);
+  border-radius: var(--ek-radius-lg);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--ek-text);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.ek-rec-card:hover { transform: translateY(-3px); box-shadow: var(--ek-shadow-soft); color: var(--ek-text); }
+
+.ek-rec-card__img {
+  height: 120px;
+  background: var(--ek-cream-dark);
+  flex-shrink: 0;
+}
+.ek-rec-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ek-rec-card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+}
+.ek-rec-card__body .badge { align-self: flex-start; }
+
+.ek-rec-card__title {
+  font-size: .85rem;
+  font-weight: 700;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ek-rec-card--job { min-height: 150px; }

@@ -88,6 +88,40 @@
         </div>
     </div>
 
+    <% if (locals.recommendations && recommendations.length > 0) { %>
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-stars text-warning me-1"></i>Recommended for you</h5>
+                <a href="/gigs" class="text-decoration-none small fw-semibold">Browse all</a>
+            </div>
+            <div class="ek-rec-row">
+                <% recommendations.forEach(function(g) {
+                    let img = null;
+                    try {
+                        const imgs = typeof g.portfolio_images === 'string' ? JSON.parse(g.portfolio_images) : g.portfolio_images;
+                        img = Array.isArray(imgs) && imgs.length > 0 ? imgs[0] : null;
+                    } catch (e) {}
+                %>
+                    <a href="/gigs/<%= g.id %>" class="ek-rec-card">
+                        <div class="ek-rec-card__img">
+                            <% if (img) { %><img src="<%= img %>" alt="" loading="lazy"><% } %>
+                        </div>
+                        <div class="ek-rec-card__body">
+                            <span class="badge bg-light text-dark mb-1"><%= g.category_name || 'Service' %></span>
+                            <div class="ek-rec-card__title"><%= g.title %></div>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                                <span class="text-success fw-bold small">From NPR <%= Number(g.starting_price).toLocaleString() %></span>
+                                <% if (g.worker_rating) { %>
+                                    <span class="small text-muted"><i class="bi bi-star-fill text-warning"></i> <%= Number(g.worker_rating).toFixed(1) %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+    <% } %>
+
     <div class="row g-4">
         <div class="col-lg-7">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -183,6 +217,38 @@
         </div>
     </div>
 
+    <% if (locals.recommendations && recommendations.length > 0) { %>
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-stars text-warning me-1"></i>Jobs you might like</h5>
+                <a href="/jobs" class="text-decoration-none small fw-semibold">Browse all</a>
+            </div>
+            <div class="ek-rec-row">
+                <% recommendations.forEach(function(j) { %>
+                    <a href="/jobs/<%= j.id %>" class="ek-rec-card ek-rec-card--job">
+                        <div class="ek-rec-card__body">
+                            <span class="badge bg-light text-dark mb-1"><%= j.category_name || 'Event' %></span>
+                            <div class="ek-rec-card__title"><%= j.title %></div>
+                            <% if (j.event_location) { %>
+                                <div class="small text-muted text-truncate mt-1"><i class="bi bi-geo-alt"></i> <%= j.event_location %></div>
+                            <% } %>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-2">
+                                <% if (j.budget_min || j.budget_max) { %>
+                                    <span class="text-success fw-bold small">NPR <%= Number(j.budget_min || 0).toLocaleString() %><% if (j.budget_max) { %>–<%= Number(j.budget_max).toLocaleString() %><% } %></span>
+                                <% } else { %>
+                                    <span class="small text-muted">Budget open</span>
+                                <% } %>
+                                <% if (j.event_date) { %>
+                                    <span class="small text-muted"><%= new Date(j.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+    <% } %>
+
     <div class="row g-4">
         <div class="col-lg-8">
             <h5 class="fw-bold mb-3">Your Published Services</h5>
@@ -233,6 +299,28 @@
                     <div><div class="fw-bold small">Check Messages</div><div class="text-muted" style="font-size:0.7rem">Reply to enquiries</div></div>
                 </a>
             </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                <h5 class="fw-bold mb-0">Recent Orders</h5>
+                <a href="/bookings" class="text-decoration-none small fw-semibold">History</a>
+            </div>
+            <% if (bookings && bookings.length > 0) { %>
+                <div class="list-group list-group-flush border rounded-4 overflow-hidden">
+                    <% bookings.forEach(function(b) { %>
+                        <a href="/bookings/<%= b.id %>" class="list-group-item list-group-item-action p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-dark text-truncate me-2"><%= b.gig_title || 'Service Booking' %></span>
+                                <span class="badge-status badge-<%= b.status %>" style="font-size: 0.65rem;"><%= b.status %></span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">for <%= b.customer_name %></div>
+                        </a>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="empty-state py-4">
+                    <p class="mb-0">No orders yet.</p>
+                </div>
+            <% } %>
         </div>
     </div>
 <% } %>
