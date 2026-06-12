@@ -13,6 +13,9 @@
   <script src="/js/realtime-badges.js"></script>
   <script src="/js/notifications-popup.js"></script>
   <script src="/js/floating-chat.js"></script>
+  <% if (locals.currentUser) { %>
+    <%- include('../partials/ai-widget') %>
+  <% } %>
   <%- locals.scripts || '' %>
 </body>
 </html>

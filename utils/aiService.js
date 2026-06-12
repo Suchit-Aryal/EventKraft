@@ -22,7 +22,13 @@ async function callGemini(model, systemPrompt, messages) {
             role: m.role === 'assistant' ? 'model' : 'user',
             parts: [{ text: m.content }],
         })),
-        generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+        generationConfig: {
+            maxOutputTokens: 2048,
+            temperature: 0.7,
+            // 2.5 models "think" by default and thinking tokens count
+            // against maxOutputTokens, truncating the visible reply.
+            thinkingConfig: { thinkingBudget: 0 },
+        },
     };
 
     const res = await fetch(url, {
