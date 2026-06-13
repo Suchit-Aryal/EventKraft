@@ -387,7 +387,14 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 **UI fixes**
 - `.crm-table` used `overflow: hidden`, clipping wide tables — the admin **Manage Users** Actions column was cut off and its buttons unreachable. Tables now scroll horizontally inside the card.
 - Mobile topnav overflowed the screen (~154px) on phones: the Dashboard pill hides ≤640px (still in the avatar menu), logo text and avatar chevron hide ≤480px, tighter paddings. Pages no longer scroll sideways at 375px.
+lude `paid_final`.
+- Contact settings validate email format, detect duplicate emails, and normalise Nepali phone numbers to `+977XXXXXXXXXX`; deactivation message no longer claims you can log back in.
+- `Profile.total_completed` is now incremented when bookings complete.
 
+**Admin panel (new)**
+- Users: keyword/role/status filters, role change, password reset, permanent delete — with self/other-admin guard rails.
+- Bookings: status filter, service titles, full status override.
+- New pages: **Transactions** (r
 ### 2026-06-11 — Security Hardening, Bug Fixes, Full Admin Panel & Rich Demo Data
 
 **Branch:** `bug-fixes/anuj`
@@ -400,24 +407,8 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - `db:setup` now applies `database/migrations/` after the schema, and `schema.sql` was brought to full parity with migrations 001–007 (legal/eSewa/completion booking fields, `booking_agreements` table, `messages.message_type`, unique eSewa indexes — constraint names match so migrations no-op cleanly).
 - `db:reset` now also drops `booking_agreements`, `kyc_submissions`, `portfolio_items` and `session`, so reset → setup works.
 - Worker earnings and platform revenue now count `advance_payment`/`final_payment` transactions (previously always 0).
-- Customer dashboard stats fixed (pending proposals counted bookings; proposal counts on jobs; total spent includes `paid_final`); worker stats now use `worker_earning` and include `paid_final`.
-- Contact settings validate email format, detect duplicate emails, and normalise Nepali phone numbers to `+977XXXXXXXXXX`; deactivation message no longer claims you can log back in.
-- `Profile.total_completed` is now incremented when bookings complete.
-
-**Admin panel (new)**
-- Users: keyword/role/status filters, role change, password reset, permanent delete — with self/other-admin guard rails.
-- Bookings: status filter, service titles, full status override.
-- New pages: **Transactions** (revenue cards + ledger), **Categories** (create/edit/hide), **Reviews** (hide/show/delete with rating recalc).
+- Customer dashboard stats fixed (pending proposals counted bookings; proposal counts on jobs; total spent includes `paid_final`); worker stats now use `worker_earning` and incevenue cards + ledger), **Categories** (create/edit/hide), **Reviews** (hide/show/delete with rating recalc).
 - Services: listings can now be removed from the marketplace. Sidebar and dashboard quick links updated.
 
 **Demo data**
 - `database/seed.js` completely rewritten: 3 customers, 4 KYC-approved workers (rich bios, skills, taglines), 6 gigs with real Unsplash photos and 3 packages each, 3 job postings with personalised proposals, 5 bookings covering every lifecycle stage with correct commission math and eSewa transaction ledger rows, 3 reviews, a seeded chat nversation and notifications. `images.unsplash.com` added to the CSP image whitelist.
-
-### 2026-05-16 — Documentation: Blueprint & Schema Sync
-
-**Branch:** `docs/blueprint-sync`
-
-- Synchronized `EventKraft-Blueprint` (MD, JSON, and SQL) with the current project implementation.
-- Updated `README.md` to reflect latest features: **KYC Verification**, **2FA Security**, and **Advanced Chat (Reply/Unsend)**.
-- Documented 2 new database tables (`kyc_submissions`, `portfolio_items`) and updated schema specifications to match PostgreSQL reality (17 tables total).
-- Moved implemented suggestions (Video Portfolios, Comparison View, Badges) to the completed section in blueprints.
