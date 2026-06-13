@@ -7,6 +7,7 @@ const router = express.Router();
 const { ensureAuthenticated } = require('../middleware/auth');
 const profileController = require('../controllers/profileController');
 const pool = require('../config/db');
+const recommendationService = require('../utils/recommendationService');
 
 // All dashboard routes require authentication
 router.use(ensureAuthenticated);
@@ -20,6 +21,7 @@ router.get('/', async (req, res) => {
     let jobs = [];
     let bookings = [];
     let gigs = [];
+    let recommendations = [];
 
     if (role === 'customer') {
       const statsQ = await pool.query(
@@ -54,6 +56,8 @@ router.get('/', async (req, res) => {
         [userId]
       );
       bookings = bookingsQ.rows;
+
+      recommendations = await recommendationService.forCustomer(userId, 8);
     } else if (role === 'worker') {
       const statsQ = await pool.query(
         `SELECT
@@ -73,12 +77,26 @@ router.get('/', async (req, res) => {
         [userId]
       );
       gigs = gigsQ.rows;
+
+      const workerBookingsQ = await pool.query(
+        `SELECT b.*, COALESCE(sg.title, jp.title) AS gig_title,
+                p.first_name || ' ' || p.last_name AS customer_name
+         FROM bookings b
+         LEFT JOIN service_gigs sg ON sg.id = b.gig_id
+         LEFT JOIN job_postings jp ON jp.id = b.job_id
+         LEFT JOIN profiles p ON p.user_id = b.customer_id
+         WHERE b.worker_id = $1 ORDER BY b.created_at DESC LIMIT 5`,
+        [userId]
+      );
+      bookings = workerBookingsQ.rows;
+
+      recommendations = await recommendationService.forWorker(userId, 8);
     }
 
     res.render('pages/dashboard-overview', {
       pageTitle: 'Dashboard',
       activePage: 'overview',
-      stats, jobs, bookings, gigs,
+      stats, jobs, bookings, gigs, recommendations,
     });
   } catch (err) {
     console.error('Dashboard error:', err);

@@ -153,6 +153,7 @@ app.use('/admin', adminRoutes);
 app.use('/profile', require('./routes/profileRoutes'));
 app.use('/onboarding', require('./routes/onboardingRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 // ─── Socket.io (Real-time Chat & Notifications) ────────────
 io.on('connection', (socket) => {
