@@ -382,12 +382,7 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - Provider fallback chain in `utils/aiService.js`: **Gemini 2.5 Flash → Gemini 2.5 Flash-Lite → Grok (xAI)**. If one provider hits a rate limit or fails, the next is tried automatically. Keys: `GEMINI_API_KEY`, `XAI_API_KEY` in `.env`.
 - `POST /api/ai/chat` (auth\req/min/user). The live gig catalog is injected into the prompt; the model references gigs via `[[gig:ID]]` tokens which the server resolves into card data. Chat history persists across pages via `sessionStorage`.
 
-**Recommendations (new)**
-- `utils/recommendationService.js` — pure SQL, no AI quota used. Customers see a **"Recommended for you"** slider of gigs from categories they've booked before (top-rated first, already-booked gigs excluded, popular gigs as backfill). Workers see **"Jobs you might like"** — published jobs in their gig categories, excluding ones they already proposed to.
-
-**Dashboard**
-- Recommendations slider added for both roles (horizontal scroll-snap cards).
-- Workers now have a **Recent Orders** box (latest 5 bookings with status and customer name) — previously workers had no order history on the overview.
+* Orders** box (latest 5 bookings with status and customer name) — previously workers had no order history on the overview.
 
 **UI fixes**
 - `.crm-table` used `overflow: hidden`, clipping wide tables — the admin **Manage Users** Actions column was cut off and its buttons unreachable. Tables now scroll horizontally inside the card.
@@ -397,12 +392,7 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 
 **Branch:** `bug-fixes/anuj`
 
-**Security fixes**
-- **Booking price tampering (critical):** `POST /bookings` no longer trusts client-submitted amounts. Price is resolved server-side from the gig/package, commission is computed via `CommissionSetting`, and `worker_id` comes from the gig. Self-booking and inactive gigs are rejected.
-- **Booking status escalation:** `PUT /bookings/:id` now enforces a per-role status whitelist — payment statuses are only reachable through the payment flow. Completion requires `in_progress`/`paid_final`; cancellation after money has moved requires a dispute/support; the legacy accept route now sets advance/final amounts and deadlines like the chat accept flow; advance payment success has a replay guard.
-- **IDOR fixes:** gig delete/publish and job update/delete/publish now verify ownership.
-- **Review integrity:** reviews require a completed booking, an integer 1–5 rating, and one review per booking per user (friendly error instead of a DB crash).
-- **Chat eavesdropping:** Socket.io `join-conversation` now verifies the session user is a participant of the conversation before joining the room.
+**Security :** Socket.io `join-conversation` now verifies the session user is a participant of the conversation before joining the room.
 - **Password & role hardening:** onboarding and password change require ≥8 characters; onboarding can never assign the `admin` role; eSewa final-payment URLs no longer break when `APP_URL` is unset and the gateway config is validated up front.
 
 **Bug fixes**
@@ -421,7 +411,7 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - Services: listings can now be removed from the marketplace. Sidebar and dashboard quick links updated.
 
 **Demo data**
-- `database/seed.js` completely rewritten: 3 customers, 4 KYC-approved workers (rich bios, skills, taglines), 6 gigs with real Unsplash photos and 3 packages each, 3 job postings with personalised proposals, 5 bookings covering every lifecycle stage with correct commission math and eSewa transaction ledger rows, 3 reviews, a seeded chat conversation and notifications. `images.unsplash.com` added to the CSP image whitelist.
+- `database/seed.js` completely rewritten: 3 customers, 4 KYC-approved workers (rich bios, skills, taglines), 6 gigs with real Unsplash photos and 3 packages each, 3 job postings with personalised proposals, 5 bookings covering every lifecycle stage with correct commission math and eSewa transaction ledger rows, 3 reviews, a seeded chat nversation and notifications. `images.unsplash.com` added to the CSP image whitelist.
 
 ### 2026-05-16 — Documentation: Blueprint & Schema Sync
 
