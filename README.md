@@ -365,6 +365,14 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 
 ## Changelog
 
+### 2026-06-13 — eSewa Test Credentials Fix
+
+**Branch:** `bug-fixes/anuj`
+
+- **Fixed broken eSewa payments:** `ESEWA_MERCHANT_CODE` was `9761800954`, which eSewa's ePay v2 sandbox rejects with `HTTP 400 "Unable to fetch merchant key"` — so both the advance and final payment forms failed. The sandbox requires the official test product code **`EPAYTEST`** (paired with the test secret key already in `.env`). Verified against eSewa's live RC servers: the payment form now returns `302` to the eSewa payment page and the status-verification endpoint recognises the merchant.
+- **eSewa test login** (entered on eSewa's own payment page during checkout, not app config): eSewa ID `9711111111`–`9711111114`, password `Nepal@123`, token/OTP `123456` (MPIN `1122` is for the mobile app only). The mobile-SDK `client_id`/`client_secret` are not used — this app uses the ePay v2 redirect (form POST) flow.
+- For production, set `ESEWA_ENV=live` and replace the merchant code + secret with real eSewa credentials.
+
 ### 2026-06-12 — AI Assistant, Recommendations, Dashboard Upgrades & UI Fixes
 
 **Branch:** `bug-fixes/anuj`
