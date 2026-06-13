@@ -361,6 +361,3 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 - CSS custom properties for consistent theming
 - Persistent theme preference via `localStorage`
 
----
-
-## Changelog
