@@ -380,7 +380,7 @@ Each model connects to the PostgreSQL tables via `pg` connection pool and provid
 **AI Assistant (new)**
 - Floating **EventKraft Assistant** chat widget (bottom-left) on all pages for logged-in users. Ask about budgets, event types, or services and it answers with clickable service cards (image, price, rating) that link to the gig page.
 - Provider fallback chain in `utils/aiService.js`: **Gemini 2.5 Flash → Gemini 2.5 Flash-Lite → Grok (xAI)**. If one provider hits a rate limit or fails, the next is tried automatically. Keys: `GEMINI_API_KEY`, `XAI_API_KEY` in `.env`.
-- `POST /api/ai/chat` (auth required, 10 req/min/user). The live gig catalog is injected into the prompt; the model references gigs via `[[gig:ID]]` tokens which the server resolves into card data. Chat history persists across pages via `sessionStorage`.
+- `POST /api/ai/chat` (auth\req/min/user). The live gig catalog is injected into the prompt; the model references gigs via `[[gig:ID]]` tokens which the server resolves into card data. Chat history persists across pages via `sessionStorage`.
 
 **Recommendations (new)**
 - `utils/recommendationService.js` — pure SQL, no AI quota used. Customers see a **"Recommended for you"** slider of gigs from categories they've booked before (top-rated first, already-booked gigs excluded, popular gigs as backfill). Workers see **"Jobs you might like"** — published jobs in their gig categories, excluding ones they already proposed to.
