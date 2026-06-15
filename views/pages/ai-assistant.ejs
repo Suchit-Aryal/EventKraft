@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+<link rel="stylesheet" href="/css/ai-chat.css">
+
+<div class="container py-4">
+    <div class="ek-ai-page" id="ekAiPage" data-ek-ai>
+        <div class="ek-ai-panel">
+            <div class="ek-ai-header">
+                <div class="ek-ai-header-title">
+                    <span class="ek-ai-dot"></span>
+                    <div>
+                        <strong>EventKraft Assistant</strong>
+                        <small>Ask about services, budgets &amp; ideas</small>
+                    </div>
+                </div>
+                <div class="ek-ai-header-actions">
+                    <button type="button" class="ek-ai-clear" title="Clear conversation" aria-label="Clear conversation">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    </button>
+                    <button type="button" class="ek-ai-back" title="Minimize" aria-label="Minimize" onclick="if (history.length > 1) { history.back(); } else { location.href = '/dashboard'; }">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="ek-ai-messages" aria-live="polite"></div>
+            <form class="ek-ai-inputrow" autocomplete="off">
+                <input type="text" class="ek-ai-input" maxlength="2000" placeholder="e.g. I have NPR 20,000 for a wedding…" aria-label="Message the assistant">
+                <button type="submit" class="ek-ai-send" aria-label="Send">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hide the floating widget on the dedicated assistant page -->
+<style> .ek-ai-widget { display: none !important; } </style>
+
+<%- include('../partials/tail') %>

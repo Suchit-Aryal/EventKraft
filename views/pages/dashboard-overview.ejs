@@ -59,32 +59,32 @@
     <!-- Customer Stats -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/jobs/mine" class="stat-card">
                 <div class="stat-icon bg-maroon"><i class="bi bi-megaphone"></i></div>
                 <div class="stat-value text-dark"><%= stats.active_jobs || 0 %></div>
                 <div class="stat-label">Active Jobs</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/jobs/mine" class="stat-card">
                 <div class="stat-icon bg-orange"><i class="bi bi-envelope-paper"></i></div>
                 <div class="stat-value text-dark"><%= stats.pending_proposals || 0 %></div>
                 <div class="stat-label">Proposals</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/bookings" class="stat-card">
                 <div class="stat-icon bg-green"><i class="bi bi-calendar-check"></i></div>
                 <div class="stat-value text-dark"><%= stats.total_bookings || 0 %></div>
                 <div class="stat-label">Total Bookings</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/bookings" class="stat-card">
                 <div class="stat-icon bg-blue"><i class="bi bi-wallet2"></i></div>
                 <div class="stat-value text-dark">NPR <%= Number(stats.total_spent || 0).toLocaleString() %></div>
                 <div class="stat-label">Total Spent</div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -188,32 +188,32 @@
     <!-- Worker Stats -->
     <div class="row g-4 mb-5">
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/gigs/mine" class="stat-card">
                 <div class="stat-icon bg-maroon"><i class="bi bi-shop"></i></div>
                 <div class="stat-value text-dark"><%= stats.active_gigs || 0 %></div>
                 <div class="stat-label">Active Gigs</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/bookings" class="stat-card">
                 <div class="stat-icon bg-orange"><i class="bi bi-clock-history"></i></div>
                 <div class="stat-value text-dark"><%= stats.pending_bookings || 0 %></div>
                 <div class="stat-label">Pending Orders</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/bookings" class="stat-card">
                 <div class="stat-icon bg-green"><i class="bi bi-check-circle"></i></div>
                 <div class="stat-value text-dark"><%= stats.completed || 0 %></div>
                 <div class="stat-label">Completed</div>
-            </div>
+            </a>
         </div>
         <div class="col-md-3">
-            <div class="stat-card">
+            <a href="/bookings" class="stat-card">
                 <div class="stat-icon bg-blue"><i class="bi bi-currency-dollar"></i></div>
                 <div class="stat-value text-dark">NPR <%= Number(stats.total_earned || 0).toLocaleString() %></div>
                 <div class="stat-label">Earnings</div>
-            </div>
+            </a>
         </div>
     </div>
 

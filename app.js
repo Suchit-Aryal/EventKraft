@@ -155,6 +155,11 @@ app.use('/onboarding', require('./routes/onboardingRoutes'));
 app.use('/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 
+// Full-page AI assistant
+app.get('/assistant', require('./middleware/auth').ensureAuthenticated, (req, res) => {
+    res.render('pages/ai-assistant', { title: 'AI Assistant — EventKraft' });
+});
+
 // ─── Socket.io (Real-time Chat & Notifications) ────────────
 io.on('connection', (socket) => {
     // Join a personal room for real-time badges/notifications

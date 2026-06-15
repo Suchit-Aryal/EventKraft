@@ -178,7 +178,7 @@ module.exports = {
 
             // Respond to client IMMEDIATELY, then emit socket (non-blocking)
             if (req.is('application/json')) {
-                res.json({ id: msg.id, created_at: msg.created_at });
+                res.json({ id: msg.id, created_at: msg.created_at, content: msg.content });
             } else {
                 res.redirect(`/messages/${conversationId}`);
             }
@@ -252,7 +252,7 @@ module.exports = {
                 fileType: req.file.mimetype
             });
 
-            res.json({ id: msg.id, created_at: msg.created_at, file_url: result.secure_url, file_name: req.file.originalname, file_type: req.file.mimetype });
+            res.json({ id: msg.id, created_at: msg.created_at, content: msg.content, file_url: result.secure_url, file_name: req.file.originalname, file_type: req.file.mimetype });
 
             try {
                 const io = req.app.get('io');
