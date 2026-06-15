@@ -345,6 +345,7 @@
 
     if (m.content) {
       const text = document.createElement('div');
+      text.className = 'js-msg-text';
       text.textContent = m.content;
       if (hasAttachment) text.style.marginTop = '6px';
       bubble.appendChild(text);
@@ -448,7 +449,14 @@
 
       // Swap temp ID with real DB ID
       const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);
-      if (tempEl && data.id) tempEl.dataset.msgId = data.id;
+      if (tempEl && data.id) {
+        tempEl.dataset.msgId = data.id;
+        // Reconcile with the server-filtered content (profanity masked)
+        if (typeof data.content === 'string') {
+          const textEl = tempEl.querySelector('.js-msg-text');
+          if (textEl) textEl.textContent = data.content;
+        }
+      }
     } catch (err) {
       // Mark as failed
       const tempEl = body.querySelector(`[data-msg-id="${tempId}"]`);

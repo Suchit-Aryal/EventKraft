@@ -57,12 +57,27 @@
             </div>
             <a href="/gigs" class="text-decoration-none fw-medium" style="font-size:.9rem">View all services →</a>
         </div>
+        <%
+            const catImages = {
+                'photography':    'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&q=80&auto=format&fit=crop',
+                'videography':    'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=600&q=80&auto=format&fit=crop',
+                'painting-art':   'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80&auto=format&fit=crop',
+                'decoration':     'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80&auto=format&fit=crop',
+                'makeup-styling': 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&q=80&auto=format&fit=crop',
+                'music-dj':       'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80&auto=format&fit=crop',
+                'catering':       'https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80&auto=format&fit=crop',
+                'event-planning': 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?w=600&q=80&auto=format&fit=crop',
+                'mehendi':        'https://images.unsplash.com/photo-1595872018818-97555653a011?w=600&q=80&auto=format&fit=crop',
+                'pandit-priest':  'https://images.unsplash.com/photo-1604608672516-f1b9b1d37076?w=600&q=80&auto=format&fit=crop'
+            };
+            const catFallback = (name) => 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&size=400&background=6b1d2a&color=fff';
+        %>
         <div class="row g-3">
             <% if (typeof categories !== 'undefined' && categories.length > 0) { %>
                 <% categories.slice(0, 4).forEach(function(cat) { %>
                     <div class="col-6 col-lg-3">
-                        <a href="/gigs?category=<%= cat.id %>" class="ek-category-card">
-                            <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(cat.name) %>&size=400&background=random" alt="<%= cat.name %>">
+                        <a href="/gigs?category_id=<%= cat.id %>" class="ek-category-card">
+                            <img src="<%= catImages[cat.slug] || catFallback(cat.name) %>" alt="<%= cat.name %>" loading="lazy" onerror="this.onerror=null;this.src='<%= catFallback(cat.name) %>'">
                             <div class="overlay"></div>
                             <div class="content">
                                 <h3><%= cat.name %></h3>
@@ -72,10 +87,10 @@
                     </div>
                 <% }); %>
             <% } else { %>
-                <% ['Photography', 'Videography', 'Decoration', 'Mehendi'].forEach(function(name) { %>
+                <% [['Photography','photography'], ['Videography','videography'], ['Decoration','decoration'], ['Mehendi','mehendi']].forEach(function(pair) { var name = pair[0], slug = pair[1]; %>
                     <div class="col-6 col-lg-3">
                         <a href="/gigs" class="ek-category-card">
-                            <img src="https://ui-avatars.com/api/?name=<%= encodeURIComponent(name) %>&size=400&background=random" alt="<%= name %>">
+                            <img src="<%= catImages[slug] || catFallback(name) %>" alt="<%= name %>" loading="lazy" onerror="this.onerror=null;this.src='<%= catFallback(name) %>'">
                             <div class="overlay"></div>
                             <div class="content">
                                 <h3><%= name %></h3>

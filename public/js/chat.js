@@ -173,6 +173,12 @@
                     tempEl.id = 'msg-' + saved.id;
                     tempEl.classList.remove('msg-pending');
                     tempEl.dataset.msgId = saved.id;
+                    // Reconcile with the server-filtered content (profanity masked)
+                    if (typeof saved.content === 'string') {
+                        var textEl = tempEl.querySelector('.js-msg-text');
+                        if (textEl) textEl.textContent = saved.content;
+                        tempEl.dataset.content = saved.content;
+                    }
                     // Update file preview if uploaded
                     if (saved.file_url) {
                         var bubble = tempEl.querySelector('.chat-sent,.chat-received');
@@ -295,7 +301,7 @@
 
         // Content
         if (msg.content) {
-            html += '<p class="mb-0" style="font-size:.9rem">' + escapeHtml(msg.content) + '</p>';
+            html += '<p class="mb-0 js-msg-text" style="font-size:.9rem">' + escapeHtml(msg.content) + '</p>';
         }
         html += '<small class="msg-time" style="opacity:.5;font-size:.7rem">' + formatTime(msg.created_at) + '</small>';
         html += '</div>';

@@ -44,6 +44,20 @@
 }
 .ek-ai-panel[hidden] { display: none; }
 
+/* Full-page assistant (/assistant) — reuses the panel internals, static layout */
+.ek-ai-page { max-width: 820px; margin: 0 auto; }
+.ek-ai-page .ek-ai-panel {
+  position: static;
+  width: 100%;
+  height: calc(100vh - 200px);
+  min-height: 440px;
+  max-height: none;
+  bottom: auto;
+  left: auto;
+}
+.ek-ai-page .ek-ai-gigcard { width: 70%; }
+.ek-ai-page .ek-ai-msg { max-width: 75%; }
+
 .ek-ai-header {
   display: flex;
   align-items: center;
