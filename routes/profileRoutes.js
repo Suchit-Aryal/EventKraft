@@ -27,11 +27,18 @@ router.get('/:id', async (req, res) => {
             [req.params.id]
         );
 
+        // Worker's previous works gallery
+        const portfolioResult = await pool.query(
+            'SELECT id, image_url FROM portfolio_items WHERE user_id = $1 ORDER BY created_at DESC',
+            [req.params.id]
+        );
+
         res.render('pages/profile', {
             title: `${profile.first_name} ${profile.last_name || ''} — EventKraft`,
             profile,
             userId: req.params.id,
-            gigs: gigsResult.rows
+            gigs: gigsResult.rows,
+            portfolio: portfolioResult.rows
         });
     } catch (err) {
         console.error(err);

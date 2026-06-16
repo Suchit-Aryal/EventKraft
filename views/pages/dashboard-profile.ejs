@@ -139,6 +139,38 @@
         </div>
     <% } %>
 
+    <!-- Previous Works -->
+    <% if (currentUser.role === 'worker') { %>
+        <div class="profile-section">
+            <div class="profile-section__label">
+                <h3>Previous Works</h3>
+                <p>Showcase photos of your past work. These appear on your public profile above your services.</p>
+            </div>
+            <div>
+                <% if (portfolio && portfolio.length > 0) { %>
+                    <div class="portfolio-grid mb-3">
+                        <% portfolio.forEach(function(item) { %>
+                            <div class="portfolio-thumb">
+                                <img src="<%= item.image_url %>" alt="Previous work">
+                                <button type="submit" class="portfolio-thumb__rm"
+                                        formaction="/dashboard/portfolio/<%= item.id %>/delete"
+                                        formmethod="POST" formnovalidate
+                                        title="Remove image">×</button>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+                <div class="form-group mb-0">
+                    <label class="btn btn-outline-sm d-inline-flex align-items-center gap-2" style="cursor:pointer">
+                        <i class="bi bi-images"></i> Add Photos
+                        <input type="file" name="portfolio" accept="image/*" multiple hidden>
+                    </label>
+                    <span class="form-hint">JPG, PNG · Max 5MB each · Up to 10 at a time. Saved when you click Save Profile.</span>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
     <!-- Socials -->
     <div class="profile-section border-0">
         <div class="profile-section__label">

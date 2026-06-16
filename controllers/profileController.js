@@ -13,9 +13,18 @@ const upload = multer({ dest: 'uploads/profiles/', limits: { fileSize: 5 * 1024 
 // ─── GET /dashboard/profile ─────────────────────────────────
 exports.editPage = async (req, res) => {
   try {
+    let portfolio = [];
+    if (req.user.role === 'worker') {
+      const pf = await pool.query(
+        'SELECT id, image_url FROM portfolio_items WHERE user_id = $1 ORDER BY created_at DESC',
+        [req.user.id]
+      );
+      portfolio = pf.rows;
+    }
     res.render('pages/dashboard-profile', {
       pageTitle: 'Edit Profile',
       activePage: 'profile',
+      portfolio,
     });
   } catch (err) {
     console.error('Profile edit page error:', err);
@@ -29,6 +38,7 @@ exports.save = [
   upload.fields([
     { name: 'avatar', maxCount: 1 },
     { name: 'cover', maxCount: 1 },
+    { name: 'portfolio', maxCount: 10 },
   ]),
   async (req, res) => {
     try {
@@ -101,6 +111,20 @@ exports.save = [
           `UPDATE users SET tagline = $1, skills = $2 WHERE id = $3`,
           [tagline || null, skills, userId]
         );
+
+        // Upload any new portfolio (previous works) images
+        if (req.files && req.files.portfolio) {
+          for (const file of req.files.portfolio) {
+            const r = await cloudinary.uploader.upload(file.path, {
+              folder: 'eventkraft/portfolio',
+            });
+            await pool.query(
+              'INSERT INTO portfolio_items (user_id, image_url, public_id) VALUES ($1, $2, $3)',
+              [userId, r.secure_url, r.public_id]
+            );
+            fs.unlinkSync(file.path);
+          }
+        }
       }
 
       req.flash('success', 'Profile updated successfully.');
@@ -113,6 +137,33 @@ exports.save = [
     }
   }
 ];
+
+// ─── POST /dashboard/portfolio/:id/delete ───────────────────
+exports.deletePortfolioItem = async (req, res) => {
+  try {
+    const item = await pool.query(
+      'SELECT public_id FROM portfolio_items WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (item.rows.length === 0) {
+      req.flash('error', 'Image not found.');
+      return res.redirect('/dashboard/profile');
+    }
+    if (item.rows[0].public_id) {
+      await cloudinary.uploader.destroy(item.rows[0].public_id);
+    }
+    await pool.query(
+      'DELETE FROM portfolio_items WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    req.flash('success', 'Image removed.');
+    res.redirect('/dashboard/profile');
+  } catch (err) {
+    console.error('Portfolio delete error:', err);
+    req.flash('error', 'Could not remove image.');
+    res.redirect('/dashboard/profile');
+  }
+};
 
 // ─── GET /dashboard/kyc ─────────────────────────────────────
 exports.kycPage = async (req, res) => {
