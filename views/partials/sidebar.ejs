@@ -78,6 +78,12 @@
       <% } %>
     </a>
 
+    <a href="/assistant"
+       class="sidebar__item <%= locals.activePage === 'assistant' ? 'sidebar__item--active' : '' %>">
+      <%- icons.sparkles %>
+      <span>AI Assistant</span>
+    </a>
+
     <span class="sidebar__group-label">Discover</span>
 
     <a href="/gigs"

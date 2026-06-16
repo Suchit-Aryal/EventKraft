@@ -15,7 +15,12 @@
                             <td><%= b.event_date ? new Date(b.event_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '-' %></td>
                             <td class="fw-semibold">NPR <%= Number(b.total_amount||0).toLocaleString('en-IN') %></td>
                             <td><span class="badge-status badge-<%= b.status %>"><%= b.status %></span></td>
-                            <td><a href="/bookings/<%= b.id %>" class="btn btn-sm btn-ek-outline">Details</a></td>
+                            <td class="text-nowrap">
+                                <% if (currentUser.role === 'customer' && ['accepted','awaiting_agreement'].includes(b.status)) { %>
+                                    <a href="/bookings/<%= b.id %>/agreement" class="btn btn-sm btn-ek-primary me-1">Pay advance</a>
+                                <% } %>
+                                <a href="/bookings/<%= b.id %>" class="btn btn-sm btn-ek-outline">Details</a>
+                            </td>
                         </tr>
                     <% }); %>
                 </tbody>

@@ -421,7 +421,7 @@
     });
 
     socket.on('booking_card_decided', (data) => {
-        updateBookingCards(data.booking_id, data.status, data.decision);
+        updateBookingCards(data.booking_id, data.status, data.decision, data.customer_id);
     });
 })();
 
@@ -502,7 +502,7 @@ async function respondToBooking(bookingId, decision) {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Failed to update booking');
-        updateBookingCards(bookingId, data.status, data.decision || decision);
+        updateBookingCards(bookingId, data.status, data.decision || decision, data.customer_id);
     } catch (err) {
         alert(err.message);
         cards.forEach((card) => {
@@ -517,14 +517,19 @@ async function respondToBooking(bookingId, decision) {
     }
 }
 
-function updateBookingCards(bookingId, status, decision) {
+function updateBookingCards(bookingId, status, decision, customerId) {
     if (!bookingId) return;
     const finalDecision = decision || (status === 'cancelled' ? 'declined' : 'accepted');
+    // Only the customer pays the advance, so only they get the payment button.
+    const isCustomer = customerId && String(customerId) === String(window.CURRENT_USER_ID || '');
     document.querySelectorAll(`[data-booking-id="${bookingId}"]`).forEach((card) => {
         const actions = card.querySelector('.booking-actions');
         const progress = card.querySelector('.booking-progress');
         const existingDecision = card.querySelector('.booking-decision');
-        const decisionHtml = `<div class="booking-decision booking-decision--${finalDecision}"><i class="bi ${finalDecision === 'accepted' ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>${finalDecision === 'accepted' ? 'Accepted' : 'Declined'}</div>`;
+        let decisionHtml = `<div class="booking-decision booking-decision--${finalDecision}"><i class="bi ${finalDecision === 'accepted' ? 'bi-check-circle' : 'bi-x-circle'} me-1"></i>${finalDecision === 'accepted' ? 'Accepted' : 'Declined'}</div>`;
+        if (finalDecision === 'accepted' && isCustomer) {
+            decisionHtml += `<a href="/bookings/${bookingId}/agreement" class="btn btn-ek-primary btn-sm mt-2 w-100">Pay advance</a>`;
+        }
         if (actions) actions.outerHTML = decisionHtml;
         else if (progress) progress.outerHTML = decisionHtml;
         else if (existingDecision) existingDecision.outerHTML = decisionHtml;

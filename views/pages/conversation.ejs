@@ -58,6 +58,9 @@
                                     <div class="booking-decision booking-decision--declined"><i class="bi bi-x-circle me-1"></i>Declined</div>
                                 <% } else if (m.booking_status && m.booking_status !== 'pending') { %>
                                     <div class="booking-decision booking-decision--accepted"><i class="bi bi-check-circle me-1"></i>Accepted</div>
+                                    <% if (['accepted','awaiting_agreement'].includes(m.booking_status) && m.sender_id === currentUser.id) { %>
+                                        <a href="/bookings/<%= m.booking_id %>/agreement" class="btn btn-ek-primary btn-sm mt-2 w-100">Pay advance</a>
+                                    <% } %>
                                 <% } else { %>
                                     <% if (canDecideBooking) { %>
                                         <div class="booking-actions">
