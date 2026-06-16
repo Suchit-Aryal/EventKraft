@@ -53,6 +53,9 @@ app.use(helmet({
             fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com", "https://ui-avatars.com", "https://images.unsplash.com"],
             connectSrc: ["'self'", "ws:", "wss:"],
+            // eSewa payment is a cross-origin form POST; without this Helmet's
+            // default `form-action 'self'` silently blocks the redirect to eSewa.
+            formAction: ["'self'", "https://rc-epay.esewa.com.np", "https://epay.esewa.com.np"],
         },
     },
 }));
@@ -133,12 +136,14 @@ app.get('/', async (req, res) => {
         );
         res.render('pages/home', {
             title: 'EventKraft — Where Premium Talent Meets Grand Events',
+            topbar: req.user ? 'dashboard' : undefined,
+            showBrowse: true,
             categories: catResult.rows,
             featuredGigs: gigResult.rows
         });
     } catch (err) {
         console.error('Home page error:', err);
-        res.render('pages/home', { title: 'EventKraft', categories: [], featuredGigs: [] });
+        res.render('pages/home', { title: 'EventKraft', topbar: req.user ? 'dashboard' : undefined, showBrowse: true, categories: [], featuredGigs: [] });
     }
 });
 

@@ -381,8 +381,11 @@
     if (body.querySelector(`[data-booking-id="${data.booking_id}"]`)) return;
 
     const status = data.booking_status || 'pending';
-    const canDecide = status === 'pending' &&
-      String(data.receiver_id || data.worker_id || '') === String(window.CURRENT_USER_ID || '');
+    const workerId = String(data.receiver_id || data.worker_id || '');
+    const canDecide = status === 'pending' && workerId === String(window.CURRENT_USER_ID || '');
+    // The other party (not the worker) is the customer, who pays the advance once accepted.
+    const showPay = !!workerId && String(window.CURRENT_USER_ID || '') !== workerId
+      && ['accepted', 'awaiting_agreement'].includes(status);
     const eventDate = data.event_date ? new Date(data.event_date).toLocaleDateString('en-NP') : 'Not specified';
     const totalPrice = data.total_amount ? Number(data.total_amount).toLocaleString('en-NP') : '0';
 
@@ -411,7 +414,7 @@
              </div>`
           : status === 'pending'
             ? `<div class="floating-booking-card__progress">Waiting for worker response</div>`
-            : `<div class="floating-booking-card__decision floating-booking-card__decision--${status === 'cancelled' ? 'declined' : 'accepted'}">${status === 'cancelled' ? 'Declined' : 'Accepted'}</div>`
+            : `<div class="floating-booking-card__decision floating-booking-card__decision--${status === 'cancelled' ? 'declined' : 'accepted'}">${status === 'cancelled' ? 'Declined' : 'Accepted'}</div>${showPay ? `<a href="/bookings/${data.booking_id}/agreement" class="floating-booking-card__pay">Pay advance</a>` : ''}`
         }
       </div>
     `;
@@ -530,18 +533,24 @@
     return div.innerHTML;
   }
 
-  function updateBookingCards(bookingId, status, decision) {
+  function updateBookingCards(bookingId, status, decision, customerId) {
     const finalDecision = decision || (status === 'cancelled' ? 'declined' : 'accepted');
+    // Only the customer pays the advance, so only they get the payment button.
+    const isCustomer = customerId && String(customerId) === String(window.CURRENT_USER_ID || '');
+    const payBtn = (finalDecision === 'accepted' && isCustomer)
+      ? `<a href="/bookings/${bookingId}/agreement" class="floating-booking-card__pay">Pay advance</a>`
+      : '';
     document.querySelectorAll(`[data-booking-id="${bookingId}"]`).forEach((card) => {
       const label = finalDecision === 'accepted' ? 'Accepted' : 'Declined';
       const icon = finalDecision === 'accepted' ? 'bi-check-circle' : 'bi-x-circle';
-      const floatingHtml = `<div class="floating-booking-card__decision floating-booking-card__decision--${finalDecision}">${label}</div>`;
+      const floatingHtml = `<div class="floating-booking-card__decision floating-booking-card__decision--${finalDecision}">${label}</div>${payBtn}`;
+      // Chat-card markup (conversation page) is handled by chat.js's updateBookingCards.
       const chatHtml = `<div class="booking-decision booking-decision--${finalDecision}"><i class="bi ${icon} me-1"></i>${label}</div>`;
 
       const floatingTarget = card.querySelector('.floating-booking-card__actions, .floating-booking-card__progress, .floating-booking-card__decision');
       const chatTarget = card.querySelector('.booking-actions, .booking-progress, .booking-decision');
       if (floatingTarget) floatingTarget.outerHTML = floatingHtml;
-      if (chatTarget) chatTarget.outerHTML = chatHtml;
+      else if (chatTarget) chatTarget.outerHTML = chatHtml;
     });
   }
 
@@ -562,7 +571,7 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Failed to update booking');
-      updateBookingCards(bookingId, data.status, data.decision || decision);
+      updateBookingCards(bookingId, data.status, data.decision || decision, data.customer_id);
     } catch (err) {
       alert(err.message);
       cards.forEach((card) => {
@@ -631,7 +640,7 @@
     });
 
     socket.on('booking_card_decided', (data) => {
-      updateBookingCards(data.booking_id, data.status, data.decision);
+      updateBookingCards(data.booking_id, data.status, data.decision, data.customer_id);
     });
 
     socket.on('new-message', (data) => {

@@ -77,13 +77,15 @@
   box-shadow: 0 0 0 3px rgba(94,224,138,.25);
 }
 .ek-ai-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.ek-ai-header-actions button {
+.ek-ai-header-actions button,
+.ek-ai-header-actions a {
   background: rgba(255,255,255,.12);
-  border: none; color: #fff; cursor: pointer;
+  border: none; color: #fff; cursor: pointer; text-decoration: none;
   width: 28px; height: 28px; border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
 }
-.ek-ai-header-actions button:hover { background: rgba(255,255,255,.25); }
+.ek-ai-header-actions button:hover,
+.ek-ai-header-actions a:hover { background: rgba(255,255,255,.25); }
 
 .ek-ai-messages {
   flex: 1;

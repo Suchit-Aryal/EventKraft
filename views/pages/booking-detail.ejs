@@ -135,7 +135,7 @@
             <% if ((booking.status === 'pending' || booking.status === 'accepted') && currentUser.id === booking.customer_id) { %>
                 <form action="/bookings/<%= booking.id %>/cancel" method="POST"><button type="submit" class="btn btn-outline-danger">Cancel Booking</button></form>
             <% } %>
-            <% if (booking.status === 'awaiting_agreement' && currentUser.id === booking.customer_id) { %>
+            <% if (['accepted','awaiting_agreement'].includes(booking.status) && currentUser.id === booking.customer_id) { %>
                 <a href="/bookings/<%= booking.id %>/agreement" class="btn btn-ek-primary">Review & Sign Agreement</a>
             <% } %>
             <% if (booking.status === 'work_done' && currentUser.id === booking.customer_id) { %>

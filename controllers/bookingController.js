@@ -419,6 +419,7 @@ module.exports = {
             const updatePayload = {
                 booking_id: booking.id,
                 conversation_id: conversation.id,
+                customer_id: booking.customer_id,
                 decision,
                 status,
                 redirect,

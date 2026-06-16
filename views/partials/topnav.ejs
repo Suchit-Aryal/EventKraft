@@ -11,6 +11,15 @@
     <div class="topnav__right">
       <% if (locals.currentUser) { %>
 
+        <!-- Role-based browse link (home page) -->
+        <% if (locals.showBrowse) { %>
+          <% if (currentUser.role === 'customer') { %>
+            <a href="/gigs" class="topnav__link">Browse Services</a>
+          <% } else if (currentUser.role === 'worker') { %>
+            <a href="/jobs" class="topnav__link">Browse Gigs</a>
+          <% } %>
+        <% } %>
+
         <!-- Dashboard pill button -->
         <a href="/dashboard" class="topnav__dashboard-btn
           <%= locals.activePage === 'dashboard' ? 'topnav__dashboard-btn--active' : '' %>">

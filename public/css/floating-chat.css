@@ -225,6 +225,19 @@
 .floating-booking-card__decision--accepted { color: #15803d !important; }
 .floating-booking-card__decision--declined { color: #b42318 !important; }
 .floating-booking-card__progress { color: #8b6b5b !important; }
+.floating-booking-card__pay {
+  display: block !important;
+  margin-top: 8px !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  background: #6b1d2a !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  text-decoration: none !important;
+}
+.floating-booking-card__pay:hover { background: #8c3a4a !important; }
 
 /* ── File preview bar ─────────────────────────────── */
 .chat-box__file-bar {

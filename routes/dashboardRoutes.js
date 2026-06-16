@@ -108,6 +108,7 @@ router.get('/', async (req, res) => {
 // ─── Profile ────────────────────────────────────────────────
 router.get('/profile', profileController.editPage);
 router.post('/profile', profileController.save);
+router.post('/portfolio/:id/delete', profileController.deletePortfolioItem);
 
 // ─── KYC ────────────────────────────────────────────────────
 router.get('/kyc', profileController.kycPage);
