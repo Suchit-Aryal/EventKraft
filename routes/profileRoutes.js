@@ -35,6 +35,7 @@ router.get('/:id', async (req, res) => {
 
         res.render('pages/profile', {
             title: `${profile.first_name} ${profile.last_name || ''} — EventKraft`,
+            topbar: 'dashboard',
             profile,
             userId: req.params.id,
             gigs: gigsResult.rows,

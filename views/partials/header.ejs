@@ -18,6 +18,9 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/floating-chat.css">
+    <% if (locals.topbar === 'dashboard') { %>
+    <link rel="stylesheet" href="/css/topnav.css">
+    <% } %>
     <script>
         (function() {
             var saved = localStorage.getItem('ek-theme');
@@ -27,7 +30,7 @@
     </script>
 </head>
 <body>
-    <%- include('../partials/navbar') %>
+    <%- include('../partials/' + (locals.topbar === 'dashboard' ? 'topnav' : 'navbar')) %>
 
     <!-- Flash Messages -->
     <% if (success && success.length > 0) { %>

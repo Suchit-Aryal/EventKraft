@@ -136,12 +136,14 @@ app.get('/', async (req, res) => {
         );
         res.render('pages/home', {
             title: 'EventKraft — Where Premium Talent Meets Grand Events',
+            topbar: req.user ? 'dashboard' : undefined,
+            showBrowse: true,
             categories: catResult.rows,
             featuredGigs: gigResult.rows
         });
     } catch (err) {
         console.error('Home page error:', err);
-        res.render('pages/home', { title: 'EventKraft', categories: [], featuredGigs: [] });
+        res.render('pages/home', { title: 'EventKraft', topbar: req.user ? 'dashboard' : undefined, showBrowse: true, categories: [], featuredGigs: [] });
     }
 });
 
