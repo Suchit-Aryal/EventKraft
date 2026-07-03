@@ -39,6 +39,9 @@ router.post('/:conversationId/send-file', ensureAuthenticated, (req, res, next) 
     });
 }, msgCtrl.sendFile);
 
+// POST /messages/:conversationId/read  – Mark conversation as read
+router.post('/:conversationId/read', ensureAuthenticated, msgCtrl.markRead);
+
 // POST /messages/:messageId/unsend     – Unsend a message
 router.post('/:messageId/unsend', ensureAuthenticated, msgCtrl.unsend);
 

@@ -19,5 +19,6 @@ const aiLimiter = rateLimit({
 });
 
 router.post('/chat', ensureAuthenticated, aiLimiter, aiController.chat);
+router.post('/posting', ensureAuthenticated, aiLimiter, aiController.postingAssistant);
 
 module.exports = router;

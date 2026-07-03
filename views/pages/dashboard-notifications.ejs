@@ -27,10 +27,39 @@
     <% }) %>
   </div>
 <% } else { %>
-  <div class="empty-state py-5 bg-white border rounded-4">
+  <div class="empty-state py-5 bg-white border rounded-4" id="notifEmptyState">
     <i class="bi bi-bell-slash text-muted mb-3 d-block fs-1"></i>
     <p class="text-muted fw-medium">No notifications yet.</p>
   </div>
 <% } %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.socket) return;
+  window.socket.on('new-notification', function (n) {
+    var list = document.querySelector('.notif-list');
+    if (!list) {
+      var empty = document.getElementById('notifEmptyState');
+      if (empty) empty.remove();
+      list = document.createElement('div');
+      list.className = 'notif-list d-flex flex-column gap-2';
+      document.querySelector('.page-header').insertAdjacentElement('afterend', list);
+    }
+    var card = document.createElement('a');
+    card.href = n.link || '#';
+    card.className = 'card border-0 shadow-sm text-decoration-none p-3 hover-lift border-start border-4 border-primary';
+    var body = document.createElement('div');
+    body.className = 'd-flex align-items-start gap-3';
+    body.innerHTML = '<div class="bg-light rounded-circle p-2 text-primary"><i class="bi bi-bell"></i></div>'
+      + '<div class="flex-grow-1"><h6 class="fw-bold mb-1 text-dark"></h6><p class="text-muted small mb-1"></p>'
+      + '<span class="text-muted" style="font-size:0.75rem;"><i class="bi bi-clock me-1"></i>Just now</span></div>';
+    body.querySelector('h6').textContent = n.title || 'Notification';
+    var msgEl = body.querySelector('p');
+    if (n.message) msgEl.textContent = n.message; else msgEl.remove();
+    card.appendChild(body);
+    list.insertAdjacentElement('afterbegin', card);
+  });
+});
+</script>
 
 <%- include('../partials/dashboard-wrapper-end') %>

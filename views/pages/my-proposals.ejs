@@ -38,7 +38,15 @@
                             <%= new Date(p.created_at).toLocaleDateString() %>
                         </td>
                         <td>
-                            <a href="/jobs/<%= p.job_id %>" class="btn btn-sm btn-ek-outline">View Job</a>
+                            <div class="d-flex gap-2">
+                                <a href="/jobs/<%= p.job_id %>" class="btn btn-sm btn-ek-outline">View Job</a>
+                                <% if (['pending','shortlisted'].includes(p.status)) { %>
+                                    <form action="/jobs/proposals/<%= p.id %>/withdraw" method="POST" class="d-inline"
+                                          onsubmit="return confirm('Withdraw your proposal for “<%= p.job_title %>”?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Withdraw</button>
+                                    </form>
+                                <% } %>
+                            </div>
                         </td>
                     </tr>
                 <% }); %>

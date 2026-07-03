@@ -73,7 +73,7 @@ const Job = {
     },
 
     // Search/filter jobs
-    async search({ category_id, minBudget, maxBudget, location, keyword }) {
+    async search({ category_id, minBudget, maxBudget, location, keyword, sort }) {
         let query = `
             SELECT jp.*, c.name AS category_name,
                    p.first_name AS customer_first_name, p.last_name AS customer_last_name,
@@ -122,7 +122,13 @@ const Job = {
             i++; 
         }
 
-        query += ' ORDER BY jp.created_at DESC';
+        const ORDER_BY = {
+            newest: 'jp.created_at DESC',
+            budget_high: 'jp.budget_max DESC NULLS LAST, jp.created_at DESC',
+            event_soon: 'jp.event_date ASC NULLS LAST, jp.created_at DESC',
+            deadline_soon: 'jp.proposal_deadline ASC NULLS LAST, jp.created_at DESC',
+        };
+        query += ` ORDER BY ${ORDER_BY[sort] || ORDER_BY.newest}`;
         const result = await pool.query(query, params);
         return result.rows;
     },

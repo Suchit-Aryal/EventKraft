@@ -109,6 +109,36 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ── Live inbox updates (Socket.io) ───────────
+    if (window.socket) {
+        window.socket.on('new-message', function (msg) {
+            if (String(msg.sender_id) === String(window.CURRENT_USER_ID)) return;
+            var convoId = msg.conversation_id;
+            if (!convoId) return;
+
+            var list = document.getElementById('conversationList');
+            var snippet = msg.content || (msg.file_name ? '📎 ' + msg.file_name : 'New message');
+            var item = list ? list.querySelector('.conversation-item[href="/messages/' + convoId + '"]') : null;
+
+            if (item) {
+                var preview = item.querySelector('p.text-truncate');
+                if (preview) preview.textContent = snippet;
+                var badge = item.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = (parseInt(badge.textContent) || 0) + 1;
+                } else {
+                    var nameRow = item.querySelector('.d-flex.justify-content-between');
+                    if (nameRow) nameRow.insertAdjacentHTML('beforeend',
+                        '<span class="badge rounded-pill" style="background:var(--ek-maroon);color:#fff;font-size:.7rem">1</span>');
+                }
+                item.parentElement.insertAdjacentElement('afterbegin', item);
+            } else {
+                // Conversation not in the list yet (or empty state) — reload to fetch it
+                window.location.reload();
+            }
+        });
+    }
+
     // ── Conversation search (Local) ──────────────
     const chatSearch = document.getElementById('chatSearch');
     if (chatSearch) {

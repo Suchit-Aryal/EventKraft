@@ -1,4 +1,4 @@
-<%- include('../partials/header') %>
+<%- include('../partials/dashboard-wrapper-start', { title: 'AI Assistant', activePage: 'assistant' }) %>
 <link rel="stylesheet" href="/css/ai-chat.css">
 
 <div class="container py-4">
@@ -35,4 +35,4 @@
 <!-- Hide the floating widget on the dedicated assistant page -->
 <style> .ek-ai-widget { display: none !important; } </style>
 
-<%- include('../partials/tail') %>
+<%- include('../partials/dashboard-wrapper-end') %>

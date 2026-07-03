@@ -75,6 +75,36 @@
       scrollToBottom();
     }
 
+    function addDraftCard(draft) {
+      if (!draft || !draft.url) return;
+      const f = draft.fields || {};
+      const wrap = document.createElement('div');
+      wrap.className = 'ek-ai-draftcard';
+
+      const title = document.createElement('div');
+      title.className = 'ek-ai-draftcard-title';
+      title.textContent = draft.mode === 'job'
+        ? '📋 Gig draft ready — ' + (f.category_name || '') + (f.event_location ? ' in ' + f.event_location : '')
+        : '📋 Service draft ready — ' + (f.title || '');
+
+      const meta = document.createElement('div');
+      meta.className = 'ek-ai-draftcard-meta';
+      meta.textContent = draft.mode === 'job'
+        ? [f.event_type, f.event_date, f.budget_min && f.budget_max ? 'NPR ' + Number(f.budget_min).toLocaleString() + '–' + Number(f.budget_max).toLocaleString() : null].filter(Boolean).join(' · ')
+        : [f.category_name, f.starting_price ? 'from NPR ' + Number(f.starting_price).toLocaleString() : null].filter(Boolean).join(' · ');
+
+      const btn = document.createElement('a');
+      btn.className = 'ek-ai-draftcard-btn';
+      btn.href = draft.url;
+      btn.textContent = 'Review, edit & post →';
+
+      wrap.appendChild(title);
+      wrap.appendChild(meta);
+      wrap.appendChild(btn);
+      messagesEl.appendChild(wrap);
+      scrollToBottom();
+    }
+
     function showTyping() {
       const t = document.createElement('div');
       t.className = 'ek-ai-typing';
@@ -97,6 +127,7 @@
       history.forEach(function (m) {
         addBubble(m.role, m.content);
         if (m.gigs && m.gigs.length) addGigCards(m.gigs);
+        if (m.draft) addDraftCard(m.draft);
       });
     }
 
@@ -125,10 +156,11 @@
         if (!res.ok) {
           addBubble('assistant', data.error || 'The assistant is unavailable right now. Please try again later.', true);
         } else {
-          history.push({ role: 'assistant', content: data.text, gigs: data.gigs });
+          history.push({ role: 'assistant', content: data.text, gigs: data.gigs, draft: data.draft });
           saveHistory(history);
           addBubble('assistant', data.text);
           addGigCards(data.gigs);
+          if (data.draft) addDraftCard(data.draft);
         }
       } catch (e) {
         hideTyping();

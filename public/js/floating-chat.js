@@ -655,6 +655,8 @@
         if (data.id && chatBox.querySelector(`[data-msg-id="${data.id}"]`)) return;
         appendMessage(chatBox.querySelector('.chat-box__body'), data);
         scrollToBottom(chatBox);
+        // Chat box is open, so mark it read and refresh the navbar badge
+        fetch(`/messages/${id}/read`, { method: 'POST' }).catch(() => {});
       } else if (minimizedChats.has(id)) {
         const m = minimizedChats.get(id);
         m.unread++;
