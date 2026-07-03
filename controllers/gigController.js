@@ -7,6 +7,7 @@ const GigPackage = require('../models/GigPackage');
 const pool = require('../config/db');
 const cloudinary = require('../config/cloudinary');
 const NEPAL_CITIES = require('../lib/nepal-cities');
+const { embedGigInBackground } = require('../utils/embeddingService');
 
 // Upload a buffer to Cloudinary and return the secure URL
 function uploadToCloudinary(fileBuffer, mimetype) {
@@ -141,6 +142,7 @@ module.exports = {
                 worker_id: req.user.id,
                 portfolio_images: imageUrls,
             });
+            embedGigInBackground(gig.id);
 
             // Handle tier/package creation if tiers were provided
             const { pkg_tier, pkg_title, pkg_description, pkg_price, pkg_delivery_time, pkg_features } = req.body;
@@ -246,6 +248,7 @@ module.exports = {
             }
 
             await Gig.update(req.params.id, updates);
+            embedGigInBackground(req.params.id);
             req.flash('success', 'Service updated');
             res.redirect(`/gigs/${req.params.id}`);
         } catch (err) {

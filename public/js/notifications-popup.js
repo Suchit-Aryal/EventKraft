@@ -136,6 +136,16 @@
   setupToggler(msgWrapper, fetchMessages);
   setupToggler(userMenu);
 
+  // Live refresh: if a dropdown is open when a socket event arrives, refetch its list
+  if (window.socket) {
+    window.socket.on('new-notification', function () {
+      if (notifWrapper && notifWrapper.classList.contains('is-active')) fetchNotifications();
+    });
+    window.socket.on('new-message-badge', function () {
+      if (msgWrapper && msgWrapper.classList.contains('is-active')) fetchMessages();
+    });
+  }
+
   // Close when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.topnav__icon-wrapper') && !e.target.closest('.topnav__user')) {

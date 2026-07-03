@@ -6,18 +6,20 @@ const Job = require('../models/Job');
 const Proposal = require('../models/Proposal');
 const pool = require('../config/db');
 const NEPAL_CITIES = require('../lib/nepal-cities');
+const { createNotification } = require('../utils/notify');
+const { embedJobInBackground } = require('../utils/embeddingService');
 
 module.exports = {
 
     // GET /jobs
     async index(req, res) {
         try {
-            const { keyword, category_id, minBudget, maxBudget, location } = req.query;
-            const hasFilters = keyword || category_id || minBudget || maxBudget || location;
+            const { keyword, category_id, minBudget, maxBudget, location, sort } = req.query;
+            const hasFilters = keyword || category_id || minBudget || maxBudget || location || sort;
 
             let jobs;
             if (hasFilters) {
-                jobs = await Job.search({ category_id, minBudget, maxBudget, location, keyword });
+                jobs = await Job.search({ category_id, minBudget, maxBudget, location, keyword, sort });
             } else {
                 jobs = await Job.findPublished();
             }
@@ -33,7 +35,8 @@ module.exports = {
                 activePage: 'browse-jobs',
                 jobs,
                 categories: categories.rows,
-                filters: { keyword: keyword || '', category_id: category_id || '', minBudget: minBudget || '', maxBudget: maxBudget || '', location: location || '' }
+                nepalCities: NEPAL_CITIES,
+                filters: { keyword: keyword || '', category_id: category_id || '', minBudget: minBudget || '', maxBudget: maxBudget || '', location: location || '', sort: sort || '' }
             });
         } catch (err) {
             console.error(err);
@@ -162,6 +165,7 @@ module.exports = {
             }
 
             const job = await Job.create({ ...req.body, customer_id: req.user.id });
+            embedJobInBackground(job.id);
             if (req.body.status === 'draft') {
                 req.flash('success', 'Job saved as draft. You can publish it from your dashboard.');
                 return res.redirect('/dashboard');
@@ -235,12 +239,137 @@ module.exports = {
                 portfolio_links: req.body.portfolio_links || []
             });
 
+            await createNotification(pool, req.app.get('io'), {
+                userId: job.customer_id,
+                type: 'proposal_received',
+                title: 'New proposal on your gig',
+                message: `${req.user.first_name || 'A provider'} sent a proposal of NPR ${Number(req.body.proposed_price).toLocaleString('en-IN')} for "${job.title}".`,
+                link: `/jobs/${req.params.id}`
+            });
+
             req.flash('success', 'Proposal submitted! The customer will be notified.');
             res.redirect(`/jobs/${req.params.id}`);
         } catch (err) {
             console.error(err);
             req.flash('error', 'Failed to submit proposal');
             res.redirect(`/jobs/${req.params.id}`);
+        }
+    },
+
+    // POST /jobs/:id/proposals/:proposalId/accept — Customer selects a worker
+    async acceptProposal(req, res) {
+        try {
+            const job = await Job.findById(req.params.id);
+            if (!job) return res.status(404).render('pages/404', { title: 'Job Not Found' });
+            if (job.customer_id !== req.user.id) {
+                req.flash('error', 'You can only manage proposals on your own gigs');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+
+            const proposal = await Proposal.findById(req.params.proposalId);
+            if (!proposal || proposal.job_id !== job.id) {
+                req.flash('error', 'Proposal not found');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+            if (!['pending', 'shortlisted'].includes(proposal.status)) {
+                req.flash('error', `This proposal was already ${proposal.status}`);
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+
+            // Collect the other pending workers BEFORE accept() declines them
+            const others = await pool.query(
+                `SELECT worker_id FROM proposals
+                 WHERE job_id = $1 AND id != $2 AND status = 'pending'`,
+                [job.id, proposal.id]
+            );
+
+            await Proposal.accept(proposal.id);
+
+            const io = req.app.get('io');
+            await createNotification(pool, io, {
+                userId: proposal.worker_id,
+                type: 'proposal_accepted',
+                title: 'Your proposal was accepted! 🎉',
+                message: `${req.user.first_name || 'The customer'} chose you for "${job.title}". Get in touch to finalize the details.`,
+                link: `/jobs/${job.id}`
+            });
+            for (const row of others.rows) {
+                await createNotification(pool, io, {
+                    userId: row.worker_id,
+                    type: 'proposal_declined',
+                    title: 'Proposal not selected',
+                    message: `The customer chose another provider for "${job.title}". Keep an eye out for new gigs!`,
+                    link: '/jobs'
+                });
+            }
+
+            req.flash('success', `You selected ${proposal.worker_first_name || 'the provider'} for this gig. Other pending proposals were declined.`);
+            res.redirect(`/jobs/${req.params.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to accept proposal');
+            res.redirect(`/jobs/${req.params.id}`);
+        }
+    },
+
+    // POST /jobs/:id/proposals/:proposalId/decline — Customer declines one proposal
+    async declineProposal(req, res) {
+        try {
+            const job = await Job.findById(req.params.id);
+            if (!job) return res.status(404).render('pages/404', { title: 'Job Not Found' });
+            if (job.customer_id !== req.user.id) {
+                req.flash('error', 'You can only manage proposals on your own gigs');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+
+            const proposal = await Proposal.findById(req.params.proposalId);
+            if (!proposal || proposal.job_id !== job.id) {
+                req.flash('error', 'Proposal not found');
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+            if (!['pending', 'shortlisted'].includes(proposal.status)) {
+                req.flash('error', `This proposal was already ${proposal.status}`);
+                return res.redirect(`/jobs/${req.params.id}`);
+            }
+
+            await Proposal.decline(proposal.id);
+            await createNotification(pool, req.app.get('io'), {
+                userId: proposal.worker_id,
+                type: 'proposal_declined',
+                title: 'Proposal declined',
+                message: `Your proposal for "${job.title}" was declined by the customer.`,
+                link: `/jobs/${job.id}`
+            });
+
+            req.flash('success', 'Proposal declined');
+            res.redirect(`/jobs/${req.params.id}`);
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to decline proposal');
+            res.redirect(`/jobs/${req.params.id}`);
+        }
+    },
+
+    // POST /jobs/proposals/:proposalId/withdraw — Worker withdraws their own proposal
+    async withdrawProposal(req, res) {
+        try {
+            const proposal = await Proposal.findById(req.params.proposalId);
+            if (!proposal || proposal.worker_id !== req.user.id) {
+                req.flash('error', 'Proposal not found');
+                return res.redirect('/jobs/my-proposals');
+            }
+            if (proposal.status !== 'pending' && proposal.status !== 'shortlisted') {
+                req.flash('error', `You can no longer withdraw this proposal (status: ${proposal.status})`);
+                return res.redirect('/jobs/my-proposals');
+            }
+
+            await Proposal.withdraw(proposal.id);
+            req.flash('success', 'Proposal withdrawn');
+            res.redirect('/jobs/my-proposals');
+        } catch (err) {
+            console.error(err);
+            req.flash('error', 'Failed to withdraw proposal');
+            res.redirect('/jobs/my-proposals');
         }
     },
 
@@ -254,6 +383,7 @@ module.exports = {
                 return res.redirect('/jobs');
             }
             await Job.update(req.params.id, req.body);
+            embedJobInBackground(req.params.id);
             req.flash('success', 'Job updated');
             res.redirect(`/jobs/${req.params.id}`);
         } catch (err) {

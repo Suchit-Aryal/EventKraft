@@ -244,6 +244,8 @@
         if (document.getElementById('msg-' + msg.id)) return;
         appendMessage(msg);
         scrollToBottom();
+        // We're viewing the conversation, so mark it read and refresh the navbar badge
+        fetch('/messages/' + conversationId + '/read', { method: 'POST' }).catch(function () {});
     });
 
     socket.on('message-unsent', function (data) {

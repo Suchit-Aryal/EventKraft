@@ -205,3 +205,26 @@
     height: min(480px, calc(100vh - 120px));
   }
 }
+
+/* ── Draft card (AI-assisted posting handoff) ─────────────── */
+.ek-ai-draftcard {
+  align-self: stretch;
+  border: 1px solid var(--ek-gold, #c9a227);
+  background: var(--ek-surface, #fff);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 2px 0;
+}
+.ek-ai-draftcard-title { font-weight: 600; font-size: .86rem; color: var(--ek-text); }
+.ek-ai-draftcard-meta { font-size: .78rem; color: var(--ek-text-muted, #888); margin: 2px 0 8px; }
+.ek-ai-draftcard-btn {
+  display: inline-block;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--ek-maroon, #6b1d2a);
+  border-radius: 50px;
+  padding: 6px 14px;
+  text-decoration: none;
+}
+.ek-ai-draftcard-btn:hover { background: var(--ek-maroon-dark, #521520); color: #fff; }

@@ -162,7 +162,7 @@ app.use('/api/ai', require('./routes/aiRoutes'));
 
 // Full-page AI assistant
 app.get('/assistant', require('./middleware/auth').ensureAuthenticated, (req, res) => {
-    res.render('pages/ai-assistant', { title: 'AI Assistant — EventKraft' });
+    res.render('pages/ai-assistant', { title: 'AI Assistant', activePage: 'assistant' });
 });
 
 // ─── Socket.io (Real-time Chat & Notifications) ────────────

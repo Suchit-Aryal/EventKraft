@@ -101,11 +101,25 @@
                                     </div>
                                     <small class="text-muted">★ <%= p.worker_rating || 0 %> · <%= p.worker_completed || 0 %> completed</small>
                                     <p class="text-muted small mt-2 mb-0"><%= p.cover_letter %></p>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
                                         <span class="badge-status badge-<%= p.status %>"><%= p.status %></span>
-                                        <% if (currentUser && currentUser.id === job.customer_id && p.status === 'pending') { %>
+                                        <% if (currentUser && currentUser.id === job.customer_id && ['pending','shortlisted'].includes(p.status)) { %>
+                                            <div class="d-flex gap-2">
+                                                <form action="/messages/start/<%= p.worker_id %>" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-primary btn-sm">Message</button>
+                                                </form>
+                                                <form action="/jobs/<%= job.id %>/proposals/<%= p.id %>/decline" method="POST" class="d-inline"
+                                                      onsubmit="return confirm('Decline the proposal from <%= p.worker_first_name %>?')">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">Decline</button>
+                                                </form>
+                                                <form action="/jobs/<%= job.id %>/proposals/<%= p.id %>/accept" method="POST" class="d-inline"
+                                                      onsubmit="return confirm('Select <%= p.worker_first_name %> for this gig? All other pending proposals will be declined.')">
+                                                    <button type="submit" class="btn btn-ek-primary btn-sm"><i class="bi bi-check-lg me-1"></i>Select provider</button>
+                                                </form>
+                                            </div>
+                                        <% } else if (currentUser && currentUser.id === job.customer_id && p.status === 'accepted') { %>
                                             <form action="/messages/start/<%= p.worker_id %>" method="POST" class="d-inline">
-                                                <button type="submit" class="btn btn-outline-primary btn-sm">Message</button>
+                                                <button type="submit" class="btn btn-ek-primary btn-sm"><i class="bi bi-chat-dots me-1"></i>Message provider</button>
                                             </form>
                                         <% } %>
                                     </div>

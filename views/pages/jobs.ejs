@@ -41,8 +41,13 @@
                             <label for="location" class="form-label small fw-semibold text-muted">Location</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-muted"></i></span>
-                                <input type="text" class="form-control border-start-0 ps-0" id="location" name="location" 
-                                    placeholder="e.g. Kathmandu" value="<%= filters.location %>">
+                                <input type="text" class="form-control border-start-0 ps-0" id="location" name="location"
+                                    placeholder="e.g. Kathmandu" value="<%= filters.location %>" list="cityOptions" autocomplete="off">
+                                <datalist id="cityOptions">
+                                    <% (locals.nepalCities || []).forEach(function(city) { %>
+                                        <option value="<%= city %>"></option>
+                                    <% }); %>
+                                </datalist>
                             </div>
                         </div>
 
@@ -66,15 +71,54 @@
 
         <!-- Main Content -->
         <div class="col-lg-9">
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <h2 class="fw-bold mb-1">Available Gigs</h2>
                     <p class="text-muted small mb-0">Browse event projects and submit your proposals</p>
                 </div>
-                <div class="text-muted small">
-                    <span class="fw-bold text-dark"><%= jobs.length %></span> gigs found
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted small"><span class="fw-bold text-dark"><%= jobs.length %></span> gigs found</span>
+                    <form action="/jobs" method="GET" class="mb-0">
+                        <% ['keyword','category_id','minBudget','maxBudget','location'].forEach(function(k) { %>
+                            <% if (filters[k]) { %><input type="hidden" name="<%= k %>" value="<%= filters[k] %>"><% } %>
+                        <% }); %>
+                        <select class="form-select form-select-sm" name="sort" onchange="this.form.submit()" aria-label="Sort gigs" style="width:auto">
+                            <option value="newest" <%= !filters.sort || filters.sort === 'newest' ? 'selected' : '' %>>Newest first</option>
+                            <option value="budget_high" <%= filters.sort === 'budget_high' ? 'selected' : '' %>>Highest budget</option>
+                            <option value="event_soon" <%= filters.sort === 'event_soon' ? 'selected' : '' %>>Event date: soonest</option>
+                            <option value="deadline_soon" <%= filters.sort === 'deadline_soon' ? 'selected' : '' %>>Deadline: soonest</option>
+                        </select>
+                    </form>
                 </div>
             </div>
+
+            <!-- Active filter chips -->
+            <%
+                var chipDefs = [
+                    { key: 'keyword', label: filters.keyword ? '"' + filters.keyword + '"' : '' },
+                    { key: 'category_id', label: (function(){ var c = categories.find(function(x){ return String(x.id) === filters.category_id; }); return c ? c.name : ''; })() },
+                    { key: 'location', label: filters.location },
+                    { key: 'minBudget', label: filters.minBudget ? 'Min NPR ' + Number(filters.minBudget).toLocaleString() : '' },
+                    { key: 'maxBudget', label: filters.maxBudget ? 'Max NPR ' + Number(filters.maxBudget).toLocaleString() : '' }
+                ].filter(function(c) { return c.label; });
+            %>
+            <% if (chipDefs.length > 0) { %>
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <% chipDefs.forEach(function(chip) { %>
+                        <%
+                            var params = [];
+                            ['keyword','category_id','minBudget','maxBudget','location','sort'].forEach(function(k) {
+                                if (k !== chip.key && filters[k]) params.push(k + '=' + encodeURIComponent(filters[k]));
+                            });
+                            var removeUrl = '/jobs' + (params.length ? '?' + params.join('&') : '');
+                        %>
+                        <a href="<%= removeUrl %>" class="filter-chip text-decoration-none">
+                            <%= chip.label %> <i class="bi bi-x"></i>
+                        </a>
+                    <% }); %>
+                    <a href="/jobs" class="small text-muted text-decoration-none">Clear all</a>
+                </div>
+            <% } %>
 
             <% if (jobs && jobs.length > 0) { %>
                 <div class="row g-4">
@@ -84,23 +128,44 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start mb-3">
                                         <div>
-                                            <span class="badge bg-light text-primary mb-2"><%= job.category_name %></span>
+                                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                                <span class="badge bg-light text-primary"><%= job.category_name %></span>
+                                                <% if (job.event_type) { %>
+                                                    <span class="badge bg-light text-secondary"><%= job.event_type %></span>
+                                                <% } %>
+                                                <%
+                                                    var deadlineBadge = null;
+                                                    if (job.proposal_deadline) {
+                                                        var msLeft = new Date(job.proposal_deadline) - Date.now();
+                                                        var daysLeft = Math.ceil(msLeft / 86400000);
+                                                        if (daysLeft < 0) deadlineBadge = { cls: 'bg-secondary-subtle text-secondary', text: 'Closed' };
+                                                        else if (daysLeft <= 3) deadlineBadge = { cls: 'bg-danger-subtle text-danger', text: daysLeft <= 1 ? 'Closes today' : 'Closes in ' + daysLeft + ' days' };
+                                                        else if (daysLeft <= 7) deadlineBadge = { cls: 'bg-warning-subtle text-warning-emphasis', text: 'Closes in ' + daysLeft + ' days' };
+                                                    }
+                                                %>
+                                                <% if (deadlineBadge) { %>
+                                                    <span class="badge <%= deadlineBadge.cls %>"><i class="bi bi-hourglass-split me-1"></i><%= deadlineBadge.text %></span>
+                                                <% } %>
+                                            </div>
                                             <h5 class="fw-bold mb-1">
                                                 <a href="/jobs/<%= job.id %>" class="text-dark text-decoration-none stretched-link">
                                                     <%= job.title %>
                                                 </a>
                                             </h5>
-                                            <div class="d-flex align-items-center gap-3 text-muted small">
+                                            <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
                                                 <span><i class="bi bi-person-circle me-1"></i><%= job.customer_first_name %> <%= job.customer_last_name %></span>
                                                 <% if (job.event_location) { %>
                                                     <span><i class="bi bi-geo-alt me-1"></i><%= job.event_location %></span>
                                                 <% } %>
-                                                <span><i class="bi bi-clock me-1"></i><%= new Date(job.created_at).toLocaleDateString() %></span>
+                                                <% if (job.event_date) { %>
+                                                    <span><i class="bi bi-calendar-event me-1"></i><%= new Date(job.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+                                                <% } %>
+                                                <span><i class="bi bi-clock me-1"></i>Posted <%= new Date(job.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %></span>
                                             </div>
                                         </div>
-                                        <div class="text-end">
-                                            <div class="fw-bold text-success">NPR <%= Number(job.budget_min).toLocaleString() %> - <%= Number(job.budget_max).toLocaleString() %></div>
-                                            <div class="text-muted small mt-1"><%= job.proposal_count || 0 %> proposals</div>
+                                        <div class="text-end flex-shrink-0 ms-3">
+                                            <div class="fw-bold text-success">NPR <%= Number(job.budget_min).toLocaleString() %> – <%= Number(job.budget_max).toLocaleString() %></div>
+                                            <div class="text-muted small mt-1"><i class="bi bi-people me-1"></i><%= job.proposal_count || 0 %> proposal<%= Number(job.proposal_count) === 1 ? '' : 's' %></div>
                                         </div>
                                     </div>
                                     <p class="text-muted small mb-0 line-clamp-2">
@@ -114,7 +179,7 @@
             <% } else { %>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body text-center py-5">
-                        <img src="/images/no-results.svg" alt="No results" class="mb-4" style="max-width: 200px; opacity: 0.5;">
+                        <i class="bi bi-binoculars d-block mb-3" style="font-size:3rem;opacity:.3"></i>
                         <h4>No gigs found</h4>
                         <p class="text-muted">Try adjusting your filters or search terms.</p>
                         <a href="/jobs" class="btn btn-primary btn-sm">Clear All Filters</a>
@@ -131,6 +196,14 @@
     .job-card { border-left: 4px solid transparent !important; transition: border-color 0.2s; }
     .job-card:hover { border-left-color: var(--bs-primary) !important; }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .filter-chip {
+        display: inline-flex; align-items: center; gap: .25rem;
+        font-size: .78rem; font-weight: 600;
+        padding: .25rem .7rem; border-radius: 50px;
+        background: rgba(107,29,42,.08); color: var(--ek-maroon, #6b1d2a);
+        border: 1px solid rgba(107,29,42,.15);
+    }
+    .filter-chip:hover { background: rgba(107,29,42,.15); color: var(--ek-maroon, #6b1d2a); }
 </style>
 
 <!-- Autocomplete Logic -->

@@ -44,4 +44,13 @@ router.post('/:id/publish', ensureAuthenticated, ensureRole('customer'), jobCtrl
 // POST /jobs/:id/proposals – Worker submits a proposal
 router.post('/:id/proposals', ensureAuthenticated, ensureRole('worker'), jobCtrl.submitProposal);
 
+// POST /jobs/:id/proposals/:proposalId/accept  – Customer selects a worker
+router.post('/:id/proposals/:proposalId/accept', ensureAuthenticated, ensureRole('customer'), jobCtrl.acceptProposal);
+
+// POST /jobs/:id/proposals/:proposalId/decline – Customer declines a proposal
+router.post('/:id/proposals/:proposalId/decline', ensureAuthenticated, ensureRole('customer'), jobCtrl.declineProposal);
+
+// POST /jobs/proposals/:proposalId/withdraw    – Worker withdraws their proposal
+router.post('/proposals/:proposalId/withdraw', ensureAuthenticated, ensureRole('worker'), jobCtrl.withdrawProposal);
+
 module.exports = router;

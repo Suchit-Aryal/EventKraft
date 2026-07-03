@@ -282,6 +282,29 @@ module.exports = {
         }
     },
 
+    // POST /messages/:conversationId/read — mark conversation read (used by chat pages on live receive)
+    async markRead(req, res) {
+        try {
+            const conversation = await Message.getConversationById(req.params.conversationId);
+            if (!conversation) return res.status(404).json({ error: 'Conversation not found' });
+            if (conversation.participant_1 !== req.user.id && conversation.participant_2 !== req.user.id) {
+                return res.status(403).json({ error: 'Not a member of this conversation' });
+            }
+
+            await Message.markAsRead(req.params.conversationId, req.user.id);
+
+            const io = req.app.get('io');
+            if (io) {
+                const unread = await Message.getTotalUnread(req.user.id);
+                io.to(`user_${req.user.id}`).emit('update-msg-badge', { count: unread });
+            }
+            res.json({ success: true });
+        } catch (err) {
+            console.error('Mark read error:', err);
+            res.status(500).json({ error: 'Failed to mark as read' });
+        }
+    },
+
     // POST /messages/:messageId/unsend
     async unsend(req, res) {
         try {

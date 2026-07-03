@@ -11,6 +11,10 @@
         <% } %>
     </div>
 
+    <% if (!(typeof job !== 'undefined' && job)) { %>
+        <%- include('../partials/ai-posting-helper', { aiMode: 'job' }) %>
+    <% } %>
+
     <!-- Step Indicator -->
     <div class="d-flex justify-content-center gap-2 mb-4">
         <span class="wizard-step active" id="dot1">1 · Basics</span>
